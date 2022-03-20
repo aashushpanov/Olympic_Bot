@@ -1,12 +1,16 @@
+import asyncio
+
+from loader import dp
+from handlers.users.admin import register_admin
+from handlers.users.student import register_student
 
 
-async def on_startup(dp):
-    pass
+async def main():
+    register_admin(dp)
+    register_student(dp)
+
+    await  dp.start_polling(dp)
 
 
 if __name__ == '__main__':
-    from aiogram import executor
-    from handlers import dp
-
-    executor.start_polling(dp, on_startup=on_startup)
-
+    asyncio.run(main())
