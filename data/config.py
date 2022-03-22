@@ -11,6 +11,7 @@ DATABASE = str(os.getenv("DATABASE"))
 USER = str(os.getenv("USER"))
 PASSWORD = str(os.getenv("PASSWORD"))
 PORT = str(os.getenv("PORT"))
+URL = str(os.getenv("URL"))
 
 
 

@@ -1,5 +1,4 @@
-from loader import dp
-from registration import register_registration
+from .registration import register_registration
 
 
 def register_user_handlers(dp):
