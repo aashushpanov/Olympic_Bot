@@ -2,7 +2,7 @@ import asyncio
 
 from loader import dp
 from handlers.users.admin import register_admin
-from handlers.users.student import register_student
+from handlers.users.user import register_student
 from states.user import register_user_handlers
 
 
