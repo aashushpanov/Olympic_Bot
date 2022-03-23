@@ -13,5 +13,7 @@ PASSWORD = str(os.getenv("PASSWORD"))
 PORT = str(os.getenv("PORT"))
 URL = str(os.getenv("URL"))
 
+ADMIN_GROUP_ID = str(os.getenv("ADMIN_GROUP_ID"))
+
 
 
