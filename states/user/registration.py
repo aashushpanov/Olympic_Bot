@@ -1,8 +1,7 @@
-from mailbox import Message
-
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.dispatcher.filters import ChatTypeFilter
 
 from utils.db.add import add_user
 
@@ -17,7 +16,7 @@ class Registration(StatesGroup):
 
 
 def register_registration(dp: Dispatcher):
-	dp.register_message_handler(start, commands=["регистрация"], state='*')
+	dp.register_message_handler(start, commands=["registration"], state='*', chat_type=types.ChatType.PRIVATE)
 	dp.register_message_handler(get_f_name, state=Registration.get_f_name)
 	dp.register_message_handler(get_l_name, state=Registration.get_l_name)
 	dp.register_message_handler(get_grade, state=Registration.get_grade)
@@ -51,5 +50,5 @@ async def get_l_name(message: types.Message, state: FSMContext):
 async def get_grade(message: types.Message, state: FSMContext):
 	await state.update_data(grade=message.text)
 	user = await state.get_data()
-	add_user(message.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'))
+	await add_user(message.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'))
 	await message.answer("Регистрация завершена")

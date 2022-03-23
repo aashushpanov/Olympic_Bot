@@ -1,12 +1,25 @@
 from aiogram import Dispatcher
+from aiogram import types
+
+from loader import bot
+from utils.db.add import get_admin_access
+from utils.db.get import get_access
 
 
-def register_set_admin(dp:Dispatcher):
-	dp.register_message_handler()
+def set_admin_handlers(dp: Dispatcher):
+    dp.register_message_handler(set_admin, commands=['registration'], chat_type=types.ChatType.GROUP,
+                                is_chat_admin=True)
+    dp.register_message_handler(rejected, commands=['registration'], chat_type=types.ChatType.GROUP)
 
 
+async def set_admin(message: types.Message):
+    status = await get_access(message.from_user.id)
+    if not status:
+        await get_admin_access(message.from_user.id)
+    await bot.send_message(message.from_user.id, "Вы администратор")
+    await message.delete()
 
 
-
-
-
+async def rejected(message: types.Message):
+    await bot.send_message(message.from_user.id, "У вас не достаточно прав")
+    await message.delete()
