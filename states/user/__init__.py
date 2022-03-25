@@ -1,5 +1,6 @@
-from .registration import register_registration
-
-
+# from .registration import register_registration
+#
+#
 def register_user_handlers(dp):
-    register_registration(dp)
+    pass
+#     register_registration(dp)

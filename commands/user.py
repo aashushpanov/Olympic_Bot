@@ -4,6 +4,7 @@ from aiogram.types import BotCommand
 
 async def set_user_commands(bot: Bot):
     commands = [
-        BotCommand(command="/registration", description="Регистрация в системе")
+        BotCommand(command="/registration", description="Регистрация в системе"),
+        BotCommand(command="/menu", description="Меню")
     ]
     await bot.set_my_commands(commands)
