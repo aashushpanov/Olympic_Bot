@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from handlers.tree_menu import MenuNode, move
+from handlers.MenuNode import MenuNode, move
 
 
 def tree_menu_keyboard(menu_node: MenuNode):

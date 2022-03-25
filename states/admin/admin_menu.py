@@ -1,34 +1,36 @@
-from handlers.tree_menu import MenuNode
+from handlers.MenuNode import MenuNode
 
 
-def set_admin_menu():
-    admin_menu = MenuNode()
+def set_admin_menu(main_node):
+    admin_menu = MenuNode("Меню администратора")
+    if main_node:
+        main_node.set_child(admin_menu)
 
     admin_menu.set_childs([
-        MenuNode('option 1'),
-        MenuNode('option 2'),
-        MenuNode('option 3')
+        MenuNode('admin_0'),
+        MenuNode('admin_1'),
+        MenuNode('admin_2')
     ])
 
     admin_menu.child(child_id='0_0').set_childs([
-        MenuNode('option 4'),
-        MenuNode('option 5'),
-        MenuNode('option 6')
+        MenuNode('admin_0_0'),
+        MenuNode('admin_0_1'),
+        MenuNode('admin_0_1')
     ])
 
     admin_menu.child(child_id='0_1').set_childs([
-        MenuNode('option 7'),
-        MenuNode('option 8'),
-        MenuNode('option 9')
+        MenuNode('admin_1_0'),
+        MenuNode('admin_1_1'),
+        MenuNode('admin_1_2')
     ])
 
     admin_menu.child(child_id='0_2').set_childs([
-        MenuNode('option 10'),
-        MenuNode('option 11'),
-        MenuNode('option 12')
+        MenuNode('admin_2_0'),
+        MenuNode('admin_2_1'),
+        MenuNode('admin_2_2')
     ])
 
-    all_childs = admin_menu.all_childs()
+    # all_childs = admin_menu.all_childs()
 
-    return admin_menu, all_childs
+    return admin_menu
 

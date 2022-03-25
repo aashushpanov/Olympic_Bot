@@ -4,8 +4,8 @@ move = CallbackData('id', 'action', 'node')
 
 
 class MenuNode:
-    def __init__(self, text: str = None, callback=None, parent=None):
-        self._id = '0'
+    def __init__(self, text: str = None, callback=None, parent=None, id=None):
+        self._id = id or '0'
         self._childs = []
         self._parent = parent
         self.text = text
