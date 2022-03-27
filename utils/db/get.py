@@ -15,3 +15,11 @@ async def is_exist(user_id):
 		cur.execute(sql, [user_id])
 		result = cur.fetchone()
 		return 1 if result else 0
+
+
+async def get_olympiad_status(user_id, status):
+	with database() as (cur, conn):
+		sql = "SELECT olympiade FROM olympiade_status WHERE user = %s AND status = %s"
+		cur.execute(sql, [user_id, status])
+		result = cur.fetchall()
+		return result

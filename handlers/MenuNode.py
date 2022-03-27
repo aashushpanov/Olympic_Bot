@@ -5,10 +5,10 @@ move = CallbackData('id', 'action', 'node')
 
 class MenuNode:
     def __init__(self, text: str = None, callback=None, parent=None, id=None):
-        self._id = id or '0'
+        self._id = id or 'admin'
         self._childs = []
         self._parent = parent
-        self.text = text
+        self._text = text
         self._callback = callback
 
     @property
@@ -22,6 +22,10 @@ class MenuNode:
     @property
     def id(self):
         return self._id if self._id else 0
+
+    @property
+    def text(self):
+        return self._text
 
     @property
     def childs_data(self):
@@ -71,11 +75,23 @@ class MenuNode:
         return self._parent
 
 
-class CancelNode:
-    def __init__(self, parent):
-        self.text = "Назад"
-        self._callback = move.new(action='u', node=parent)
+class NodeGenerator(MenuNode):
+    def __init__(self, text, func, reg_nodes=[], parent=None, callback=None):
+        self._id = 'gen'
+        self._callback = callback
+        self._text = text
+        self._childs = func
+        self._reg_nodes = reg_nodes
+        self._parent = parent
 
-    @property
-    def callback(self):
-        return self._callback
+    def __iter__(self):
+        return self
+
+    def __next__(self, *kwargs):
+        for child in self._reg_nodes:
+            yield child.id, child.text, child.callback
+        for child in self._childs(kwargs):
+            yield child.id, child.text, child.callback
+
+    def append(self, node):
+        self._reg_nodes.append(node)
