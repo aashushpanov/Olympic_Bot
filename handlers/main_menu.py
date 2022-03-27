@@ -3,16 +3,18 @@ from aiogram import types
 
 from handlers.MenuNode import move
 from states.admin.admin_menu import set_admin_menu
-from states.user.user_menu import set_user_menu
+from states.user.user_menu import set_user_menu, get_olympiad_registrations
 from keyboards.tree_menu_keyboard import tree_menu_keyboard
 from utils.db.get import get_access
 from .MenuNode import MenuNode
 
-admin_menu = MenuNode()
-set_user_menu(admin_menu)
-set_admin_menu(admin_menu)
-all_childs = admin_menu.all_childs()
-user_menu = set_user_menu()
+main_menu = MenuNode()
+set_user_menu(main_menu)
+set_admin_menu(main_menu)
+user_menu = set_user_menu(root_id='user')
+all_childs = main_menu.all_childs()
+all_childs.update(user_menu.all_childs())
+pass
 
 
 def menu_handlers(dp: Dispatcher):
@@ -21,8 +23,8 @@ def menu_handlers(dp: Dispatcher):
 
 
 async def show_menu(message: types.Message):
-	if get_access(message.from_user.id):
-		menu = admin_menu
+	if await get_access(user_id=message.from_user.id):
+		menu = main_menu
 	else:
 		menu = user_menu
 	await list_menu(message, menu=menu)
@@ -31,7 +33,7 @@ async def show_menu(message: types.Message):
 async def list_menu(callback: types.CallbackQuery | types.Message, callback_data: dict = None, menu=None):
 	match callback:
 		case types.Message():
-			markup = tree_menu_keyboard(menu)
+			markup = await tree_menu_keyboard(menu)
 			await callback.answer('Меню', reply_markup=markup)
 		case types.CallbackQuery():
 			if callback_data.get('action') == "d":
@@ -40,5 +42,7 @@ async def list_menu(callback: types.CallbackQuery | types.Message, callback_data
 				next_node = all_childs.get(callback_data.get('node')).parent
 			else:
 				raise KeyError
-			markup = tree_menu_keyboard(next_node)
+			markup = await tree_menu_keyboard(next_node, callback)
 			await callback.message.edit_reply_markup(markup)
+
+
