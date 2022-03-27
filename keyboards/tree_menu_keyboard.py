@@ -2,7 +2,6 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, C
 from aiogram.utils.callback_data import CallbackData
 
 from handlers.MenuNode import MenuNode, move
-from utils.db.get import get_access
 
 
 async def tree_menu_keyboard(menu_node: MenuNode, callback: CallbackQuery = None):

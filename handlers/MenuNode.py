@@ -27,6 +27,10 @@ class MenuNode:
     def text(self):
         return self._text
 
+    @property
+    def text(self):
+        return self._text
+
     async def childs_data(self, **kwargs):
         for child in self._childs:
             yield child.id, child.text, child.callback

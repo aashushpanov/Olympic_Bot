@@ -3,7 +3,7 @@ from aiogram import types
 
 from handlers.MenuNode import move
 from states.admin.admin_menu import set_admin_menu
-from states.user.user_menu import set_user_menu, get_olympiad_registrations
+from states.user.user_menu import set_user_menu
 from keyboards.tree_menu_keyboard import tree_menu_keyboard
 from utils.db.get import get_access
 from .MenuNode import MenuNode
@@ -14,7 +14,6 @@ set_admin_menu(main_menu)
 user_menu = set_user_menu(root_id='user')
 all_childs = main_menu.all_childs()
 all_childs.update(user_menu.all_childs())
-pass
 
 
 def menu_handlers(dp: Dispatcher):
