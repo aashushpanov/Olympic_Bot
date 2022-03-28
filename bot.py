@@ -10,11 +10,12 @@ from commands.user import set_user_commands
 
 
 async def main():
+    register_filters(dp)
     register_admin(dp)
     register_student(dp)
     register_handlers(dp)
     register_user_handlers(dp)
-    register_filters(dp)
+
     await set_user_commands(bot)
 
     await dp.start_polling(dp)

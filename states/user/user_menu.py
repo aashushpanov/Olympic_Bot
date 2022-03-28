@@ -7,6 +7,7 @@ from utils.db.get import get_olympiad_status
 
 call = CallbackData('2', 'data')
 
+
 async def get_olympiad_registrations(node, **kwargs):
     user_id = kwargs.get('callback').message.chat.id
     olympiads = await get_olympiad_status(user_id=user_id, status='reg')
@@ -53,4 +54,3 @@ def set_user_menu(main_node=None, root_id='0.1'):
     # all_childs = user_menu.all_childs()
 
     return user_menu
-

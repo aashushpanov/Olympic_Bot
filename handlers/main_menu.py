@@ -1,5 +1,7 @@
+from datetime import datetime
 from aiogram import Dispatcher
 from aiogram import types
+
 
 from handlers.MenuNode import move
 from states.admin.admin_menu import set_admin_menu
@@ -7,6 +9,7 @@ from states.user.user_menu import set_user_menu
 from keyboards.tree_menu_keyboard import tree_menu_keyboard
 from utils.db.get import get_access
 from .MenuNode import MenuNode
+from filters.filters import TimeAccess
 
 main_menu = MenuNode()
 set_user_menu(main_menu)
@@ -18,7 +21,7 @@ all_childs.update(user_menu.all_childs())
 
 def menu_handlers(dp: Dispatcher):
 	dp.register_message_handler(show_menu, commands=['menu'], chat_type=types.ChatType.PRIVATE)
-	dp.register_callback_query_handler(list_menu, move.filter())
+	dp.register_callback_query_handler(list_menu, move.filter(), TimeAccess())
 
 
 async def show_menu(message: types.Message):
