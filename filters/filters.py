@@ -2,7 +2,7 @@ import datetime as dt
 from aiogram import types
 from aiogram.dispatcher.filters import Filter
 
-from utils.db.get import get_access
+from utils.db.get import get_access, is_exist
 
 
 class IsAdmin(Filter):
@@ -17,3 +17,19 @@ class TimeAccess(Filter):
         delta = abs(dt.datetime.now() - callback.message.date)
         access = 15 * 60 - delta.seconds
         return 0 if access < 0 else 1
+
+
+class IsExist(Filter):
+    key = 'is_exist'
+
+    def __init__(self, target=1):
+        self.target = target
+
+    async def check(self, data: types.CallbackQuery | types.Message):
+        result = 0
+        match data:
+            case types.CallbackQuery():
+                result = await is_exist(data.message.chat.id)
+            case types.Message():
+                result = await is_exist(data.from_user.id)
+        return result == self.target

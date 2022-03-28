@@ -2,6 +2,7 @@ import asyncio
 
 from filters import register_filters
 from handlers import register_handlers
+from keyboards.tree_menu_keyboard import keyboard_handlers
 from loader import dp, bot
 from handlers.users.admin import register_admin
 from handlers.users.user import register_student
@@ -15,7 +16,7 @@ async def main():
     register_student(dp)
     register_handlers(dp)
     register_user_handlers(dp)
-
+    keyboard_handlers(dp)
     await set_user_commands(bot)
 
     await dp.start_polling(dp)

@@ -22,12 +22,12 @@ def set_user_menu(main_node=None, root_id='0.1'):
         main_node.set_child(user_menu)
 
     user_menu.set_childs([
-        MenuNode('Регистрация'),
+        MenuNode('Личные данные'),
         MenuNode('Олимпиады'),
         MenuNode('user_2')
     ])
 
-    user_menu.child(text='Регистрация').set_childs([
+    user_menu.child(text='Личные данные').set_childs([
         MenuNode('user_0_0'),
         MenuNode('user_0_1'),
         MenuNode('user_0_1')
