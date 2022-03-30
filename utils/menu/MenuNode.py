@@ -1,31 +1,32 @@
 from aiogram.utils.callback_data import CallbackData
 
-move = CallbackData('id', 'action', 'node', 'data')
+move = CallbackData('move', 'action', 'node', 'data')
 
 
-class MenuNode:
-    def __init__(self, text: str = None, callback=None, parent=None, id=None):
-        self._id = id or 'admin'
+class BaseNode:
+    def __init__(self, id: str, parent, callback):
+        self._id = id
         self._childs = []
         self._parent = parent
-        self._text = text
         self._callback = callback
-
-    @property
-    def callback(self):
-        return self._callback
-
-    @property
-    def parent(self):
-        return self._parent
 
     @property
     def id(self):
         return self._id if self._id else 0
 
     @property
-    def text(self):
-        return self._text
+    def parent(self):
+        return self._parent
+
+    @property
+    def callback(self):
+        return self._callback
+
+
+class MenuNode(BaseNode):
+    def __init__(self, text: str = None, callback=None, parent=None, id=None):
+        super().__init__(id=id or 'admin', parent=parent, callback=callback)
+        self._text = text
 
     @property
     def text(self):
@@ -71,22 +72,16 @@ class MenuNode:
         for child in childs:
             self.set_child(child)
 
-    def __next__(self, child_id):
-        return self._childs[child_id]
-
     def prev(self):
         return self._parent
 
 
 class NodeGenerator(MenuNode):
     def __init__(self, text, func, reg_nodes=[], parent=None, callback=None):
-        self._id = 'gen'
-        self._callback = callback
+        super().__init__(id='gen', parent=parent, callback=callback)
         self._text = text
-        self._childs = []
         self._func = func
         self._reg_nodes = reg_nodes
-        self._parent = parent
         self._sub_childs = []
         self._blind_node = None
 
@@ -132,17 +127,10 @@ class NodeGenerator(MenuNode):
 
 class BlindNode(MenuNode):
     def __init__(self, node_id, parent):
-        self._id = node_id
-        self._childs = []
-        self._parent = parent
-        self._callback = None
+        super().__init__(id=node_id, parent=parent, callback=None)
 
     def childs(self):
         result = {}
         for child in self._childs:
             result.update({child.id: child})
         return result
-
-    @property
-    def id(self):
-        return self._id

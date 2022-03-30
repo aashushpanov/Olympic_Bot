@@ -1,10 +1,10 @@
 from .connect import database
 
 
-async def add_user(user_id, f_name, l_name, grad=None):
+async def add_user(user_id, f_name, l_name, grad=None, interest: set = None):
 	with database() as (cur, conn):
-		sql = "INSERT INTO users (id, first_name, last_name, grad, is_admin) VALUES (%s, %s, %s, %s, %s)"
-		cur.execute(sql, [user_id, f_name, l_name, grad, 0])
+		sql = "INSERT INTO users (id, first_name, last_name, grad, is_admin, interest) VALUES (%s, %s, %s, %s, %s, %s)"
+		cur.execute(sql, [user_id, f_name, l_name, grad, 0, list(interest)])
 		conn.commit()
 
 

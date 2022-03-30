@@ -1,5 +1,5 @@
-from handlers.main_menu import menu_handlers
+from handlers.menus import main_menu_handlers
 
 
 def register_handlers(dp):
-    menu_handlers(dp)
+    main_menu_handlers(dp)

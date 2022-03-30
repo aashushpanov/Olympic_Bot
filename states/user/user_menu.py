@@ -1,11 +1,12 @@
 from aiogram.utils.callback_data import CallbackData
 
-from handlers.MenuNode import MenuNode, move
-from handlers.MenuNode import NodeGenerator
+from utils.menu.MenuNode import MenuNode, move
+from utils.menu.MenuNode import NodeGenerator
 from utils.db.get import get_olympiad_status
 
-
 call = CallbackData('2', 'data')
+add_interest_call = CallbackData('add_olympiad', 'data')
+confirm = CallbackData('confirm')
 
 
 async def get_olympiad_registrations(node, **kwargs):
@@ -17,6 +18,8 @@ async def get_olympiad_registrations(node, **kwargs):
 
 
 def set_user_menu(main_node=None, root_id='0.1'):
+    # главное меню
+    # -------------------------------------------------------
     user_menu = MenuNode(text="Меню ученика", id=root_id)
     if main_node:
         main_node.set_child(user_menu)
@@ -50,7 +53,40 @@ def set_user_menu(main_node=None, root_id='0.1'):
         MenuNode('user_2_1'),
         MenuNode('user_2_2')
     ])
-
-    # all_childs = user_menu.all_childs()
-
     return user_menu
+
+def set_interest_menu():
+    # меню выбора олимпиад
+    # --------------------------------------------------------------------------------------------------------
+    olympiad_interest_menu = MenuNode(text='Выбор предметов', id='o_interest')
+    olympiad_interest_menu.set_childs([
+        MenuNode(text='Естественные науки'),
+        MenuNode(text='Гуманитарные науки'),
+        MenuNode(text='Общественные науки'),
+        MenuNode(text='Математика', callback=add_interest_call.new(data='math')),
+        MenuNode(text='Готово', callback=confirm.new())
+    ])
+
+    olympiad_interest_menu.child(text='Естественные науки').set_childs([
+        MenuNode(text='Физика', callback=add_interest_call.new(data='phys')),
+        MenuNode(text='Химия', callback=add_interest_call.new(data='chem')),
+        MenuNode(text='Биология', callback=add_interest_call.new(data='bio')),
+        MenuNode(text='География', callback=add_interest_call.new(data='geo')),
+        MenuNode(text='Экология', callback=add_interest_call.new(data='ecol'))
+    ])
+
+    olympiad_interest_menu.child(text='Гуманитарные науки').set_childs([
+        MenuNode(text='Русский язык', callback=add_interest_call.new(data='rus')),
+        MenuNode(text='Английский язык', callback=add_interest_call.new(data='eng')),
+        MenuNode(text='Испанский язык', callback=add_interest_call.new(data='spain')),
+        MenuNode(text='Французский язык', callback=add_interest_call.new(data='french')),
+        MenuNode(text='Лингвистика', callback=add_interest_call.new(data='ling'))
+    ])
+
+    olympiad_interest_menu.child(text='Общественные науки').set_childs([
+        MenuNode(text='Обществознание', callback=add_interest_call.new(data='social')),
+        MenuNode(text='Право', callback=add_interest_call.new(data='low')),
+        MenuNode(text='Экономика', callback=add_interest_call.new(data='econ')),
+    ])
+
+    return olympiad_interest_menu

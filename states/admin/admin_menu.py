@@ -1,4 +1,4 @@
-from handlers.MenuNode import MenuNode
+from utils.menu.MenuNode import MenuNode
 
 
 def set_admin_menu(main_node):

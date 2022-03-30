@@ -1,8 +1,8 @@
 from aiogram import Dispatcher
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ReplyKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-from handlers.MenuNode import MenuNode, move
+from utils.menu.MenuNode import MenuNode, move
 
 delete_keyboard_call = CallbackData('del')
 
@@ -35,3 +35,10 @@ def yes_no_keyboard(callback):
     markup.insert(InlineKeyboardButton(text='Нет', callback_data=delete_keyboard_call.new()))
 
     return markup
+
+
+def grad_keyboard():
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    buttons = ['5', '6', '7', '8', '9', '10', '11']
+    keyboard.add(*buttons)
+    return keyboard

@@ -23,3 +23,11 @@ async def get_olympiad_status(user_id, status):
         cur.execute(sql, [user_id, status])
         result = cur.fetchall()
         return result
+
+
+async def get_users():
+    with database() as (cur, conn):
+        sql = "SELECT (id, first_name, last_name)  FROM users"
+        cur.execute(sql)
+        result = cur.fetchall()
+        return result
