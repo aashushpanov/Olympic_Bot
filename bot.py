@@ -9,9 +9,9 @@ from loader import dp, bot
 from handlers.users.admin import register_admin
 from handlers.users.user import register_student
 from notify.example import notify
+from states.admin import register_admin_handlers
 from states.user import register_user_handlers
 from commands.user import set_user_commands
-from utils.db.get import get_users
 
 
 async def setup(dp: Dispatcher):
@@ -20,6 +20,7 @@ async def setup(dp: Dispatcher):
     register_student(dp)
     register_handlers(dp)
     register_user_handlers(dp)
+    register_admin_handlers(dp)
     keyboard_handlers(dp)
     await set_user_commands(bot)
 
