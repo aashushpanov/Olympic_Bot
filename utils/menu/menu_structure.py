@@ -20,6 +20,7 @@ all_childs.update(interest_menu.all_childs())
 
 
 async def list_menu(callback: types.CallbackQuery | types.Message, callback_data: dict = None, menu=None, title=''):
+    global all_childs
     match callback:
         case types.Message():
             markup = await tree_menu_keyboard(menu)
@@ -33,3 +34,5 @@ async def list_menu(callback: types.CallbackQuery | types.Message, callback_data
                 raise KeyError
             markup = await tree_menu_keyboard(next_node, callback)
             await callback.message.edit_reply_markup(markup)
+            
+

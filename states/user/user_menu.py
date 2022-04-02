@@ -1,7 +1,7 @@
 from aiogram.utils.callback_data import CallbackData
 
-from utils.menu.MenuNode import MenuNode, move
-from utils.menu.MenuNode import NodeGenerator
+from utils.menu.MenuNode import MenuNode, move, NodeGenerator
+from utils.menu.menu_structure import all_childs
 from utils.db.get import get_olympiad_status
 
 call = CallbackData('2', 'data')
@@ -55,10 +55,14 @@ def set_user_menu(main_node=None, root_id='0.1'):
     ])
     return user_menu
 
-def set_interest_menu():
+
+def set_interest_menu(root_node=None):
     # меню выбора олимпиад
     # --------------------------------------------------------------------------------------------------------
-    olympiad_interest_menu = MenuNode(text='Выбор предметов', id='o_interest')
+    if root_node is None:
+        olympiad_interest_menu = MenuNode(text='Выбор предметов', id='o_interest')
+    else:
+        olympiad_interest_menu = root_node
     olympiad_interest_menu.set_childs([
         MenuNode(text='Естественные науки'),
         MenuNode(text='Гуманитарные науки'),
@@ -90,3 +94,11 @@ def set_interest_menu():
     ])
 
     return olympiad_interest_menu
+
+
+def delete_interest_menu(all_childs):
+    for key, value in all_childs:
+        if key.startwith('o_interest_'):
+            del value
+            all_childs.pop(key)
+
