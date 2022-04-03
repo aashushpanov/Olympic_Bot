@@ -1,8 +1,7 @@
 from aiogram.utils.callback_data import CallbackData
 
 from utils.menu.MenuNode import MenuNode, move, NodeGenerator
-from utils.menu.menu_structure import all_childs
-from utils.db.get import get_olympiad_status
+from utils.db.get import get_olympiad_status, get_subjects
 
 call = CallbackData('2', 'data')
 add_interest_call = CallbackData('add_olympiad', 'data')
@@ -63,42 +62,22 @@ def set_interest_menu(root_node=None):
         olympiad_interest_menu = MenuNode(text='Выбор предметов', id='o_interest')
     else:
         olympiad_interest_menu = root_node
-    olympiad_interest_menu.set_childs([
-        MenuNode(text='Естественные науки'),
-        MenuNode(text='Гуманитарные науки'),
-        MenuNode(text='Общественные науки'),
-        MenuNode(text='Математика', callback=add_interest_call.new(data='math')),
-        MenuNode(text='Готово', callback=confirm.new())
-    ])
 
-    olympiad_interest_menu.child(text='Естественные науки').set_childs([
-        MenuNode(text='Физика', callback=add_interest_call.new(data='phys')),
-        MenuNode(text='Химия', callback=add_interest_call.new(data='chem')),
-        MenuNode(text='Биология', callback=add_interest_call.new(data='bio')),
-        MenuNode(text='География', callback=add_interest_call.new(data='geo')),
-        MenuNode(text='Экология', callback=add_interest_call.new(data='ecol'))
-    ])
+    subjects = get_subjects()
+    for _, subject in subjects.iterrows():
+        if subject['section'] == 'Базовый':
+            olympiad_interest_menu.set_child(MenuNode(text=subject['subject_name'],
+                                                      callback=add_interest_call.new(data=subject['code'])))
+    for section in subjects[subjects['section'].notna()].groupby(['section']).groups.keys():
+        if section != 'Базовый':
+            olympiad_interest_menu.set_child(MenuNode(text=section))
+    olympiad_interest_menu.set_child(MenuNode(text='Готово', callback=confirm.new()))
 
-    olympiad_interest_menu.child(text='Гуманитарные науки').set_childs([
-        MenuNode(text='Русский язык', callback=add_interest_call.new(data='rus')),
-        MenuNode(text='Английский язык', callback=add_interest_call.new(data='eng')),
-        MenuNode(text='Испанский язык', callback=add_interest_call.new(data='spain')),
-        MenuNode(text='Французский язык', callback=add_interest_call.new(data='french')),
-        MenuNode(text='Лингвистика', callback=add_interest_call.new(data='ling'))
-    ])
-
-    olympiad_interest_menu.child(text='Общественные науки').set_childs([
-        MenuNode(text='Обществознание', callback=add_interest_call.new(data='social')),
-        MenuNode(text='Право', callback=add_interest_call.new(data='low')),
-        MenuNode(text='Экономика', callback=add_interest_call.new(data='econ')),
-    ])
+    for _, child in olympiad_interest_menu.childs().items():
+        section_subjects = subjects[subjects['section'] == child.text]
+        for _, subject in section_subjects.iterrows():
+            child.set_child(MenuNode(text=subject['subject_name'],
+                                     callback=add_interest_call.new(data=subject['code'])))
 
     return olympiad_interest_menu
-
-
-def delete_interest_menu(all_childs):
-    for key, value in all_childs:
-        if key.startwith('o_interest_'):
-            del value
-            all_childs.pop(key)
 

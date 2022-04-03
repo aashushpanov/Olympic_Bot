@@ -1,4 +1,4 @@
-from handlers.menus import main_menu_handlers
+from .menus import main_menu_handlers
 
 
 def register_handlers(dp):

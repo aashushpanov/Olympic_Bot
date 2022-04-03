@@ -7,7 +7,7 @@ from aiogram.utils.callback_data import CallbackData
 from filters import TimeAccess
 from utils.menu.MenuNode import move
 from keyboards.keyboards import grad_keyboard
-from states.user.user_menu import add_interest_call, confirm
+from utils.menu.user_menu import add_interest_call, confirm
 from utils.db.add import add_user
 from utils.db.get import is_exist
 from utils.menu.menu_structure import list_menu, interest_menu

@@ -3,24 +3,24 @@ import asyncio
 from aiogram import executor, Dispatcher
 
 from filters import register_filters
-from handlers import register_handlers
 from keyboards.keyboards import keyboard_handlers
 from loader import dp, bot
-from handlers.users.admin import register_admin
-from handlers.users.user import register_student
+from handlers.users.admin import register_admin_handlers
+from handlers.users.user import register_student_handlers
 from notify.example import notify
-from states.admin import register_admin_handlers
-from states.user import register_user_handlers
+from states.admin import register_admin_states
+from states.user import register_user_states
 from commands.user import set_user_commands
+from handlers import register_handlers
 
 
 async def setup(dp: Dispatcher):
     register_filters(dp)
-    register_admin(dp)
-    register_student(dp)
-    register_handlers(dp)
-    register_user_handlers(dp)
+    register_admin_states(dp)
+    register_user_states(dp)
+    register_student_handlers(dp)
     register_admin_handlers(dp)
+    register_handlers(dp)
     keyboard_handlers(dp)
     await set_user_commands(bot)
 

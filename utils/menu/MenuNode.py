@@ -75,6 +75,14 @@ class MenuNode(BaseNode):
     def prev(self):
         return self._parent
 
+    def clean_childs(self):
+        if self._childs:
+            for child in self._childs:
+                child.clean_childs()
+                self._childs.clear()
+        else:
+            self._parent = None
+
 
 class NodeGenerator(MenuNode):
     def __init__(self, text, func, reg_nodes=[], parent=None, callback=None):

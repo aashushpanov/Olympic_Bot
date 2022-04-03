@@ -1,5 +1,7 @@
 from .connect import database
 
+import pandas as pd
+
 
 async def get_access(user_id):
     with database() as (cur, conn):
@@ -31,3 +33,23 @@ async def get_users():
         cur.execute(sql)
         result = cur.fetchall()
         return result
+
+
+def get_subjects():
+    with database() as (cur, conn):
+        sql = "SELECT code, subject_name, section FROM subjects"
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['code', 'subject_name', 'section'])
+        return data
+
+
+def get_olympiads():
+    with database() as (cur, conn):
+        sql = "SELECT code, ol_name, subject_code, stage, start_date, finish_date, active, grade FROM olympiads"
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['code', 'ol_name', 'subject_code',
+                                          'stage', 'start_date', 'finish_date', 'active', 'grade'])
+        return data
+
