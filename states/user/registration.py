@@ -92,3 +92,4 @@ async def get_interest(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer("Регистрация завершена", reply_markup=types.ReplyKeyboardRemove())
     await callback.answer('')
     await state.finish()
+

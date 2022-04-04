@@ -49,7 +49,7 @@ def get_olympiads():
         sql = "SELECT code, ol_name, subject_code, stage, start_date, finish_date, active, grade FROM olympiads"
         cur.execute(sql)
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['code', 'ol_name', 'subject_code',
+        data = pd.DataFrame(res, columns=['code', 'name', 'subject_code',
                                           'stage', 'start_date', 'finish_date', 'active', 'grade'])
         return data
 

@@ -1,5 +1,7 @@
 import os
 
+import datetime as dt
+
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -9,32 +11,37 @@ from pandas import DataFrame
 
 from filters import IsAdmin, TimeAccess
 from utils.db.get import get_subjects, get_olympiads
-from utils.menu.admin_menu import set_olympiads_call, set_subjects_call
+from utils.menu.admin_menu import set_olympiads_call, set_subjects_call, set_olympiads_dates_call
 from utils.menu.menu_structure import reset_interest_menu
-from utils.db.add import add_olympiads, add_subjects
+from utils.db.add import add_olympiads, add_subjects, add_dates
+
+# stages = {'школьный': 1, 'муниципальный': 2, 'региональный': 3, 'заключительный': 4, 'пригласительный': 0,
+#           'отборочный': 1, ''}
 
 
 class SetOlympiads(StatesGroup):
-    load_file = State()
-
-
-class SetSubjects(StatesGroup):
-    load_file = State()
+    load_olympiads_file = State()
+    load_subjects_file = State()
+    load_olympiads_dates_file = State()
 
 
 def set_olympiads_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(start, set_subjects_call.filter(), IsAdmin(), TimeAccess(), state='*')
-    dp.register_message_handler(load_subj_file, state=SetSubjects.load_file, content_types=types.ContentTypes.DOCUMENT)
+    dp.register_message_handler(load_subj_file, state=SetOlympiads.load_subjects_file, content_types=types.ContentTypes.DOCUMENT)
     dp.register_callback_query_handler(start, set_olympiads_call.filter(), IsAdmin(), TimeAccess(), state='*')
-    dp.register_message_handler(load_ol_file, state=SetOlympiads.load_file, content_types=types.ContentTypes.DOCUMENT)
+    dp.register_message_handler(load_ol_file, state=SetOlympiads.load_olympiads_file, content_types=types.ContentTypes.DOCUMENT)
+    dp.register_callback_query_handler(start, set_olympiads_dates_call.filter(), IsAdmin(), TimeAccess(), state='*')
+    dp.register_message_handler(load_dates_file, state=SetOlympiads.load_olympiads_dates_file, content_types=types.ContentTypes.DOCUMENT)
 
 
 async def start(callback: types.CallbackQuery):
     await callback.message.answer('Загрузите файл')
     if callback.data == 'set_subjects':
-        await SetSubjects.load_file.set()
-    else:
-        await SetOlympiads.load_file.set()
+        await SetOlympiads.load_subjects_file.set()
+    if callback.data == 'set_olympiads':
+        await SetOlympiads.load_olympiads_file.set()
+    if callback.data == 'set_olympiads_dates':
+        await SetOlympiads.load_olympiads_dates_file.set()
 
 
 async def read_file(file_path, document):
@@ -125,3 +132,61 @@ def parsing_subjects(subjects):
         else:
             subjects_new = pd.concat([subjects_new, subject], axis=0)
     return subjects_new, subjects_exists
+
+
+async def load_dates_file(message: types.Message, state: FSMContext):
+    if document := message.document:
+        file_path = 'data/files/from_admin/dates_data.csv'
+        dates = await read_file(file_path, document)
+        dates_new, dates_exists, dates_duplicate = parsing_dates(dates)
+        res = add_dates(dates_new)
+        if not dates_duplicate.empty:
+            await message.answer('Даты по этим предметам не однозначны:\n {}'
+                                 .format('\n'.join(olympiads_to_str(dates_duplicate))))
+        if not dates_exists.empty:
+            await message.answer('Даты по этим предметам уже существуют:\n {}'
+                                 .format('\n'.join(olympiads_to_str(dates_exists))))
+        if res and not dates_new.empty:
+            await message.answer('Даты по следующим предметы успешно добавлены:\n {}'
+                                 .format('\n'.join(olympiads_to_str(dates_new))))
+        else:
+            await message.answer('Ничего не добавлено')
+        os.remove(file_path)
+    await state.finish()
+
+
+def parsing_dates(dates_load: pd.DataFrame):
+    olympiads = get_olympiads()
+    columns = ['code', 'name', 'grade', 'start_date', 'finish_date', 'stage', 'active']
+    dates = pd.DataFrame(columns=columns)
+    dates_new = pd.DataFrame(columns=columns)
+    dates_exists = pd.DataFrame(columns=columns)
+    dates_duplicate = pd.DataFrame(columns=columns)
+    for _, row in dates_load.iterrows():
+        l_grade = row['мл. класс']
+        h_grade = row['ст. класс']
+        for grade in range(l_grade, h_grade + 1):
+            code = olympiads[(olympiads['name'] == row['Название']) & (olympiads['grade'] == grade)]['code'].item()
+            start_date = str_to_date(row['дата начала'])
+            finish_date = str_to_date(row['дата окончания'])
+            active = 1 if dt.date.today() < finish_date else 0
+            date = pd.DataFrame([[code, row['Название'], grade, start_date, finish_date, row['этап'], active]],
+                                columns=columns)
+            dates = pd.concat([dates, date], axis=0)
+    for code, group in dates.groupby('code'):
+        if group.shape[0] == 1:
+            if olympiads[olympiads['code'] == code]['active'].item():
+                dates_exists = pd.concat([dates_exists, group])
+            else:
+                dates_new = pd.concat([dates_new, group])
+        else:
+            dates_duplicate = pd.concat([dates_duplicate, group.iloc[[0]]])
+    return dates_new, dates_exists, dates_duplicate
+
+
+def str_to_date(date: str):
+    date_split = date.split('.')
+    date_split.reverse()
+    date_split = list(map(int, date_split))
+    date = dt.date(*date_split)
+    return date
