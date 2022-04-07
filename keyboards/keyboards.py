@@ -15,10 +15,10 @@ async def delete_keyboard(callback: CallbackQuery):
     await callback.message.delete_reply_markup()
 
 
-async def tree_menu_keyboard(menu_node: MenuNode, callback: CallbackQuery = None):
-    markup = InlineKeyboardMarkup()
+async def tree_menu_keyboard(menu_node: MenuNode, callback: CallbackQuery = None, data=None):
+    markup = InlineKeyboardMarkup(row_width=1)
 
-    async for _, text, node_callback in menu_node.childs_data(callback=callback):
+    async for _, text, node_callback in menu_node.childs_data(callback=callback, data=data):
         markup.insert(InlineKeyboardButton(text=text, callback_data=node_callback))
 
     if menu_node.parent:

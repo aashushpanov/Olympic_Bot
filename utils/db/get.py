@@ -19,20 +19,49 @@ async def is_exist(user_id):
         return 1 if result else 0
 
 
-async def get_olympiad_status(user_id, status):
+def get_tracked_olympiads(user_id):
     with database() as (cur, conn):
-        sql = "SELECT olympiad_code FROM olympiad_status WHERE user_id = %s AND status = %s"
+        sql = "SELECT olympiad_code, status, stage, taken_key FROM olympiad_status WHERE user_id = %s"
+        cur.execute(sql, [user_id])
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['olympiad_code', 'status', 'stage', 'taken_key'])
+        return data
+
+
+def get_olympiads_by_status(user_id, status):
+    with database() as (cur, conn):
+        sql = "SELECT olympiad_code, stage, taken_key, done FROM olympiad_status WHERE user_id = %s AND status = %s"
         cur.execute(sql, [user_id, status])
-        result = cur.fetchall()
-        return result
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['olympiad_code', 'stage', 'taken_key', 'done'])
+        return data
 
 
-async def get_users():
+def get_olympiad_status(user_id, code):
     with database() as (cur, conn):
-        sql = "SELECT (id, first_name, last_name)  FROM users"
+        sql = "SELECT status, stage, taken_key, done FROM  olympiad_status WHERE olympiad_code = %s AND user_id = %s"
+        cur.execute(sql, [code, user_id])
+        res = cur.fetchone()
+        data = pd.Series(res, index=['status', 'stage', 'taken_key', 'done'])
+        return data
+
+
+def get_user(user_id):
+    with database() as (cur, conn):
+        sql = "SELECT first_name, last_name, grade, interest FROM users WHERE id = %s"
+        cur.execute(sql, [user_id])
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['first_name', 'last_name', 'grade', 'interest'])
+        return data
+
+
+def get_users():
+    with database() as (cur, conn):
+        sql = "SELECT id, first_name, last_name, grade, interest  FROM users"
         cur.execute(sql)
         result = cur.fetchall()
-        return result
+        data = pd.DataFrame(result, columns=['user_id', 'first_name', 'last_name', 'grade', 'interest'])
+        return data
 
 
 def get_subjects():
@@ -46,10 +75,23 @@ def get_subjects():
 
 def get_olympiads():
     with database() as (cur, conn):
-        sql = "SELECT code, ol_name, subject_code, stage, start_date, finish_date, active, grade FROM olympiads"
+        sql = "SELECT code, ol_name, subject_code, stage, start_date, finish_date, active, grade, key_needed," \
+              " pre_registration FROM olympiads"
         cur.execute(sql)
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['code', 'name', 'subject_code',
-                                          'stage', 'start_date', 'finish_date', 'active', 'grade'])
+        data = pd.DataFrame(res, columns=['code', 'name', 'subject_code', 'stage', 'start_date', 'finish_date',
+                                          'active', 'grade', 'key_needed', 'pre_registration'])
         return data
+
+
+def get_olympiad(code):
+    with database() as (cur, conn):
+        sql = "SELECT ol_name, subject_code, stage, start_date, finish_date, active, grade, key_needed," \
+              " pre_registration FROM olympiads WHERE code = %s"
+        cur.execute(sql, [code])
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['name', 'subject_code', 'stage', 'start_date',
+                                          'finish_date', 'active', 'grade', 'key_needed', 'pre_registration'])
+        return data
+
 

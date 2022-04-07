@@ -85,8 +85,8 @@ class MenuNode(BaseNode):
 
 
 class NodeGenerator(MenuNode):
-    def __init__(self, text, func, reg_nodes=[], parent=None, callback=None):
-        super().__init__(id='gen', parent=parent, callback=callback)
+    def __init__(self, text, func, id=None, reg_nodes=[], parent=None, callback=None):
+        super().__init__(id=id if id else 'gen', parent=parent, callback=callback)
         self._text = text
         self._func = func
         self._reg_nodes = reg_nodes
@@ -106,9 +106,12 @@ class NodeGenerator(MenuNode):
     def append(self, node):
         self._reg_nodes.append(node)
 
-    def add_blind_node(self, node_id):
+    def add_blind_node(self, node_id, type='simple', func=None):
         node_id = self.id + '_' + node_id
-        self._blind_node = BlindNode(node_id, self)
+        if type == 'simple':
+            self._blind_node = BlindNode(node_id, self)
+        if type == 'generator':
+            self._blind_node = NodeGenerator(text='gen', func=func, id=node_id)
         self._blind_node._parent = self
 
     def set_sub_child(self, sub_child):

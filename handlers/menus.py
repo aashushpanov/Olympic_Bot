@@ -12,7 +12,7 @@ from utils.menu.menu_structure import list_menu, main_menu, user_menu
 def main_menu_handlers(dp: Dispatcher):
     dp.register_message_handler(show_main_menu, IsExist(1), commands=['menu'], chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(reg_suggestion, IsExist(0), commands=['menu'], chat_type=types.ChatType.PRIVATE)
-    dp.register_callback_query_handler(list_menu, move.filter(), TimeAccess())
+    dp.register_callback_query_handler(list_menu, move.filter(), TimeAccess(), state='*')
 
 
 async def reg_suggestion(message: types.Message):

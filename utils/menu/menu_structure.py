@@ -45,5 +45,6 @@ async def list_menu(callback: types.CallbackQuery | types.Message, callback_data
                 next_node = menu_childs.get(callback_data.get('node')).parent
             else:
                 raise KeyError
-            markup = await tree_menu_keyboard(next_node, callback)
+            data = callback_data.get('data')
+            markup = await tree_menu_keyboard(next_node, callback, data)
             await callback.message.edit_reply_markup(markup)

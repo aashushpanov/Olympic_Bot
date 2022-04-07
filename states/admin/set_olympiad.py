@@ -7,7 +7,6 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 import pandas as pd
-from pandas import DataFrame
 
 from filters import IsAdmin, TimeAccess
 from utils.db.get import get_subjects, get_olympiads
@@ -58,15 +57,16 @@ async def load_ol_file(message: types.Message, state: FSMContext):
     if document := message.document:
         file_path = 'data/files/from_admin/olympiads_data.csv'
         olympiads = await read_file(file_path, document)
-        olympiads_new, exist_list = parsing_new_olympiads(olympiads)
-        res = await add_olympiads(olympiads=olympiads_new)
+        olympiads_new, olympiads_exist = parsing_new_olympiads(olympiads)
+        res = add_olympiads(olympiads=olympiads_new)
+        exist_list = olympiads_to_str(olympiads_exist)
         if exist_list:
             await message.answer('Эти олимпиады  уже существуют:\n{}'.format('\n'.join(exist_list)))
         # if subject_not_existing:
         #     await message.answer('Следующих предметов нет в списке:\n {}'.format(', '.join(subject_not_existing)))
         if res and not olympiads_new.empty:
-            await message.answer('Следующие олимпиады успешно добавлены:\n {}'
-                                 .format(', '.join(olympiads_to_str(olympiads_new))))
+            await message.answer('Следующие олимпиады успешно добавлены:\n{}'
+                                 .format('\n'.join(olympiads_to_str(olympiads_new))))
         else:
             await message.answer('Ничего не добавлено')
         os.remove(file_path)
@@ -109,8 +109,7 @@ def parsing_new_olympiads(olympiads_to_add: pd.DataFrame):
                 olympiads_exist = pd.concat([olympiads_exist, olympiad], axis=0)
             else:
                 olympiads_new = pd.concat([olympiads_new, olympiad], axis=0)
-    exist_list = olympiads_to_str(olympiads_new)
-    return olympiads_new, exist_list
+    return olympiads_new, olympiads_exist
 
 
 def olympiads_to_str(olympiads: pd.DataFrame):
@@ -157,7 +156,7 @@ async def load_dates_file(message: types.Message, state: FSMContext):
 
 def parsing_dates(dates_load: pd.DataFrame):
     olympiads = get_olympiads()
-    columns = ['code', 'name', 'grade', 'start_date', 'finish_date', 'stage', 'active']
+    columns = ['code', 'name', 'grade', 'start_date', 'finish_date', 'stage', 'active', 'key', 'pre_registration']
     dates = pd.DataFrame(columns=columns)
     dates_new = pd.DataFrame(columns=columns)
     dates_exists = pd.DataFrame(columns=columns)
@@ -170,8 +169,10 @@ def parsing_dates(dates_load: pd.DataFrame):
             start_date = str_to_date(row['дата начала'])
             finish_date = str_to_date(row['дата окончания'])
             active = 1 if dt.date.today() < finish_date else 0
-            date = pd.DataFrame([[code, row['Название'], grade, start_date, finish_date, row['этап'], active]],
-                                columns=columns)
+            key = 1 if row['ключ'] == 'да' else 0
+            pre_registration = 1 if row['предварительная регистрация'] == 'да' else 0
+            date = pd.DataFrame([[code, row['Название'], grade, start_date, finish_date, row['этап'],
+                                  active, key, pre_registration]], columns=columns)
             dates = pd.concat([dates, date], axis=0)
     for code, group in dates.groupby('code'):
         if group.shape[0] == 1:
