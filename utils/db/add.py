@@ -1,3 +1,5 @@
+from psycopg2.extras import Json
+
 from pandas import DataFrame
 
 from .connect import database
@@ -28,9 +30,10 @@ def add_olympiads(olympiads: DataFrame):
     res = False
     with database() as (cur, conn):
         for _, olympiad in olympiads.iterrows():
-            sql = "INSERT INTO olympiads (code, ol_name, subject_code, grade, active)" \
-                  " VALUES (%s, %s, %s, %s, %s)"
-            cur.execute(sql, [olympiad['code'], olympiad['name'], olympiad['subject_code'], olympiad['grade'], 0])
+            sql = "INSERT INTO olympiads (code, ol_name, subject_code, grade, active, urls)" \
+                  " VALUES (%s, %s, %s, %s, %s, %s)"
+            cur.execute(sql, [olympiad['code'], olympiad['name'], olympiad['subject_code'], olympiad['grade'], 0,
+                              Json(olympiad['urls'])])
         conn.commit()
     res = True
     return res
@@ -66,7 +69,7 @@ def add_olympiads_to_track(olympiads: DataFrame, user_id):
         for _, olympiad in olympiads.iterrows():
             sql = "INSERT INTO olympiad_status (user_id, olympiad_code, status, stage, taken_key, done)" \
                   "VALUES (%s, %s, %s, %s, %s, %s)"
-            cur.execute(sql, [user_id, olympiad['code'], 'idle', olympiad['stage'], 0, 0])
+            cur.execute(sql, [user_id, olympiad['code'], 'idle', olympiad['stage'], '', 0])
         conn.commit()
     res = True
     return res

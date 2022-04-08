@@ -87,11 +87,11 @@ def get_olympiads():
 def get_olympiad(code):
     with database() as (cur, conn):
         sql = "SELECT ol_name, subject_code, stage, start_date, finish_date, active, grade, key_needed," \
-              " pre_registration FROM olympiads WHERE code = %s"
+              " pre_registration, urls FROM olympiads WHERE code = %s"
         cur.execute(sql, [code])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['name', 'subject_code', 'stage', 'start_date',
-                                          'finish_date', 'active', 'grade', 'key_needed', 'pre_registration'])
+                                          'finish_date', 'active', 'grade', 'key_needed', 'pre_registration', 'urls'])
         return data
 
 

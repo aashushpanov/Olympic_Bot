@@ -28,6 +28,7 @@ class Registration(StatesGroup):
 
 
 def register_registration_handlers(dp: Dispatcher):
+    dp.register_message_handler(cmd_cancel, commands=['cancel'], state='*')
     dp.register_message_handler(cmd_cancel, Text(equals="отмена", ignore_case=True), state='*')
     dp.register_callback_query_handler(start, reg_callback.filter(), state='*', chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(get_f_name, state=Registration.get_f_name)

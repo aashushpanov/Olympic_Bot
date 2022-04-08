@@ -11,7 +11,7 @@ confirm = CallbackData('confirm')
 del_interest_call = CallbackData('del_subj', 'data')
 get_key_call = CallbackData('get_key', 'data')
 get_dates_call = CallbackData('get_time', 'data')
-add_new_olympiad = CallbackData('add_new_olympiad', 'data')
+add_new_olympiad_call = CallbackData('add_new_olympiad')
 
 
 async def get_olympiad_registrations(node, **kwargs):
@@ -36,11 +36,17 @@ async def get_interests(_, **kwargs):
 async def get_my_olympiads(node, **kwargs):
     user_id = kwargs.get('callback').message.chat.id
     my_olympiads_codes = get_tracked_olympiads(user_id)['olympiad_code'].values
+    user_grade = get_user(user_id)['grade'].item()
     olympiads = get_olympiads()
     olympiads = olympiads[olympiads['code'].isin(my_olympiads_codes)]
     for _, olympiad in olympiads.iterrows():
         next_node = node.blind_node.id
-        yield MenuNode(text=olympiad['name'], callback=move.new(action='d', node=next_node, data=olympiad['code']))
+        olympiad_grade = olympiad['grade']
+        if user_grade != olympiad_grade:
+            text = olympiad['name'] + ' (за {} класс)'.format(olympiad_grade)
+        else:
+            text = olympiad['name']
+        yield MenuNode(text=text, callback=move.new(action='d', node=next_node, data=olympiad['code']))
 
 
 async def register_olympiads_options(_, **kwargs):
@@ -48,9 +54,13 @@ async def register_olympiads_options(_, **kwargs):
     olympiad_code = kwargs.get('data')
     olympiad_status = get_olympiad_status(callback.from_user.id, olympiad_code)
     olympiad = get_olympiad(olympiad_code)
+    reg_url = olympiad['urls'].item().get('reg_url')
+    site_url = olympiad['urls'].item().get('site_url')
     nodes = []
-    if olympiad['pre_registration'].item() and olympiad_status['status'].item() == 'idle':
-        nodes.append(MenuNode(text='Зарегистрироваться'))
+    if olympiad['pre_registration'].item() and olympiad_status['status'] == 'idle' and reg_url:
+        nodes.append(MenuNode(text='Зарегистрироваться', callback=reg_url))
+    if site_url:
+        nodes.append(MenuNode(text='Сайт олимпиады', callback=site_url))
     if olympiad['key_needed'].item():
         nodes.append(MenuNode(text='Получить ключ', callback=get_key_call.new(data=olympiad_code)))
     nodes.append(MenuNode(text='Узнать даты проведения', callback=get_dates_call.new(data=olympiad_code)))
@@ -81,7 +91,7 @@ def set_user_menu(main_node=None, root_id='0.1'):
 
     user_menu.child(text='Олимпиады').set_childs([
         NodeGenerator(text='Список моих олимпиад', func=get_my_olympiads),
-        MenuNode('Добавить отдельные олимпиады'),
+        MenuNode('Добавить отдельные олимпиады', callback=add_new_olympiad_call.new()),
         NodeGenerator('Регистрации', func=get_olympiad_registrations)
     ])
 
@@ -104,7 +114,7 @@ def set_user_menu(main_node=None, root_id='0.1'):
 
 
 def set_interest_menu(root_node=None):
-    # меню выбора олимпиад
+    # меню выбора предметов
     # --------------------------------------------------------------------------------------------------------
     if root_node is None:
         olympiad_interest_menu = MenuNode(text='Выбор предметов', id='o_interest')

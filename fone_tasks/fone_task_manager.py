@@ -4,5 +4,5 @@ from utils.db.get import get_users
 
 
 async def manager():
-    await greeting()
+    # await greeting()
     update_olympiads_to_track()

@@ -25,12 +25,15 @@ class SetOlympiads(StatesGroup):
 
 
 def set_olympiads_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(start, set_subjects_call.filter(), IsAdmin(), TimeAccess(), state='*')
-    dp.register_message_handler(load_subj_file, state=SetOlympiads.load_subjects_file, content_types=types.ContentTypes.DOCUMENT)
-    dp.register_callback_query_handler(start, set_olympiads_call.filter(), IsAdmin(), TimeAccess(), state='*')
-    dp.register_message_handler(load_ol_file, state=SetOlympiads.load_olympiads_file, content_types=types.ContentTypes.DOCUMENT)
-    dp.register_callback_query_handler(start, set_olympiads_dates_call.filter(), IsAdmin(), TimeAccess(), state='*')
-    dp.register_message_handler(load_dates_file, state=SetOlympiads.load_olympiads_dates_file, content_types=types.ContentTypes.DOCUMENT)
+    dp.register_callback_query_handler(start, set_subjects_call.filter(), TimeAccess(), state='*')
+    dp.register_message_handler(load_subj_file, IsAdmin(), TimeAccess(), state=SetOlympiads.load_subjects_file,
+                                content_types=types.ContentTypes.DOCUMENT)
+    dp.register_callback_query_handler(start, set_olympiads_call.filter(), TimeAccess(), state='*')
+    dp.register_message_handler(load_ol_file, IsAdmin(), TimeAccess(), state=SetOlympiads.load_olympiads_file,
+                                content_types=types.ContentTypes.DOCUMENT)
+    dp.register_callback_query_handler(start, set_olympiads_dates_call.filter(), TimeAccess(), state='*')
+    dp.register_message_handler(load_dates_file, IsAdmin(), TimeAccess(), state=SetOlympiads.load_olympiads_dates_file,
+                                content_types=types.ContentTypes.DOCUMENT)
 
 
 async def start(callback: types.CallbackQuery):
@@ -93,18 +96,21 @@ async def load_subj_file(message: types.Message, state: FSMContext):
 
 
 def parsing_new_olympiads(olympiads_to_add: pd.DataFrame):
-    columns = ['code', 'name', 'subject_code', 'grade']
+    columns = ['code', 'name', 'subject_code', 'grade', 'urls']
     olympiads_new = pd.DataFrame(columns=columns)
     olympiads_exist = pd.DataFrame(columns=columns)
     subjects = get_subjects()
     olympiad_codes = get_olympiads()['code']
+    olympiads_to_add.astype({'ссылка на регистрацию': 'str', 'ссылка на сайт олимпиады': 'str'})
     for _, row in olympiads_to_add.iterrows():
         l_grade = row['мл. класс']
         h_grade = row['ст. класс']
         subject_code = subjects[subjects['subject_name'] == row['Предмет']]['code'].item()
+        urls = {'reg_url': row['ссылка на регистрацию'] if isinstance(row['ссылка на регистрацию'], str) else '',
+                'site_url': row['ссылка на сайт олимпиады'] if isinstance(row['ссылка на сайт олимпиады'], str) else ''}
         for grade in range(l_grade, h_grade + 1):
             code = row['Префикс'] + '_' + subject_code + '_' + str(grade)
-            olympiad = pd.DataFrame([[code, row['Название'], subject_code, grade]], columns=columns)
+            olympiad = pd.DataFrame([[code, row['Название'], subject_code, grade, urls]], columns=columns)
             if code in olympiad_codes.values:
                 olympiads_exist = pd.concat([olympiads_exist, olympiad], axis=0)
             else:

@@ -5,6 +5,7 @@ from utils.menu.MenuNode import MenuNode
 set_olympiads_call = CallbackData('set_olympiads')
 set_subjects_call = CallbackData('set_subjects')
 set_olympiads_dates_call = CallbackData('set_olympiads_dates')
+set_admins_call = CallbackData('set_admins')
 
 
 def set_admin_menu(main_node):
@@ -39,4 +40,14 @@ def set_admin_menu(main_node):
     # all_childs = admin_menu.all_childs()
 
     return admin_menu
+
+
+def set_group_admin_menu():
+    group_admin_menu = MenuNode('Меню')
+
+    group_admin_menu.set_childs([
+        MenuNode(text='Установить администраторов', callback=set_admins_call.new())
+    ])
+
+    return group_admin_menu
 
