@@ -8,7 +8,7 @@ async def get_access(user_id):
         sql = "SELECT is_admin FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
         result = cur.fetchone()
-        return result[0] if result else 0
+    return result[0] if result else 0
 
 
 async def is_exist(user_id):
@@ -16,7 +16,7 @@ async def is_exist(user_id):
         sql = "SELECT first_name FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
         result = cur.fetchone()
-        return 1 if result else 0
+    return 1 if result else 0
 
 
 def get_tracked_olympiads(user_id):
@@ -25,7 +25,7 @@ def get_tracked_olympiads(user_id):
         cur.execute(sql, [user_id])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['olympiad_code', 'status', 'stage', 'taken_key'])
-        return data
+    return data
 
 
 def get_olympiads_by_status(user_id, status):
@@ -34,7 +34,7 @@ def get_olympiads_by_status(user_id, status):
         cur.execute(sql, [user_id, status])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['olympiad_code', 'stage', 'taken_key', 'done'])
-        return data
+    return data
 
 
 def get_olympiad_status(user_id, code):
@@ -43,7 +43,7 @@ def get_olympiad_status(user_id, code):
         cur.execute(sql, [code, user_id])
         res = cur.fetchone()
         data = pd.Series(res, index=['status', 'stage', 'taken_key', 'done'])
-        return data
+    return data
 
 
 def get_user(user_id):
@@ -52,7 +52,7 @@ def get_user(user_id):
         cur.execute(sql, [user_id])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['first_name', 'last_name', 'grade', 'interest'])
-        return data
+    return data
 
 
 def get_users():
@@ -61,7 +61,7 @@ def get_users():
         cur.execute(sql)
         result = cur.fetchall()
         data = pd.DataFrame(result, columns=['user_id', 'first_name', 'last_name', 'grade', 'interest'])
-        return data
+    return data
 
 
 def get_subjects():
@@ -70,18 +70,18 @@ def get_subjects():
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['code', 'subject_name', 'section'])
-        return data
+    return data
 
 
 def get_olympiads():
     with database() as (cur, conn):
         sql = "SELECT code, ol_name, subject_code, stage, start_date, finish_date, active, grade, key_needed," \
-              " pre_registration FROM olympiads"
+              " pre_registration, urls FROM olympiads"
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['code', 'name', 'subject_code', 'stage', 'start_date', 'finish_date',
-                                          'active', 'grade', 'key_needed', 'pre_registration'])
-        return data
+                                          'active', 'grade', 'key_needed', 'pre_registration', 'urls'])
+    return data
 
 
 def get_olympiad(code):
@@ -92,6 +92,14 @@ def get_olympiad(code):
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['name', 'subject_code', 'stage', 'start_date',
                                           'finish_date', 'active', 'grade', 'key_needed', 'pre_registration', 'urls'])
-        return data
+    return data
 
+
+def get_file(file_type):
+    with database() as (cur, conn):
+        sql = "SELECT file_id, file_unique_id, changed, url FROM files_ids WHERE file_type = %s"
+        cur.execute(sql, [file_type])
+        res = cur.fetchone()
+        data = pd.Series(res, index=['file_id', 'file_unique_id', 'changed', 'url'])
+    return data
 

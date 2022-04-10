@@ -7,42 +7,71 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 import pandas as pd
+from aiogram.utils.callback_data import CallbackData
 
 from filters import IsAdmin, TimeAccess
-from utils.db.get import get_subjects, get_olympiads
+from keyboards.keyboards import callbacks_keyboard
+from utils.db.get import get_subjects, get_olympiads, get_file
 from utils.menu.admin_menu import set_olympiads_call, set_subjects_call, set_olympiads_dates_call
 from utils.menu.menu_structure import reset_interest_menu
-from utils.db.add import add_olympiads, add_subjects, add_dates
+from utils.db.add import add_olympiads, add_subjects, add_dates, change_files
 
 # stages = {'школьный': 1, 'муниципальный': 2, 'региональный': 3, 'заключительный': 4, 'пригласительный': 0,
 #           'отборочный': 1, ''}
 
 
+get_dates_template_file_call = CallbackData('get_dates_template_file')
+get_subjects_template_file_call = CallbackData('get_subjects_template_file')
+get_olympiads_template_file_call = CallbackData('get_olympiads_template_file')
+
+
 class SetOlympiads(StatesGroup):
     load_olympiads_file = State()
+    received_olympiads_template = State()
     load_subjects_file = State()
+    received_subject_template = State()
     load_olympiads_dates_file = State()
+    received_dates_template = State()
 
 
 def set_olympiads_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(start, set_subjects_call.filter(), TimeAccess(), state='*')
-    dp.register_message_handler(load_subj_file, IsAdmin(), TimeAccess(), state=SetOlympiads.load_subjects_file,
+    dp.register_callback_query_handler(start, set_subjects_call.filter(), TimeAccess())
+    dp.register_message_handler(load_subj_file, IsAdmin(), TimeAccess(),
+                                state=[SetOlympiads.load_subjects_file, SetOlympiads.received_subject_template],
                                 content_types=types.ContentTypes.DOCUMENT)
-    dp.register_callback_query_handler(start, set_olympiads_call.filter(), TimeAccess(), state='*')
-    dp.register_message_handler(load_ol_file, IsAdmin(), TimeAccess(), state=SetOlympiads.load_olympiads_file,
+
+    dp.register_callback_query_handler(start, set_olympiads_call.filter(), TimeAccess())
+    dp.register_message_handler(load_ol_file, IsAdmin(), TimeAccess(),
+                                state=[SetOlympiads.load_olympiads_file, SetOlympiads.received_olympiads_template],
                                 content_types=types.ContentTypes.DOCUMENT)
-    dp.register_callback_query_handler(start, set_olympiads_dates_call.filter(), TimeAccess(), state='*')
-    dp.register_message_handler(load_dates_file, IsAdmin(), TimeAccess(), state=SetOlympiads.load_olympiads_dates_file,
+
+    dp.register_callback_query_handler(start, set_olympiads_dates_call.filter(), TimeAccess())
+    dp.register_message_handler(load_dates_file, IsAdmin(), TimeAccess(),
+                                state=[SetOlympiads.load_olympiads_dates_file, SetOlympiads.received_dates_template],
                                 content_types=types.ContentTypes.DOCUMENT)
 
 
 async def start(callback: types.CallbackQuery):
-    await callback.message.answer('Загрузите файл')
     if callback.data == 'set_subjects':
+        await callback.answer()
+        reply_markup = callbacks_keyboard(texts=['Пример заполнения предметов','Скачать шаблон'],
+                                          callbacks=[get_file('subjects_example')['url'], get_subjects_template_file_call.new()])
+        await callback.message.answer('Загрузите файл с предметами, следующие файлы помогут правильно заполнить таблицу:',
+                                      reply_markup=reply_markup)
         await SetOlympiads.load_subjects_file.set()
     if callback.data == 'set_olympiads':
+        await callback.answer()
+        reply_markup = callbacks_keyboard(texts=['Пример заполнения олимпиад', 'Скачать шаблон'],
+                                          callbacks=[get_file('olympiads_example')['url'], get_olympiads_template_file_call.new()])
+        await callback.message.answer('Загрузите файл с олимпиадами, следующие файлы помогут правильно заполнить таблицу:',
+                                      reply_markup=reply_markup)
         await SetOlympiads.load_olympiads_file.set()
     if callback.data == 'set_olympiads_dates':
+        await callback.answer()
+        reply_markup = callbacks_keyboard(texts=['Пример заполнения дат этапов', 'Скачать шаблон'],
+                                          callbacks=[get_file('dates_example')['url'], get_dates_template_file_call.new()])
+        await callback.message.answer('Загрузите файл с датами, следующие файлы помогут правильно заполнить таблицу:',
+                                      reply_markup=reply_markup)
         await SetOlympiads.load_olympiads_dates_file.set()
 
 
@@ -70,6 +99,7 @@ async def load_ol_file(message: types.Message, state: FSMContext):
         if res and not olympiads_new.empty:
             await message.answer('Следующие олимпиады успешно добавлены:\n{}'
                                  .format('\n'.join(olympiads_to_str(olympiads_new))))
+            change_files(['olympiads_file', 'dates_template'])
         else:
             await message.answer('Ничего не добавлено')
         os.remove(file_path)
@@ -89,6 +119,7 @@ async def load_subj_file(message: types.Message, state: FSMContext):
             await message.answer('Следующие предметы успешно добавлены:\n {}'
                                  .format(', '.join(list(subjects_new['name']))))
             reset_interest_menu()
+            change_files(['subjects_file', 'olympiads_template'])
         else:
             await message.answer('Ничего не добавлено')
         os.remove(file_path)
@@ -96,6 +127,7 @@ async def load_subj_file(message: types.Message, state: FSMContext):
 
 
 def parsing_new_olympiads(olympiads_to_add: pd.DataFrame):
+    olympiads_to_add.dropna(axis=0, how='all', inplace=True)
     columns = ['code', 'name', 'subject_code', 'grade', 'urls']
     olympiads_new = pd.DataFrame(columns=columns)
     olympiads_exist = pd.DataFrame(columns=columns)
@@ -103,8 +135,8 @@ def parsing_new_olympiads(olympiads_to_add: pd.DataFrame):
     olympiad_codes = get_olympiads()['code']
     olympiads_to_add.astype({'ссылка на регистрацию': 'str', 'ссылка на сайт олимпиады': 'str'})
     for _, row in olympiads_to_add.iterrows():
-        l_grade = row['мл. класс']
-        h_grade = row['ст. класс']
+        l_grade = int(row['мл. класс'])
+        h_grade = int(row['ст. класс'])
         subject_code = subjects[subjects['subject_name'] == row['Предмет']]['code'].item()
         urls = {'reg_url': row['ссылка на регистрацию'] if isinstance(row['ссылка на регистрацию'], str) else '',
                 'site_url': row['ссылка на сайт олимпиады'] if isinstance(row['ссылка на сайт олимпиады'], str) else ''}
@@ -154,6 +186,7 @@ async def load_dates_file(message: types.Message, state: FSMContext):
         if res and not dates_new.empty:
             await message.answer('Даты по следующим предметы успешно добавлены:\n {}'
                                  .format('\n'.join(olympiads_to_str(dates_new))))
+            change_files(['olympiads_file'])
         else:
             await message.answer('Ничего не добавлено')
         os.remove(file_path)

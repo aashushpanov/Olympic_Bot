@@ -43,6 +43,22 @@ def yes_no_keyboard(callback):
     return markup
 
 
+def callbacks_keyboard(texts: list, callbacks: list):
+    if len(texts) != len(callbacks) and len(callbacks) != 0:
+        raise KeyError
+    button_dict = dict(zip(texts, callbacks))
+    markup = InlineKeyboardMarkup(row_width=1)
+    for text, callback in button_dict.items():
+        if isinstance(callback, str) and isinstance(text, str):
+            if callback.__contains__('://'):
+                markup.insert(InlineKeyboardButton(text=text, url=callback))
+            else:
+                markup.insert(InlineKeyboardButton(text=text, callback_data=callback))
+        else:
+            raise TypeError
+    return markup
+
+
 def grad_keyboard():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     buttons = ['5', '6', '7', '8', '9', '10', '11']

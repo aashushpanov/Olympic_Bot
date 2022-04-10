@@ -44,7 +44,7 @@ def add_subjects(subjects: DataFrame):
     with database() as (cur, conn):
         for _, subject in subjects.iterrows():
             sql = "INSERT INTO subjects (code, subject_name, section) VALUES (%s, %s, %s)"
-            cur.execute(sql, [subject['Код предмета'], subject['Предмет'], subject['Раздел']])
+            cur.execute(sql, [subject['code'], subject['name'], subject['section']])
         conn.commit()
     res = True
     return res
@@ -80,4 +80,19 @@ def set_inactive(inactive_olympiads):
         for olympiad in inactive_olympiads.iterrows():
             sql = "UPDATE olympiads SET active = %s WHERE code = %s"
             cur.execute(sql, [0, olympiad['code']])
+        conn.commit()
+
+
+def set_file_ids(file_type, file_id='', file_unique_id='', url=''):
+    with database() as (cur, conn):
+        sql = "UPDATE files_ids SET file_id = %s, file_unique_id = %s, changed = 0, url = %s WHERE file_type = %s"
+        cur.execute(sql, [file_id, file_unique_id, url, file_type])
+        conn.commit()
+
+
+def change_files(file_types):
+    with database() as (cur, conn):
+        for file_type in file_types:
+            sql = "UPDATE files_ids SET changed = 1 WHERE file_type = %s"
+            cur.execute(sql, [file_type])
         conn.commit()

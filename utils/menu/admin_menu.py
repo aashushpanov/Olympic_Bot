@@ -6,6 +6,8 @@ set_olympiads_call = CallbackData('set_olympiads')
 set_subjects_call = CallbackData('set_subjects')
 set_olympiads_dates_call = CallbackData('set_olympiads_dates')
 set_admins_call = CallbackData('set_admins')
+get_olympiads_file_call = CallbackData('get_olympiads_file')
+get_subjects_file_call = CallbackData('get_subjects_file')
 
 
 def set_admin_menu(main_node):
@@ -15,7 +17,7 @@ def set_admin_menu(main_node):
 
     admin_menu.set_childs([
         MenuNode('Данные олимпиад'),
-        MenuNode('admin_1'),
+        MenuNode('Выгрузки'),
         MenuNode('admin_2')
     ])
 
@@ -25,10 +27,9 @@ def set_admin_menu(main_node):
         MenuNode('Установить даты этапов', callback=set_olympiads_dates_call.new()),
     ])
 
-    admin_menu.child(text='admin_1').set_childs([
-        MenuNode('admin_1_0'),
-        MenuNode('admin_1_1'),
-        MenuNode('admin_1_2')
+    admin_menu.child(text='Выгрузки').set_childs([
+        MenuNode('Список предметов', callback=get_subjects_file_call.new()),
+        MenuNode('Список олимпиад', callback=get_olympiads_file_call.new()),
     ])
 
     admin_menu.child(text='admin_2').set_childs([
