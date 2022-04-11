@@ -67,45 +67,45 @@ async def send_file(callback, file_type):
 
 
 def make_subjects_file():
+    file_path = 'data/files/to_send/subjects.xlsx'
     subjects = get_subjects()
-    file_path = 'data/files/to_send/subjects.csv'
     columns_rename = {'code': 'Код предмета', 'subject_name': 'Предмет', 'section': 'Раздел'}
     subjects.rename(columns=columns_rename, inplace=True)
-    subjects.to_csv(file_path, index=False, sep=';')
+    subjects.to_excel(file_path, index=False)
     return file_path
 
 
 def make_subjects_template():
+    file_path = 'data/files/to_send/subjects_template.xlsx'
     columns = ['Предмет', 'Код предмета', 'Раздел']
     subjects_template = pd.DataFrame(columns=columns)
-    file_path = 'data/files/to_send/subjects_template.csv'
-    subjects_template.to_csv(file_path, index=False, sep=';')
+    subjects_template.to_excel(file_path, index=False)
     return file_path
 
 
 def make_olympiads_template():
+    file_path = 'data/files/to_send/olympiads_template.xlsx'
     subjects = get_subjects()
     subjects_list = list(subjects['subject_name'].values)
     columns = ['Префикс', 'Название', 'Предмет', 'мл. класс', 'ст. класс', 'ссылка на регистрацию', 'ссылка на сайт олимпиады', 'Доступные предметы']
     olympiads_template = pd.DataFrame([['', '', '', '', '', '', '', x] for x in subjects_list], columns=columns)
-    file_path = 'data/files/to_send/olympiads_template.csv'
-    olympiads_template.to_csv(file_path, index=False, sep=';')
+    olympiads_template.to_excel(file_path, index=False)
     return file_path
 
 
 def make_olympiads_dates_template():
+    file_path = 'data/files/to_send/dates_template.xlsx'
     olympiads = get_olympiads()
     olympiads_list = list(olympiads.groupby('name').groups.keys())
     columns = ['Название', 'мл. класс', 'ст. класс', 'дата начала', 'дата окончания',
                'этап', 'предварительная регистрация', 'ключ']
     olympiads_file = pd.DataFrame([[x, '', '', '', '', '', '', ''] for x in olympiads_list], columns=columns)
-    file_path = 'data/files/to_send/dates_template.csv'
-    olympiads_file.to_csv(file_path, index=False, sep=';')
+    olympiads_file.to_excel(file_path, index=False)
     return file_path
 
 
 def make_olympiads_with_dates_file():
-    file_path = 'data/files/to_send/all_olympiads.csv'
+    file_path = 'data/files/to_send/all_olympiads.xlsx'
     olympiads = get_olympiads()
     subjects = get_subjects()
     olympiads = olympiads.join(subjects.set_index('code'), on='subject_code')
@@ -129,5 +129,6 @@ def make_olympiads_with_dates_file():
         olympiad = pd.DataFrame([[name[0], subject_name, stage, start_date, finish_date, min_grade, max_grade, active,
                                   key_needed, pre_registration, site_url, reg_url]], columns=columns)
         olympiads_file = pd.concat([olympiads_file, olympiad], axis=0)
-        olympiads_file.to_csv(file_path, index=False, sep=';')
+        # olympiads_file.to_csv(file_path, index=False, sep=';')
+        olympiads_file.to_excel(file_path, index=False)
     return file_path

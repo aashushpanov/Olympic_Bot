@@ -8,7 +8,7 @@ from aiogram.utils.callback_data import CallbackData
 
 from filters import TimeAccess
 from utils.menu.MenuNode import move
-from keyboards.keyboards import grad_keyboard
+from keyboards.keyboards import grad_keyboard, cansel_event_call
 from utils.menu.user_menu import add_interest_call, confirm
 from utils.db.add import add_user, add_olympiads_to_track
 from utils.db.get import is_exist, get_olympiads
@@ -30,6 +30,7 @@ class Registration(StatesGroup):
 def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(cmd_cancel, commands=['cancel'], state='*')
     dp.register_message_handler(cmd_cancel, Text(equals="отмена", ignore_case=True), state='*')
+    dp.register_callback_query_handler(cmd_cancel, cansel_event_call.filter(), state='*')
     dp.register_callback_query_handler(start, reg_callback.filter(), state='*', chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(get_f_name, state=Registration.get_f_name)
     dp.register_message_handler(get_l_name, state=Registration.get_l_name)
@@ -39,9 +40,14 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(get_interest, confirm.filter(), state=Registration.get_interest)
 
 
-async def cmd_cancel(message: types.Message, state: FSMContext):
+async def cmd_cancel(message: types.Message | types.CallbackQuery, state: FSMContext):
     await state.finish()
-    await message.answer("Действие отменено")
+    match message:
+        case types.Message():
+            await message.answer("Действие отменено")
+        case types.CallbackQuery():
+            await message.answer()
+            await message.message.answer('Действие отменено')
 
 
 async def start(callback: types.CallbackQuery):
@@ -50,7 +56,7 @@ async def start(callback: types.CallbackQuery):
         await callback.answer("Вы уже зарегистрированы")
         return
     await callback.message.delete_reply_markup()
-    await callback.message.answer("Введите имя, в любой момент можете написать 'отмена', если не хотите продолжать "
+    await callback.message.answer("Введите имя (только имя), в любой момент можете написать 'отмена', если не хотите продолжать "
                                   "регистрацию")
     await Registration.get_f_name.set()
 

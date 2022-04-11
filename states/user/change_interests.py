@@ -25,7 +25,7 @@ async def start(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data({'interest': set()})
     message = callback.message
     await message.delete()
-    await list_menu(message, menu=interest_menu, title='Добавьте предметы, которыми вы интересуетесь')
+    await list_menu(message, menu=interest_menu, title='''Добавьте предметы, которыми вы интересуетесь, после выбора нажмите "готово"''')
 
 
 async def add_new_interests(callback: types.CallbackQuery, state: FSMContext, callback_data: dict = None):

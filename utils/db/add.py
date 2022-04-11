@@ -96,3 +96,17 @@ def change_files(file_types):
             sql = "UPDATE files_ids SET changed = 1 WHERE file_type = %s"
             cur.execute(sql, [file_type])
         conn.commit()
+
+
+def set_keys(keys: DataFrame, keys_count: dict):
+    with database() as (cur, conn):
+        for _, key in keys.iterrows():
+            sql = "INSERT INTO keys (olympiad_code, no, key) VALUES (%s, %s, %s)"
+            cur.execute(sql, [key['olympiad_code'], key['no'], key['key']])
+        for olympiad, keys_count in keys_count.items():
+            sql = "UPDATE olympiads SET keys_count = %s WHERE code = %s"
+            cur.execute(sql, [keys_count, olympiad])
+        conn.commit()
+
+
+

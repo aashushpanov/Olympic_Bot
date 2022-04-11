@@ -1,6 +1,6 @@
 from aiogram.utils.callback_data import CallbackData
 
-move = CallbackData('move', 'action', 'node', 'data')
+move = CallbackData('move', 'action', 'node', 'data', 'width')
 
 
 class BaseNode:
@@ -24,9 +24,10 @@ class BaseNode:
 
 
 class MenuNode(BaseNode):
-    def __init__(self, text: str = None, callback=None, parent=None, id=None):
+    def __init__(self, text: str = None, callback=None, parent=None, id=None, row_width=1):
         super().__init__(id=id or 'admin', parent=parent, callback=callback)
         self._text = text
+        self._row_width = row_width
 
     @property
     def text(self):
@@ -64,7 +65,7 @@ class MenuNode(BaseNode):
     def set_child(self, child):
         child._id = self._id + '_' + str(len(self._childs))
         if child.callback is None:
-            child._callback = move.new(action='d', node=child.id, data='')
+            child._callback = move.new(action='d', node=child.id, data='', width=1)
         self._childs.append(child)
         child._parent = self
 
@@ -106,10 +107,10 @@ class NodeGenerator(MenuNode):
     def append(self, node):
         self._reg_nodes.append(node)
 
-    def add_blind_node(self, node_id, type='simple', func=None):
+    def add_blind_node(self, node_id, type='simple', func=None, row_width=1):
         node_id = self.id + '_' + node_id
         if type == 'simple':
-            self._blind_node = BlindNode(node_id, self)
+            self._blind_node = BlindNode(node_id, self, row_width=row_width)
         if type == 'generator':
             self._blind_node = NodeGenerator(text='gen', func=func, id=node_id)
         self._blind_node._parent = self
@@ -137,8 +138,8 @@ class NodeGenerator(MenuNode):
 
 
 class BlindNode(MenuNode):
-    def __init__(self, node_id, parent):
-        super().__init__(id=node_id, parent=parent, callback=None)
+    def __init__(self, node_id, parent, row_width=1):
+        super().__init__(id=node_id, parent=parent, callback=None, row_width=row_width)
 
     def childs(self):
         result = {}

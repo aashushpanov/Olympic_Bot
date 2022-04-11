@@ -54,22 +54,30 @@ def set_olympiads_handlers(dp: Dispatcher):
 async def start(callback: types.CallbackQuery):
     if callback.data == 'set_subjects':
         await callback.answer()
-        reply_markup = callbacks_keyboard(texts=['Пример заполнения предметов','Скачать шаблон'],
-                                          callbacks=[get_file('subjects_example')['url'], get_subjects_template_file_call.new()])
-        await callback.message.answer('Загрузите файл с предметами, следующие файлы помогут правильно заполнить таблицу:',
-                                      reply_markup=reply_markup)
+        reply_markup = callbacks_keyboard(texts=['Пример заполнения предметов', 'Скачать шаблон'],
+                                          callbacks=[get_file('subjects_example')['url'],
+                                                     get_subjects_template_file_call.new()],
+                                          cansel_button=True)
+        await callback.message.answer(
+            'Загрузите файл с предметами, следующие файлы помогут правильно заполнить таблицу:',
+            reply_markup=reply_markup)
         await SetOlympiads.load_subjects_file.set()
     if callback.data == 'set_olympiads':
         await callback.answer()
         reply_markup = callbacks_keyboard(texts=['Пример заполнения олимпиад', 'Скачать шаблон'],
-                                          callbacks=[get_file('olympiads_example')['url'], get_olympiads_template_file_call.new()])
-        await callback.message.answer('Загрузите файл с олимпиадами, следующие файлы помогут правильно заполнить таблицу:',
-                                      reply_markup=reply_markup)
+                                          callbacks=[get_file('olympiads_example')['url'],
+                                                     get_olympiads_template_file_call.new()],
+                                          cansel_button=True)
+        await callback.message.answer(
+            'Загрузите файл с олимпиадами, следующие файлы помогут правильно заполнить таблицу:',
+            reply_markup=reply_markup)
         await SetOlympiads.load_olympiads_file.set()
     if callback.data == 'set_olympiads_dates':
         await callback.answer()
         reply_markup = callbacks_keyboard(texts=['Пример заполнения дат этапов', 'Скачать шаблон'],
-                                          callbacks=[get_file('dates_example')['url'], get_dates_template_file_call.new()])
+                                          callbacks=[get_file('dates_example')['url'],
+                                                     get_dates_template_file_call.new()],
+                                          cansel_button=True)
         await callback.message.answer('Загрузите файл с датами, следующие файлы помогут правильно заполнить таблицу:',
                                       reply_markup=reply_markup)
         await SetOlympiads.load_olympiads_dates_file.set()
@@ -79,9 +87,17 @@ async def read_file(file_path, document):
     await document.download(
         destination_file=file_path,
     )
-    file = pd.read_csv(file_path, sep=';')
-    if len(file.columns) == 1:
-        file = pd.read_csv(file_path, sep=',')
+
+    def to_csv(encoding=None):
+        file = pd.read_csv(file_path, sep=';', encoding=encoding)
+        if len(file.columns) == 1:
+            file = pd.read_csv(file_path, sep=',', encoding=encoding)
+        return file
+
+    try:
+        file = to_csv('utf8')
+    except UnicodeDecodeError:
+        file = to_csv('cp1251')
     return file
 
 

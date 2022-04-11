@@ -1,10 +1,11 @@
 from aiogram.utils.callback_data import CallbackData
 
-from utils.menu.MenuNode import MenuNode
+from utils.menu.MenuNode import MenuNode, NodeGenerator
 
 set_olympiads_call = CallbackData('set_olympiads')
 set_subjects_call = CallbackData('set_subjects')
 set_olympiads_dates_call = CallbackData('set_olympiads_dates')
+set_keys_call = CallbackData('set_keys')
 set_admins_call = CallbackData('set_admins')
 get_olympiads_file_call = CallbackData('get_olympiads_file')
 get_subjects_file_call = CallbackData('get_subjects_file')
@@ -25,7 +26,9 @@ def set_admin_menu(main_node):
         MenuNode('Добавить предметы', callback=set_subjects_call.new()),
         MenuNode('Добавить олимпиады', callback=set_olympiads_call.new()),
         MenuNode('Установить даты этапов', callback=set_olympiads_dates_call.new()),
+        MenuNode('Загрузить ключи ВСОШ', callback=set_keys_call.new()),
     ])
+
 
     admin_menu.child(text='Выгрузки').set_childs([
         MenuNode('Список предметов', callback=get_subjects_file_call.new()),

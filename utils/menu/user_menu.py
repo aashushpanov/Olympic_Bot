@@ -46,14 +46,15 @@ async def get_my_olympiads(node, **kwargs):
             text = olympiad['name'] + ' (за {} класс)'.format(olympiad_grade)
         else:
             text = olympiad['name']
-        yield MenuNode(text=text, callback=move.new(action='d', node=next_node, data=olympiad['code']))
+        yield MenuNode(text=text, callback=move.new(action='d', node=next_node, data=olympiad['code'], width=1))
 
 
 async def register_olympiads_options(_, **kwargs):
     callback = kwargs.get('callback')
     olympiad_code = kwargs.get('data')
-    olympiad_status = get_olympiad_status(callback.from_user.id, olympiad_code)
     olympiad = get_olympiad(olympiad_code)
+    stage = olympiad['stage'].item()
+    olympiad_status = get_olympiad_status(callback.from_user.id, olympiad_code, stage)
     reg_url = olympiad['urls'].item().get('reg_url')
     site_url = olympiad['urls'].item().get('site_url')
     nodes = []
@@ -129,7 +130,7 @@ def set_interest_menu(root_node=None):
     for section in subjects[subjects['section'].notna()].groupby(['section']).groups.keys():
         if section != 'Базовый':
             olympiad_interest_menu.set_child(MenuNode(text=section))
-    olympiad_interest_menu.set_child(MenuNode(text='Готово', callback=confirm.new()))
+    olympiad_interest_menu.set_child(MenuNode(text='\U00002705 Готово', callback=confirm.new()))
 
     for _, child in olympiad_interest_menu.childs().items():
         section_subjects = subjects[subjects['section'] == child.text]

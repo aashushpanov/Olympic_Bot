@@ -27,7 +27,7 @@ async def start(callback: types.CallbackQuery, state: FSMContext):
     await AddOlympiad.choose_subject.set()
     message = callback.message
     await message.delete()
-    await list_menu(message, menu=interest_menu, title='Выберете предмет. Будет учитываться последний выбранный вами '
+    await list_menu(message, menu=interest_menu, title='Выберите предмет. Будет учитываться последний выбранный вами '
                                                        'предмет')
 
 
@@ -56,7 +56,7 @@ async def get_grade(callback: types.CallbackQuery, state: FSMContext, callback_d
         await state.update_data(olympiad=olympiad_name)
         await AddOlympiad.choose_grade.set()
         await callback.message.delete()
-        await callback.message.answer('Выберете класс участия',
+        await callback.message.answer('Выберите класс участия',
                                       reply_markup=available_grades_keyboard(available_grades))
     else:
         await callback.answer('Нет доступных классов')
@@ -74,7 +74,7 @@ async def add_new_olympiad(callback: types.CallbackQuery, state: FSMContext, cal
                           & (~olympiads['code'].isin(user_tracked))].iloc[:1]
     if not olympiads.empty:
         add_olympiads_to_track(olympiads, user_id)
-        await callback.message.answer('Добавлена в отслеживаемые {} за {} класс'.format(olympiads.iloc[0]['name'],
+        await callback.message.answer('Добавлена в отслеживаемые\n{} за {} класс'.format(olympiads.iloc[0]['name'],
                                                                                         olympiads.iloc[0]['grade']))
     else:
         await callback.message.answer('Ничего добавить не удалось, возможно она уже есть')

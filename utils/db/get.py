@@ -37,10 +37,10 @@ def get_olympiads_by_status(user_id, status):
     return data
 
 
-def get_olympiad_status(user_id, code):
+def get_olympiad_status(user_id, code, stage):
     with database() as (cur, conn):
-        sql = "SELECT status, stage, taken_key, done FROM  olympiad_status WHERE olympiad_code = %s AND user_id = %s"
-        cur.execute(sql, [code, user_id])
+        sql = "SELECT status, stage, taken_key, done FROM  olympiad_status WHERE olympiad_code = %s AND user_id = %s AND stage = %s"
+        cur.execute(sql, [code, user_id, stage])
         res = cur.fetchone()
         data = pd.Series(res, index=['status', 'stage', 'taken_key', 'done'])
     return data
@@ -76,22 +76,22 @@ def get_subjects():
 def get_olympiads():
     with database() as (cur, conn):
         sql = "SELECT code, ol_name, subject_code, stage, start_date, finish_date, active, grade, key_needed," \
-              " pre_registration, urls FROM olympiads"
+              " pre_registration, urls, keys_count FROM olympiads"
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['code', 'name', 'subject_code', 'stage', 'start_date', 'finish_date',
-                                          'active', 'grade', 'key_needed', 'pre_registration', 'urls'])
+                                          'active', 'grade', 'key_needed', 'pre_registration', 'urls', 'keys_count'])
     return data
 
 
 def get_olympiad(code):
     with database() as (cur, conn):
         sql = "SELECT ol_name, subject_code, stage, start_date, finish_date, active, grade, key_needed," \
-              " pre_registration, urls FROM olympiads WHERE code = %s"
+              " pre_registration, urls, keys_count FROM olympiads WHERE code = %s"
         cur.execute(sql, [code])
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['name', 'subject_code', 'stage', 'start_date',
-                                          'finish_date', 'active', 'grade', 'key_needed', 'pre_registration', 'urls'])
+        data = pd.DataFrame(res, columns=['name', 'subject_code', 'stage', 'start_date', 'finish_date', 'active',
+                                          'grade', 'key_needed', 'pre_registration', 'urls', 'keys_count'])
     return data
 
 
@@ -103,3 +103,20 @@ def get_file(file_type):
         data = pd.Series(res, index=['file_id', 'file_unique_id', 'changed', 'url'])
     return data
 
+
+def get_key_from_db(user_id, olympiad_code, stage):
+    with database() as (cur, conn):
+        sql = "SELECT key, no FROM keys WHERE olympiad_code = %s AND no =" \
+              " (SELECT MAX(no) FROM keys WHERE olympiad_code = %s AND is_taken = 0)"
+        cur.execute(sql, [olympiad_code, olympiad_code])
+        res = cur.fetchone()
+        key = res[0]
+        key_no = res[1]
+        sql = "UPDATE olympiad_status SET taken_key = %s WHERE user_id = %s AND stage = %s AND olympiad_code = %s"
+        cur.execute(sql, [key, user_id, stage, olympiad_code])
+        sql = "UPDATE olympiads SET keys_count = %s WHERE code = %s"
+        cur.execute(sql, [key_no, olympiad_code])
+        sql = "UPDATE keys SET is_taken = 1 WHERE olympiad_code = %s AND no = %s"
+        cur.execute(sql, [olympiad_code, key_no])
+        conn.commit()
+    return key
