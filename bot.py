@@ -40,3 +40,4 @@ if __name__ == '__main__':
         executor.start_polling(dp, loop=loop, skip_updates=False, on_startup=setup)
     except KeyboardInterrupt:
         pass
+    

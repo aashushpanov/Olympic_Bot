@@ -58,7 +58,7 @@ async def start(callback: types.CallbackQuery):
         await callback.answer("Вы уже зарегистрированы")
         return
     await callback.message.delete_reply_markup()
-    await callback.message.answer("Введите имя (только имя)\n, в любой момент можете написать 'отмена', если не хотите продолжать "
+    await callback.message.answer("Введите имя (только имя),\nв любой момент можете написать 'отмена', если не хотите продолжать "
                                   "регистрацию")
     await Registration.get_f_name.set()
 
@@ -85,9 +85,10 @@ async def get_l_name(message: types.Message, state: FSMContext):
 
 
 async def get_grade(message: types.Message, state: FSMContext):
-    if message.text in [x for x in range(3, 12)]:
+    if int(message.text) in [x for x in range(3, 12)]:
         await state.update_data(grade=message.text)
         await Registration.get_literal.set()
+        await message.delete_reply_markup()
         await message.answer('Введите литеру своего класса')
     else:
         await message.answer('Введите корректный номер класса')

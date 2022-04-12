@@ -3,7 +3,7 @@ from aiogram import Dispatcher, types
 from aiogram.types import InputFile
 
 from states.admin.set_olympiad import get_dates_template_file_call, SetOlympiads, get_olympiads_template_file_call, \
-    get_subjects_template_file_call
+    get_subjects_template_file_call, make_subjects_template
 from utils.db.add import set_file_ids
 from utils.db.get import get_olympiads, get_subjects, get_file, get_all_olympiads_status, get_users
 from utils.menu.admin_menu import get_olympiads_file_call, get_subjects_file_call, get_status_file_call
@@ -79,14 +79,6 @@ def make_subjects_file():
     columns_rename = {'code': 'Код предмета', 'subject_name': 'Предмет', 'section': 'Раздел'}
     subjects.rename(columns=columns_rename, inplace=True)
     subjects.to_excel(file_path, index=False)
-    return file_path
-
-
-def make_subjects_template():
-    file_path = 'data/files/to_send/subjects_template.xlsx'
-    columns = ['Предмет', 'Код предмета', 'Раздел']
-    subjects_template = pd.DataFrame(columns=columns)
-    subjects_template.to_excel(file_path, index=False)
     return file_path
 
 
