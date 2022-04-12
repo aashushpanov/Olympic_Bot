@@ -24,6 +24,7 @@ class Registration(StatesGroup):
     get_f_name = State()
     get_l_name = State()
     get_grade = State()
+    get_literal = State()
     get_interest = State()
 
 
@@ -35,6 +36,7 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(get_f_name, state=Registration.get_f_name)
     dp.register_message_handler(get_l_name, state=Registration.get_l_name)
     dp.register_message_handler(get_grade, state=Registration.get_grade)
+    dp.register_message_handler(get_literal, state=Registration.get_literal)
     dp.register_callback_query_handler(add_interest, add_interest_call.filter(), state=Registration.get_interest)
     dp.register_callback_query_handler(list_menu, move.filter(), TimeAccess(), state=Registration.get_interest)
     dp.register_callback_query_handler(get_interest, confirm.filter(), state=Registration.get_interest)
@@ -56,7 +58,7 @@ async def start(callback: types.CallbackQuery):
         await callback.answer("Вы уже зарегистрированы")
         return
     await callback.message.delete_reply_markup()
-    await callback.message.answer("Введите имя (только имя), в любой момент можете написать 'отмена', если не хотите продолжать "
+    await callback.message.answer("Введите имя (только имя)\n, в любой момент можете написать 'отмена', если не хотите продолжать "
                                   "регистрацию")
     await Registration.get_f_name.set()
 
@@ -77,16 +79,30 @@ async def get_l_name(message: types.Message, state: FSMContext):
             await message.answer("Введите корректную фамилию")
             return
     keyword = grad_keyboard()
-    await message.answer("Введите класс", reply_markup=keyword)
+    await message.answer("Введите номер класса", reply_markup=keyword)
     await state.update_data(l_name=message.text)
     await Registration.get_grade.set()
 
 
 async def get_grade(message: types.Message, state: FSMContext):
-    await state.update_data(grade=message.text)
-    await Registration.get_interest.set()
-    await state.update_data({'interest': set()})
-    await list_menu(message, menu=interest_menu, title='Выберете предметы, которыми вы интересуетесь')
+    if message.text in [x for x in range(3, 12)]:
+        await state.update_data(grade=message.text)
+        await Registration.get_literal.set()
+        await message.answer('Введите литеру своего класса')
+    else:
+        await message.answer('Введите корректный номер класса')
+        return
+
+
+async def get_literal(message: types.Message, state: FSMContext):
+    if len(message.text) == 1 and message.text.lower() in ru_abc:
+        await state.update_data(literal=message.text.upper())
+        await Registration.get_interest.set()
+        await state.update_data({'interest': set()})
+        await list_menu(message, menu=interest_menu, title='Выберете предметы, которыми вы интересуетесь')
+    else:
+        await message.answer('Введите корректную литеру класса')
+        return
 
 
 async def add_interest(callback: types.CallbackQuery, state: FSMContext, callback_data: dict = None):

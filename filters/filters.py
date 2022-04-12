@@ -13,6 +13,9 @@ class IsAdmin(Filter):
 
 
 class TimeAccess(Filter):
+    def __init__(self, minutes=15):
+        self.minutes = minutes
+
     async def check(self, callback: types.CallbackQuery | types.Message):
         match callback:
             case types.CallbackQuery():
@@ -20,7 +23,7 @@ class TimeAccess(Filter):
             case types.Message():
                 message = callback
         delta = abs(dt.datetime.now() - message.date)
-        access = 15 * 60 - delta.seconds
+        access = 15 * self.minutes - delta.seconds
         return 0 if access < 0 else 1
 
 

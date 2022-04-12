@@ -30,37 +30,46 @@ def get_tracked_olympiads(user_id):
 
 def get_olympiads_by_status(user_id, status):
     with database() as (cur, conn):
-        sql = "SELECT olympiad_code, stage, taken_key, done FROM olympiad_status WHERE user_id = %s AND status = %s"
+        sql = "SELECT olympiad_code, stage, taken_key FROM olympiad_status WHERE user_id = %s AND status = %s"
         cur.execute(sql, [user_id, status])
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['olympiad_code', 'stage', 'taken_key', 'done'])
+        data = pd.DataFrame(res, columns=['olympiad_code', 'stage', 'taken_key'])
     return data
 
 
 def get_olympiad_status(user_id, code, stage):
     with database() as (cur, conn):
-        sql = "SELECT status, stage, taken_key, done FROM  olympiad_status WHERE olympiad_code = %s AND user_id = %s AND stage = %s"
+        sql = "SELECT status, stage, taken_key FROM  olympiad_status WHERE olympiad_code = %s AND user_id = %s AND stage = %s"
         cur.execute(sql, [code, user_id, stage])
         res = cur.fetchone()
-        data = pd.Series(res, index=['status', 'stage', 'taken_key', 'done'])
+        data = pd.Series(res, index=['status', 'stage', 'taken_key'])
     return data
+
+
+def get_all_olympiads_status():
+    with database() as (cur, conn):
+        sql = "SELECT user_id,olympiad_code, status, stage, taken_key FROM olympiad_status"
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['user_id', 'olympiad_code', 'status', 'stage', 'taken_key'])
+        return data
 
 
 def get_user(user_id):
     with database() as (cur, conn):
-        sql = "SELECT first_name, last_name, grade, interest FROM users WHERE id = %s"
+        sql = "SELECT first_name, last_name, grade, literal, interest FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['first_name', 'last_name', 'grade', 'interest'])
+        data = pd.DataFrame(res, columns=['first_name', 'last_name', 'grade', 'literal', 'interest'])
     return data
 
 
 def get_users():
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name, grade, interest  FROM users"
+        sql = "SELECT id, first_name, last_name, grade, literal, interest  FROM users"
         cur.execute(sql)
         result = cur.fetchall()
-        data = pd.DataFrame(result, columns=['user_id', 'first_name', 'last_name', 'grade', 'interest'])
+        data = pd.DataFrame(result, columns=['user_id', 'first_name', 'last_name', 'grade', 'literal', 'interest'])
     return data
 
 

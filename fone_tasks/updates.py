@@ -3,7 +3,7 @@ import datetime as dt
 
 from loader import bot
 from utils.db.add import set_inactive, add_olympiads_to_track
-from utils.db.get import get_olympiads, get_users, get_tracked_olympiads
+from utils.db.get import get_olympiads, get_users, get_tracked_olympiads, get_all_olympiads_status
 
 
 async def greeting():
@@ -33,5 +33,13 @@ def update_olympiads_to_track():
         add_olympiads_to_track(new_olympiads, user['user_id'])
 
 
-def update_olympiads_status():
+def update_missed_olympiads():
+    olympiads = get_olympiads()
+    olympiads_status = get_all_olympiads_status()
+    olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='real')
+    missed_olympiads = olympiads_status[(olympiads_status['status'] == 'reg') & ((olympiads_status['active'] == 0) |
+                                                                                 (olympiads_status['stage'] !=
+                                                                                  olympiads_status['stage_real']))]
+    missed_olympiads_data = missed_olympiads.groupby(['olympiad_code', 'stage'])
     pass
+# TODO: доделать обновление статусов

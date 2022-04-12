@@ -9,6 +9,7 @@ set_keys_call = CallbackData('set_keys')
 set_admins_call = CallbackData('set_admins')
 get_olympiads_file_call = CallbackData('get_olympiads_file')
 get_subjects_file_call = CallbackData('get_subjects_file')
+get_status_file_call = CallbackData('get_status_file')
 
 
 def set_admin_menu(main_node):
@@ -29,10 +30,10 @@ def set_admin_menu(main_node):
         MenuNode('Загрузить ключи ВСОШ', callback=set_keys_call.new()),
     ])
 
-
     admin_menu.child(text='Выгрузки').set_childs([
         MenuNode('Список предметов', callback=get_subjects_file_call.new()),
         MenuNode('Список олимпиад', callback=get_olympiads_file_call.new()),
+        MenuNode('Результаты прохождения олимпиад', callback=get_status_file_call.new())
     ])
 
     admin_menu.child(text='admin_2').set_childs([
@@ -54,4 +55,3 @@ def set_group_admin_menu():
     ])
 
     return group_admin_menu
-

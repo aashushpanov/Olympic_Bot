@@ -5,10 +5,10 @@ from pandas import DataFrame
 from .connect import database
 
 
-async def add_user(user_id, f_name, l_name, grade=None, interest: set = None):
+async def add_user(user_id, f_name, l_name, grade=None, literal=None, interest: set = None):
     with database() as (cur, conn):
-        sql = "INSERT INTO users (id, first_name, last_name, grade, is_admin, interest) VALUES (%s, %s, %s, %s, %s, %s)"
-        cur.execute(sql, [user_id, f_name, l_name, grade, 0, list(interest)])
+        sql = "INSERT INTO users (id, first_name, last_name, grade, literal, is_admin, interest) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        cur.execute(sql, [user_id, f_name, l_name, grade, literal, 0, list(interest)])
         conn.commit()
 
 
@@ -73,6 +73,28 @@ def add_olympiads_to_track(olympiads: DataFrame, user_id):
         conn.commit()
     res = True
     return res
+
+
+def set_registration(olympiad_code, user_id, stage):
+    with database() as (cur, conn):
+        sql = "UPDATE olympiad_status SET status = %s WHERE olympiad_code = %s AND user_id = %s AND stage = %s"
+        cur.execute(sql, ['reg', olympiad_code, user_id, stage])
+        conn.commit()
+
+
+def set_execution(olympiad_code, user_id, stage):
+    with database() as (cur, conn):
+        sql = "UPDATE olympiad_status SET status = %s WHERE olympiad_code = %s AND user_id = %s AND stage = %s"
+        cur.execute(sql, ['done', olympiad_code, user_id, stage])
+        conn.commit()
+
+
+def set_missed(olympiads: DataFrame):
+    with database() as (cur, conn):
+        for _, olympiad in olympiads.iterrows():
+            sql = "UPDATE olympiad_status SET status = %s WHERE olympiad_code = %s AND stage = %s"
+            cur.execute(sql, ['missed', olympiad['code'], olympiad['stage']])
+        conn.commit()
 
 
 def set_inactive(inactive_olympiads):

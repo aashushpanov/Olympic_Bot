@@ -5,11 +5,12 @@ from aiogram.types import InputFile
 from states.admin.set_olympiad import get_dates_template_file_call, SetOlympiads, get_olympiads_template_file_call, \
     get_subjects_template_file_call
 from utils.db.add import set_file_ids
-from utils.db.get import get_olympiads, get_subjects, get_file
-from utils.menu.admin_menu import get_olympiads_file_call, get_subjects_file_call
+from utils.db.get import get_olympiads, get_subjects, get_file, get_all_olympiads_status, get_users
+from utils.menu.admin_menu import get_olympiads_file_call, get_subjects_file_call, get_status_file_call
 
 
 def register_get_files_handlers(dp: Dispatcher):
+    dp.register_callback_query_handler(send_status_file, get_status_file_call.filter())
     dp.register_callback_query_handler(send_olympiads_with_dates_file, get_olympiads_file_call.filter())
     dp.register_callback_query_handler(send_subjects_file, get_subjects_file_call.filter())
     dp.register_callback_query_handler(send_olympiads_template_file, get_olympiads_template_file_call.filter(), state='*')
@@ -37,10 +38,16 @@ async def send_dates_template_file(callback: types.CallbackQuery, callback_data:
     await send_file(callback, 'dates_template')
 
 
+async def send_status_file(callback: types.CallbackQuery, callback_data: dict):
+    await send_file(callback, 'status_file')
+
+
 async def send_file(callback, file_type):
     file_status = get_file(file_type)
     if file_status['changed']:
         match file_type:
+            case 'status_file':
+                file_path = make_olympiads_status_file()
             case 'olympiads_file':
                 file_path = make_olympiads_with_dates_file()
             case 'olympiads_template':
@@ -130,5 +137,42 @@ def make_olympiads_with_dates_file():
                                   key_needed, pre_registration, site_url, reg_url]], columns=columns)
         olympiads_file = pd.concat([olympiads_file, olympiad], axis=0)
         # olympiads_file.to_csv(file_path, index=False, sep=';')
-        olympiads_file.to_excel(file_path, index=False)
+    olympiads_file.to_excel(file_path, index=False)
     return file_path
+
+
+def make_olympiads_status_file():
+    file_path = 'data/files/to_send/status_file.xlsx'
+    users = get_users()
+    olympiads = get_olympiads()
+    subjects = get_subjects()
+    olympiads_status = get_all_olympiads_status()
+    olympiads_status = olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='real')
+    olympiads_status = olympiads_status.join(subjects.set_index('code'), on='subject_code')
+    olympiads_status = olympiads_status.join(users.set_index('user_id'), on='user_id', rsuffix='user')
+    columns = ['Имя', 'Фамилия', 'Класс', 'Олимпиада', 'Предмет', 'Ключ', 'Статус']
+    status_file = pd.DataFrame(columns=columns)
+    for _, olympiad_status in olympiads_status.iterrows():
+        f_name = olympiad_status['first_name']
+        l_name = olympiad_status['last_name']
+        literal = olympiad_status['literal'] if olympiad_status['literal'] else ''
+        grade = str(olympiad_status['grade']) + literal
+        olympiad_name = olympiad_status['name']
+        subject = olympiad_status['subject_name']
+        key = olympiad_status['taken_key']
+        match olympiad_status['status']:
+            case 'idle':
+                status = 'Добавлена'
+            case 'reg':
+                status = 'Зарегистрирован'
+            case 'done':
+                status = 'Пройдена'
+            case 'missed':
+                status = 'Пропущена'
+            case _:
+                status = 'Не определен'
+        new_olympiad_status = pd.DataFrame([[f_name, l_name, grade, olympiad_name, subject, key, status]], columns=columns)
+        status_file = pd.concat([status_file, new_olympiad_status], axis=0)
+    status_file.to_excel(file_path, index=False)
+    return file_path
+

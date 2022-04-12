@@ -14,12 +14,12 @@ async def message_not_modified(update, error):
 
 
 async def message_to_delete(update, error):
-    pass
+    return True
 
 
 async def message_not_found(update, error):
-    pass
+    return True
 
 
 async def invalid_query_id(update, error):
-    pass
+    return True
