@@ -27,7 +27,6 @@ async def set_admin_access(user_id):
 
 
 def add_olympiads(olympiads: DataFrame):
-    res = False
     with database() as (cur, conn):
         for _, olympiad in olympiads.iterrows():
             sql = "INSERT INTO olympiads (code, ol_name, subject_code, grade, active, urls)" \
@@ -35,23 +34,17 @@ def add_olympiads(olympiads: DataFrame):
             cur.execute(sql, [olympiad['code'], olympiad['name'], olympiad['subject_code'], olympiad['grade'], 0,
                               Json(olympiad['urls'])])
         conn.commit()
-    res = True
-    return res
 
 
 def add_subjects(subjects: DataFrame):
-    res = False
     with database() as (cur, conn):
         for _, subject in subjects.iterrows():
             sql = "INSERT INTO subjects (code, subject_name, section) VALUES (%s, %s, %s)"
             cur.execute(sql, [subject['code'], subject['name'], subject['section']])
         conn.commit()
-    res = True
-    return res
 
 
 def add_dates(dates: DataFrame):
-    res = False
     with database() as (cur, conn):
         for _, date in dates.iterrows():
             sql = "UPDATE olympiads SET stage = %s, start_date = %s, finish_date = %s, active = %s, key_needed = %s," \
@@ -59,20 +52,15 @@ def add_dates(dates: DataFrame):
             cur.execute(sql, [date['stage'], date['start_date'], date['finish_date'], date['active'],
                               date['key'], date['pre_registration'], date['code']])
         conn.commit()
-    res = True
-    return res
 
 
 def add_olympiads_to_track(olympiads: DataFrame, user_id):
-    res = False
     with database() as (cur, conn):
         for _, olympiad in olympiads.iterrows():
             sql = "INSERT INTO olympiad_status (user_id, olympiad_code, status, stage, taken_key, done)" \
                   "VALUES (%s, %s, %s, %s, %s, %s)"
             cur.execute(sql, [user_id, olympiad['code'], 'idle', olympiad['stage'], '', 0])
         conn.commit()
-    res = True
-    return res
 
 
 def set_registration(olympiad_code, user_id, stage):
