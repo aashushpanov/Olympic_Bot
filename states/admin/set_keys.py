@@ -57,8 +57,13 @@ async def confirm_keys_file(message: types.Message, state: FSMContext):
         res_string = [[subject, num] for subject, num in keys_nums.items()]
         if non_existent_olympiads:
             await message.answer('Под эти предметы нет олимпиад:\n{}'.format('\n'.join(non_existent_olympiads)))
+        if conflict_subjects:
+            await message.answer('Для следующих предметов есть несколько олимпиад:\n{}\n\nВозможно дублирование '
+                                 'олимпиад или неправильно выставлена необходимость ключа'
+                                 .format('\n'.join([subject + ': ' + str(olympiads) for subject, olympiads in conflict_subjects.items()])))
         if not keys.empty:
-            await message.answer('''Ключи для {}-х классов готовы к загрузке, убедитесь в правильности файла.\n\nНайдены следующие предметы:\n{}\n\nЗагрузить?'''
+            await message.answer('''Ключи для {}-х классов готовы к загрузке, убедитесь в правильности файла.\n\n
+            Найдены следующие предметы:\n{}\n\nЗагрузить?'''
                                  .format(grade, '\n'.join([' '.join(olympiad) for olympiad in res_string])),
                                  reply_markup=yes_no_keyboard(callback=load_keys_to_db_call.new()))
 
@@ -77,6 +82,8 @@ async def load_keys_file(callback: types.CallbackQuery, state: FSMContext, callb
 def parce_keys(keys_file, grade):
     keys_file = keys_file.loc[:, (~keys_file.columns.str.contains('^Unnamed')) & (~keys_file.columns.str.contains('Ключи'))]
     keys_file = keys_file.drop([0])
+    keys_file.dropna(axis=0, how='all', inplace=True)
+    keys_file.dropna(axis=1, how='all', inplace=True)
     keys_subjects = list(keys_file.columns.values)
     olympiads = get_olympiads()
     subjects = get_subjects()
