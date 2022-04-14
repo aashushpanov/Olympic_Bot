@@ -10,6 +10,8 @@ set_admins_call = CallbackData('set_admins')
 get_olympiads_file_call = CallbackData('get_olympiads_file')
 get_subjects_file_call = CallbackData('get_subjects_file')
 get_status_file_call = CallbackData('get_status_file')
+delete_subjects_call = CallbackData('delete_subjects')
+delete_olympiads_call = CallbackData('delete_olympiads')
 
 
 def set_admin_menu(main_node):
@@ -28,6 +30,8 @@ def set_admin_menu(main_node):
         MenuNode('Добавить олимпиады', callback=set_olympiads_call.new()),
         MenuNode('Установить даты этапов', callback=set_olympiads_dates_call.new()),
         MenuNode('Загрузить ключи ВСОШ', callback=set_keys_call.new()),
+        MenuNode('Удалить предметы',callback=delete_subjects_call.new()),
+        MenuNode('Удалить олимпиады', callback=delete_olympiads_call.new()),
     ])
 
     admin_menu.child(text='Выгрузки').set_childs([

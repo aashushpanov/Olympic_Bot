@@ -1,3 +1,4 @@
+import pandas as pd
 from psycopg2.extras import Json
 
 from pandas import DataFrame
@@ -36,12 +37,55 @@ def add_olympiads(olympiads: DataFrame):
         conn.commit()
 
 
+def update_olympiads(olympiads: DataFrame):
+    with database() as (cur, conn):
+        for _, olympiad in olympiads.iterrows():
+            sql = "UPDATE olympiads SET ol_name = %s, subject_code = %s, grade = %s, active = %s, urls = %s WHERE code = %s"
+            cur.execute(sql, [olympiad['name'], olympiad['subject_code'], olympiad['grade'], 0,
+                              Json(olympiad['urls']), olympiad['code']])
+        conn.commit()
+
+
+def remove_olympiads(olympiads_codes):
+    with database() as (cur, conn):
+        data = pd.DataFrame(columns=['name', 'subject_code'])
+        for olympiad_code in olympiads_codes:
+            sql = "DELETE FROM olympiads WHERE code = %s RETURNING ol_name, subject_code, grade"
+            cur.execute(sql, [olympiad_code])
+            res = cur.fetchall()
+            deleting_data = pd.DataFrame(res, columns=['name', 'subject_code', 'grade'])
+            data = pd.concat([data, deleting_data], axis=0)
+        conn.commit()
+    return data
+
+
 def add_subjects(subjects: DataFrame):
     with database() as (cur, conn):
         for _, subject in subjects.iterrows():
             sql = "INSERT INTO subjects (code, subject_name, section) VALUES (%s, %s, %s)"
             cur.execute(sql, [subject['code'], subject['name'], subject['section']])
         conn.commit()
+
+
+def update_subjects(subjects: DataFrame):
+    with database() as (cur, conn):
+        for _, subject in subjects.iterrows():
+            sql = "UPDATE subjects SET subject_name = %s, section = %s WHERE code = %s"
+            cur.execute(sql, [subject['name'], subject['section'], subject['code']])
+        conn.commit()
+
+
+def remove_subjects(subjects_codes):
+    with database() as (cur, conn):
+        data = pd.DataFrame(columns=['name'])
+        for subject_code in subjects_codes:
+            sql = "DELETE FROM subjects WHERE code = %s RETURNING name"
+            cur.execute(sql, [subject_code])
+            res = cur.fetchall()
+            deleting_data = pd.DataFrame(res, columns=['name'])
+            data = pd.concat([data, deleting_data], axis=0)
+        conn.commit()
+    return data
 
 
 def add_dates(dates: DataFrame):
@@ -57,9 +101,9 @@ def add_dates(dates: DataFrame):
 def add_olympiads_to_track(olympiads: DataFrame, user_id):
     with database() as (cur, conn):
         for _, olympiad in olympiads.iterrows():
-            sql = "INSERT INTO olympiad_status (user_id, olympiad_code, status, stage, taken_key, done)" \
-                  "VALUES (%s, %s, %s, %s, %s, %s)"
-            cur.execute(sql, [user_id, olympiad['code'], 'idle', olympiad['stage'], '', 0])
+            sql = "INSERT INTO olympiad_status (user_id, olympiad_code, status, stage, taken_key)" \
+                  "VALUES (%s, %s, %s, %s, %s)"
+            cur.execute(sql, [user_id, olympiad['code'], 'idle', olympiad['stage'], ''])
         conn.commit()
 
 
@@ -117,6 +161,3 @@ def set_keys(keys: DataFrame, keys_count: dict):
             sql = "UPDATE olympiads SET keys_count = %s WHERE code = %s"
             cur.execute(sql, [keys_count, olympiad])
         conn.commit()
-
-
-
