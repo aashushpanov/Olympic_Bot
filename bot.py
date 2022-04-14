@@ -13,7 +13,7 @@ from states.user import register_user_states
 from commands.user import set_user_commands
 from handlers import register_handlers
 
-TIMEOUT = 100
+TIMEOUT = 20
 
 
 async def setup(dp: Dispatcher):

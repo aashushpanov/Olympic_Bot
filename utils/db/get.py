@@ -129,3 +129,13 @@ def get_key_from_db(user_id, olympiad_code, stage):
         cur.execute(sql, [olympiad_code, key_no])
         conn.commit()
     return key
+
+
+def get_notifications():
+    with database() as (cur, conn):
+        sql = "DELETE FROM notifications RETURNING user_id, olympiad_code, message, type "
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['user_id', 'olympiad_code', 'message', 'type'])
+        conn.commit()
+    return data

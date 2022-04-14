@@ -1,8 +1,10 @@
 import pandas as pd
 import datetime as dt
 
+from handlers.users.user.olympiad_options import confirm_execution_call, confirm_registration_call
+from keyboards.keyboards import callbacks_keyboard, delete_keyboard_call
 from loader import bot
-from utils.db.add import set_inactive, add_olympiads_to_track, set_missed
+from utils.db.add import set_inactive, add_olympiads_to_track, set_missed, add_notifications
 from utils.db.get import get_olympiads, get_users, get_tracked_olympiads, get_all_olympiads_status
 
 
@@ -16,10 +18,12 @@ async def greeting():
 def update_olympiads_activity():
     olympiads = get_olympiads()
     inactive_olympiads = pd.DataFrame(columns=olympiads.columns)
-    for _, olympiad in olympiads.iterrows():
+    for _, olympiad in olympiads[olympiads['active'] == 1].iterrows():
         if dt.date.today() > olympiad['finish_date']:
-            inactive_olympiads = pd.concat([inactive_olympiads, olympiad])
-    set_inactive(inactive_olympiads)
+            olympiad = pd.DataFrame([olympiad])
+            inactive_olympiads = pd.concat([inactive_olympiads, olympiad], ignore_index=True)
+    if not inactive_olympiads.empty:
+        set_inactive(inactive_olympiads)
 
 
 def update_olympiads_to_track():
@@ -36,7 +40,7 @@ def update_olympiads_to_track():
 def update_missed_olympiads():
     olympiads = get_olympiads()
     olympiads_status = get_all_olympiads_status()
-    olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='real')
+    olympiads_status = olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='_real')
     missed_olympiads = olympiads_status[((olympiads_status['status'] == 'reg') | (olympiads_status['status'] == 'idle'))
                                         & ((olympiads_status['active'] == 0) | (olympiads_status['stage'] !=
                                                                                 olympiads_status['stage_real']))]
@@ -47,4 +51,70 @@ def update_missed_olympiads():
         missed_olympiads_to_update = pd.concat([missed_olympiads_to_update, olympiad])
     if not missed_olympiads_to_update.empty:
         set_missed(missed_olympiads_to_update)
-# TODO: доделать обновление статусов
+
+
+def create_notifications():
+    olympiads_status = get_all_olympiads_status()
+    olympiads = get_olympiads()
+    olympiads_status = olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='_real')
+    columns = ['user_id', 'olympiad_code', 'message', 'type']
+    notifications = pd.DataFrame(columns=columns)
+    for _, status in olympiads_status[olympiads_status['status'] == 'idle'].iterrows():
+        if (status['start_date'] - dt.date.today()).days < 2 or (
+                status['finish_date'] >= dt.date.today() >= status['start_date']):
+            user_id = status['user_id']
+            olympiad_code = status['olympiad_code']
+            if 2 >= (status['start_date'] - dt.date.today()).days >= 0:
+                message_prefix = 'Скоро начнется '
+            elif status['finish_date'] >= dt.date.today() >= status['start_date']:
+                message_prefix = 'Скоро закончиться '
+            else:
+                message_prefix = ''
+            message = message_prefix + status['name'] + ", а вы еще не зарегистрировались. Если уже сделали это, " \
+                                                        "нажмите 'Зарегистрировался'"
+            notify_type = 'reg_notify'
+            notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)
+            notifications = pd.concat([notifications, notification], axis=0)
+    for _, status in olympiads_status[olympiads_status['status'] == 'reg'].iterrows():
+        user_id = status['user_id']
+        olympiad_code = status['olympiad_code']
+        if status['finish_date'] >= dt.date.today() >= status['start_date']:
+            message = "Скоро закончиться {}, а вы еще не прошли ее. Если уже сделали это, нажмите 'Пройдена'".\
+                format(status['name'])
+            notify_type = 'done_notify'
+            notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)
+            notifications = pd.concat([notifications, notification], axis=0)
+        elif (status['start_date'] - dt.date.today()).days < 2:
+            message = "Скоро будет {}, постарайтесь не забыть".format(status['name'])
+            notify_type = 'soon_notify'
+            notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)
+            notifications = pd.concat([notifications, notification], axis=0)
+    if not notifications.empty:
+        add_notifications(notifications)
+
+
+async def send_notifications(notifications):
+    olympiads = get_olympiads()
+    for _, notification in notifications.iterrows():
+        text = notification['message']
+        olympiad_code = notification['olympiad_code']
+        stage = olympiads[olympiads['code'] == olympiad_code]['stage'].item()
+        if notification['type'] == 'reg_notify':
+            reg_url = olympiads[olympiads['code'] == olympiad_code]['urls'].iloc[0].get('reg_url')
+            reg_url = reg_url if reg_url else 'https://olimpiada.ru/'
+            reply_markup = callbacks_keyboard(texts=['Ссылка на регистрацию', 'Зарегистрировался', 'Скрыть'],
+                                              callbacks=[reg_url, confirm_registration_call.new(data=olympiad_code, stage=stage),
+                                                         delete_keyboard_call.new()])
+            await bot.send_message(notification['user_id'], text=text, reply_markup=reply_markup)
+        elif notification['type'] == 'done_notify':
+            reply_markup = callbacks_keyboard(texts=['Пройдена', 'Скрыть'],
+                                              callbacks=[confirm_execution_call.new(data=olympiad_code, stage=stage),
+                                                         delete_keyboard_call.new()])
+            await bot.send_message(notification['user_id'], text=text, reply_markup=reply_markup)
+        elif notification['type'] == 'done_notify':
+            await bot.send_message(notification['user_id'], text=text)
+
+
+
+
+

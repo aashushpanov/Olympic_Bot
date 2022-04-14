@@ -20,6 +20,7 @@ async def delete_keyboard(callback: CallbackQuery, state: FSMContext = None):
     if state:
         await state.finish()
     await callback.message.delete_reply_markup()
+    await callback.message.delete()
 
 
 async def tree_menu_keyboard(menu_node: MenuNode, callback: CallbackQuery = None, data=None):

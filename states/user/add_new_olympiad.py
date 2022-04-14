@@ -75,7 +75,7 @@ async def add_new_olympiad(callback: types.CallbackQuery, state: FSMContext, cal
     if not olympiads.empty:
         add_olympiads_to_track(olympiads, user_id)
         await callback.message.answer('Добавлена в отслеживаемые\n{} за {} класс'.format(olympiads.iloc[0]['name'],
-                                                                                        olympiads.iloc[0]['grade']))
+                                                                                         olympiads.iloc[0]['grade']))
     else:
         await callback.message.answer('Ничего добавить не удалось, возможно она уже есть')
     await state.finish()

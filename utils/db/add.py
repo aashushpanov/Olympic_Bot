@@ -4,6 +4,7 @@ from psycopg2.extras import Json
 from pandas import DataFrame
 
 from .connect import database
+from .get import get_olympiads
 
 
 async def add_user(user_id, f_name, l_name, grade=None, literal=None, interest: set = None):
@@ -99,11 +100,13 @@ def add_dates(dates: DataFrame):
 
 
 def add_olympiads_to_track(olympiads: DataFrame, user_id):
+    current_olympiads = get_olympiads()
     with database() as (cur, conn):
         for _, olympiad in olympiads.iterrows():
             sql = "INSERT INTO olympiad_status (user_id, olympiad_code, status, stage, taken_key)" \
                   "VALUES (%s, %s, %s, %s, %s)"
-            cur.execute(sql, [user_id, olympiad['code'], 'idle', olympiad['stage'], ''])
+            status = 'idle' if current_olympiads[current_olympiads['code'] == olympiad['code']]['pre_registration'].item() else 'reg'
+            cur.execute(sql, [user_id, olympiad['code'], status, olympiad['stage'], ''])
         conn.commit()
 
 
@@ -131,7 +134,7 @@ def set_missed(olympiads: DataFrame):
 
 def set_inactive(inactive_olympiads):
     with database() as (cur, conn):
-        for olympiad in inactive_olympiads.iterrows():
+        for _, olympiad in inactive_olympiads.iterrows():
             sql = "UPDATE olympiads SET active = %s WHERE code = %s"
             cur.execute(sql, [0, olympiad['code']])
         conn.commit()
@@ -160,4 +163,12 @@ def set_keys(keys: DataFrame, keys_count: dict):
         for olympiad, keys_count in keys_count.items():
             sql = "UPDATE olympiads SET keys_count = %s WHERE code = %s"
             cur.execute(sql, [keys_count, olympiad])
+        conn.commit()
+
+
+def add_notifications(notifications: DataFrame):
+    with database() as (cur, conn):
+        for _, row in notifications.iterrows():
+            sql = "INSERT INTO notifications (user_id, olympiad_code, message, type) VALUES (%s, %s, %s, %s)"
+            cur.execute(sql, [row['user_id'], row['olympiad_code'], row['message'], row['type']])
         conn.commit()
