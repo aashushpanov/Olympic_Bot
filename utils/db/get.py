@@ -73,6 +73,14 @@ def get_users():
     return data
 
 
+def get_users_by_notification_time(time):
+    with database() as (cur, conn):
+        sql = "SELECT id FROM users WHERE notify_time < %s"
+        cur.execute(sql, [time])
+        res = [x[0] for x in cur.fetchall()]
+    return res
+
+
 def get_subjects():
     with database() as (cur, conn):
         sql = "SELECT code, subject_name, section FROM subjects"
@@ -131,10 +139,10 @@ def get_key_from_db(user_id, olympiad_code, stage):
     return key
 
 
-def get_notifications():
+def get_notifications(users_id):
     with database() as (cur, conn):
-        sql = "DELETE FROM notifications RETURNING user_id, olympiad_code, message, type "
-        cur.execute(sql)
+        sql = "DELETE FROM notifications WHERE user_id = ANY(%s) RETURNING user_id, olympiad_code, message, type "
+        cur.execute(sql, [users_id])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['user_id', 'olympiad_code', 'message', 'type'])
         conn.commit()

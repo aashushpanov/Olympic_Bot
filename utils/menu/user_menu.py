@@ -91,7 +91,7 @@ def set_user_menu(main_node=None, root_id='0.1'):
     user_menu.child(text='Личные данные').set_childs([
         MenuNode('Добавить предметы', callback=add_new_interests_call.new()),
         NodeGenerator('Удалить предметы', func=get_interests),
-        MenuNode('user_0_1')
+        MenuNode('Изменить время уведомлений')
     ])
 
     user_menu.child(text='Личные данные').child(text='Удалить предметы').add_blind_node('del_subj')

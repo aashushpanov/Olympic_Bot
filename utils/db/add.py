@@ -7,10 +7,11 @@ from .connect import database
 from .get import get_olympiads
 
 
-async def add_user(user_id, f_name, l_name, grade=None, literal=None, interest: set = None):
+async def add_user(user_id, f_name, l_name, grade=None, literal=None, interest: set = None, time=16):
     with database() as (cur, conn):
-        sql = "INSERT INTO users (id, first_name, last_name, grade, literal, is_admin, interest) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        cur.execute(sql, [user_id, f_name, l_name, grade, literal, 0, list(interest)])
+        sql = "INSERT INTO users (id, first_name, last_name, grade, literal, is_admin, interest, notify_time)" \
+              " VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+        cur.execute(sql, [user_id, f_name, l_name, grade, literal, 0, list(interest), time])
         conn.commit()
 
 

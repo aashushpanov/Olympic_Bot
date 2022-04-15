@@ -10,6 +10,7 @@ delete_keyboard_call = CallbackData('del')
 cansel_event_call = CallbackData('cancel_event')
 olympiad_call = CallbackData('olympiad', 'data')
 grade_call = CallbackData('grade', 'data')
+time_call = CallbackData('time', 'data')
 
 
 def keyboard_handlers(dp: Dispatcher):
@@ -80,6 +81,20 @@ def grad_keyboard():
     buttons = ['3', '4', '5', '6', '7', '8', '9', '10', '11']
     keyboard.add(*buttons)
     return keyboard
+
+
+def literal_keyboard():
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+    buttons = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К', 'Л', 'М', 'Н', 'Ф']
+    keyboard.add(*buttons)
+    return keyboard
+
+def time_keyboard():
+    markup = InlineKeyboardMarkup()
+    for hour in range(12, 22):
+        text = '{}:00-{}:00'.format(str(hour), str(hour + 1))
+        markup.insert(InlineKeyboardButton(text=text, callback_data=time_call.new(data=str(hour))))
+    return markup
 
 
 def olympiads_keyboard(subject):

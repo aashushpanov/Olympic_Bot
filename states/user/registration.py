@@ -8,7 +8,7 @@ from aiogram.utils.callback_data import CallbackData
 
 from filters import TimeAccess
 from utils.menu.MenuNode import move
-from keyboards.keyboards import grad_keyboard, cansel_event_call
+from keyboards.keyboards import grad_keyboard, cansel_event_call, time_call, time_keyboard, literal_keyboard
 from utils.menu.user_menu import add_interest_call, confirm
 from utils.db.add import add_user, add_olympiads_to_track
 from utils.db.get import is_exist, get_olympiads
@@ -26,6 +26,7 @@ class Registration(StatesGroup):
     get_grade = State()
     get_literal = State()
     get_interest = State()
+    get_notifications_time = State()
 
 
 def register_registration_handlers(dp: Dispatcher):
@@ -40,6 +41,8 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(add_interest, add_interest_call.filter(), state=Registration.get_interest)
     dp.register_callback_query_handler(list_menu, move.filter(), TimeAccess(), state=Registration.get_interest)
     dp.register_callback_query_handler(get_interest, confirm.filter(), state=Registration.get_interest)
+    dp.register_callback_query_handler(get_notifications_time, time_call.filter(),
+                                       state=Registration.get_notifications_time)
 
 
 async def cmd_cancel(message: types.Message | types.CallbackQuery, state: FSMContext):
@@ -88,8 +91,8 @@ async def get_grade(message: types.Message, state: FSMContext):
     if int(message.text) in [x for x in range(3, 12)]:
         await state.update_data(grade=message.text)
         await Registration.get_literal.set()
-        await message.delete_reply_markup()
-        await message.answer('Введите литеру своего класса')
+        reply_markup = literal_keyboard()
+        await message.answer('Введите литеру своего класса', reply_markup=reply_markup)
     else:
         await message.answer('Введите корректный номер класса')
         return
@@ -113,16 +116,26 @@ async def add_interest(callback: types.CallbackQuery, state: FSMContext, callbac
 
 
 async def get_interest(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    reply_markup = time_keyboard()
+    await callback.message.answer('Выберете удобное время для уведомлений', reply_markup=reply_markup)
+    await Registration.get_notifications_time.set()
+
+
+async def get_notifications_time(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    time = callback_data.get('data')
+    await callback.answer()
     user = await state.get_data()
-    await add_user(callback.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'), user.get('interest'))
-    await callback.message.answer("Регистрация завершена", reply_markup=types.ReplyKeyboardRemove())
-    res, olympiads_to_add = add_olympiads(user.get('interest'), callback.from_user.id, user.get('grade'))
-    if res and not olympiads_to_add.empty:
+    await add_user(callback.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'),
+                   user.get('literal'), user.get('interest'), time=int(time))
+    olympiads_to_add = add_olympiads(user.get('interest'), callback.from_user.id, user.get('grade'))
+    if not olympiads_to_add.empty:
         await callback.message.answer('Следующие олимпиады за ваш класс добавлены в отслеживаемые:\n{}'
                                       .format('\n'.join(list(olympiads_to_add['name']))))
     else:
         await callback.message.answer('К сожалению ничего добавить не удалось')
     await callback.answer('')
+    await state.finish()
     await state.finish()
 
 
@@ -130,7 +143,7 @@ def add_olympiads(interests, user_id, grade):
     olympiads = get_olympiads()
     olympiads_to_add = pd.DataFrame(olympiads[(olympiads['subject_code'].isin(interests)) &
                                               (olympiads['grade'] == int(grade))], columns=olympiads.columns)
-    res = add_olympiads_to_track(olympiads_to_add, user_id)
-    return res, olympiads_to_add
+    add_olympiads_to_track(olympiads_to_add, user_id)
+    return olympiads_to_add
     
     

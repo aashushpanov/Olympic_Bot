@@ -11,12 +11,13 @@ from fone_tasks.fone_task_manager import manager
 from states.admin import register_admin_states
 from states.user import register_user_states
 from commands.user import set_user_commands
-from handlers import register_handlers
+from handlers import register_handlers, register_errors_handlers
 
 TIMEOUT = 20
 
 
 async def setup(dp: Dispatcher):
+    register_errors_handlers(dp)
     register_filters(dp)
     register_admin_states(dp)
     register_user_states(dp)
