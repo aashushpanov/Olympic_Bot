@@ -1,11 +1,17 @@
 import pandas as pd
 import datetime as dt
 
+from aiogram.utils.callback_data import CallbackData
+
+from data import config
 from handlers.users.user.olympiad_options import confirm_execution_call, confirm_registration_call
 from keyboards.keyboards import callbacks_keyboard, delete_keyboard_call
 from loader import bot
 from utils.db.add import set_inactive, add_olympiads_to_track, set_missed, add_notifications
-from utils.db.get import get_olympiads, get_users, get_tracked_olympiads, get_all_olympiads_status
+from utils.db.get import get_olympiads, get_users, get_tracked_olympiads, get_all_olympiads_status, \
+    get_questions_counts, get_admins
+
+show_admin_question_call = CallbackData('show_admin_question')
 
 
 async def greeting():
@@ -93,6 +99,24 @@ def create_notifications():
         add_notifications(notifications)
 
 
+def create_question_notifications():
+    try:
+        olympiad_code = get_olympiads().iloc[0, :]['code']
+    except IndexError:
+        olympiad_code = ''
+    questions_counts = get_questions_counts()
+    admins = get_admins()
+    columns = ['user_id', 'olympiad_code', 'message', 'type']
+    message = 'У вас есть неотвеченные вопросы ({})'.format(questions_counts)
+    notify_type = 'admin_question'
+    notifications = pd.DataFrame(columns=columns)
+    for _, admin in admins.iterrows():
+        notification = pd.DataFrame([[admin['admin_id'], olympiad_code, message, notify_type]], columns=columns)
+        notifications = pd.concat([notifications, notification], axis=0)
+    if not notifications.empty:
+        add_notifications(notifications)
+
+
 async def send_notifications(notifications):
     olympiads = get_olympiads()
     for _, notification in notifications.iterrows():
@@ -113,8 +137,7 @@ async def send_notifications(notifications):
             await bot.send_message(notification['user_id'], text=text, reply_markup=reply_markup)
         elif notification['type'] == 'done_notify':
             await bot.send_message(notification['user_id'], text=text)
-
-
-
-
-
+        elif notification['type'] == 'admin_question':
+            reply_markup = callbacks_keyboard(texts=['Показать', 'Скрыть'],
+                                              callbacks=[show_admin_question_call.new(), delete_keyboard_call.new()])
+            await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text, reply_markup=reply_markup)

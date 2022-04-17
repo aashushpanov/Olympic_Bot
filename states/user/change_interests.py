@@ -38,10 +38,10 @@ async def parsing_interests(callback: types.CallbackQuery, state: FSMContext, ca
     user_id = callback.from_user.id
     data = await state.get_data()
     interests_new = data.get('interest')
-    interests_exist = set(get_user(user_id)['interest'].item())
+    interests_exist = set(get_user(user_id)['interest'])
     interests_add = interests_new.union(interests_exist)
     add_interests(user_id, list(interests_add))
-    current_interests = get_user(user_id)['interest'].item()
+    current_interests = get_user(user_id)['interest']
     subjects = get_subjects()
     interests_name = list(subjects[subjects['code'].isin(current_interests)]['subject_name'].values)
     await callback.message.delete()
@@ -52,7 +52,7 @@ async def parsing_interests(callback: types.CallbackQuery, state: FSMContext, ca
 async def delete_interest(callback: types.CallbackQuery, callback_data: dict):
     user_id = callback.from_user.id
     interest_code = callback_data.get('data')
-    interest = get_user(user_id)['interest'].item()
+    interest = get_user(user_id)['interest']
     try:
         interest.remove(interest_code)
         add_interests(user_id, interest)

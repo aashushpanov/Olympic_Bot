@@ -1,7 +1,7 @@
 import pandas as pd
 from psycopg2.extras import Json
 
-from pandas import DataFrame
+from pandas import DataFrame, Series
 
 from .connect import database
 from .get import get_olympiads
@@ -172,4 +172,28 @@ def add_notifications(notifications: DataFrame):
         for _, row in notifications.iterrows():
             sql = "INSERT INTO notifications (user_id, olympiad_code, message, type) VALUES (%s, %s, %s, %s)"
             cur.execute(sql, [row['user_id'], row['olympiad_code'], row['message'], row['type']])
+        conn.commit()
+
+
+def add_question(question: Series):
+    with database() as (cur, conn):
+        sql = "INSERT INTO questions (from_user, message, answer) VALUES (%s, %s, '') RETURNING no"
+        cur.execute(sql, [question['user_id'], question['message']])
+        res = cur.fetchone()
+        conn.commit()
+    return res[0]
+
+
+def set_message_id_to_questions(questions: DataFrame):
+    with database() as (cur, conn):
+        for _, question in questions.iterrows():
+            sql = "UPDATE questions SET message_id = %s WHERE no = %s"
+            cur.execute(sql, [question['message_id'], question['no']])
+        conn.commit()
+
+
+def add_question_answer(question_no, answer, admin):
+    with database() as (cur, conn):
+        sql = "UPDATE questions SET answer = %s, to_admin = %s WHERE no = %s"
+        cur.execute(sql, [answer, admin, question_no])
         conn.commit()

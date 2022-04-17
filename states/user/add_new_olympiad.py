@@ -49,7 +49,7 @@ async def get_olympiad(callback: types.CallbackQuery, state: FSMContext, callbac
 async def get_grade(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
     olympiad_name = callback_data.get('data')
     olympiads = get_olympiads()
-    user_grade = get_user(callback.from_user.id)['grade'].item()
+    user_grade = get_user(callback.from_user.id)['grade']
     available_grades = set(olympiads[(olympiads['name'] == olympiad_name) & (olympiads['grade'] >= user_grade)]['grade']
                            .values)
     if available_grades:

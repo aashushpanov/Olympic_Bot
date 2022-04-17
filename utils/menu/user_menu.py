@@ -14,6 +14,7 @@ get_dates_call = CallbackData('get_time', 'data')
 add_new_olympiad_call = CallbackData('add_new_olympiad')
 confirm_registration_question_call = CallbackData('confirm_registration_qw', 'data')
 confirm_execution_question_call = CallbackData('confirm_execution_qw', 'data')
+question_to_admin_call = CallbackData('question_to_admin')
 
 
 async def get_olympiad_registrations(node, **kwargs):
@@ -29,7 +30,7 @@ async def get_olympiad_registrations(node, **kwargs):
 async def get_interests(_, **kwargs):
     user_id = kwargs.get('callback').message.chat.id
     subjects = get_subjects()
-    user_interests = list(get_user(user_id)['interest'].item())
+    user_interests = list(get_user(user_id)['interest'])
     interests_df = subjects[subjects['code'].isin(user_interests)]
     for _, interest in interests_df.iterrows():
         yield MenuNode(text=interest['subject_name'], callback=del_interest_call.new(data=interest['code']))
@@ -38,7 +39,7 @@ async def get_interests(_, **kwargs):
 async def get_my_olympiads(node, **kwargs):
     user_id = kwargs.get('callback').message.chat.id
     my_olympiads_codes = get_tracked_olympiads(user_id)['olympiad_code'].values
-    user_grade = get_user(user_id)['grade'].item()
+    user_grade = get_user(user_id)['grade']
     olympiads = get_olympiads()
     olympiads = olympiads[olympiads['code'].isin(my_olympiads_codes)]
     for _, olympiad in olympiads.iterrows():
@@ -85,7 +86,7 @@ def set_user_menu(main_node=None, root_id='0.1'):
     user_menu.set_childs([
         MenuNode('Личные данные'),
         MenuNode('Олимпиады'),
-        MenuNode('user_2')
+        MenuNode('Обратная связь')
     ])
 
     user_menu.child(text='Личные данные').set_childs([
@@ -112,10 +113,9 @@ def set_user_menu(main_node=None, root_id='0.1'):
         MenuNode('Забыть', callback=call.new(data=''))
     ])
 
-    user_menu.child(text='user_2').set_childs([
-        MenuNode('user_2_0'),
-        MenuNode('user_2_1'),
-        MenuNode('user_2_2')
+    user_menu.child(text='Обратная связь').set_childs([
+        MenuNode('Задать вопрос про олимпиады', callback=question_to_admin_call.new()),
+        MenuNode('Ошибка работы бота')
     ])
     return user_menu
 

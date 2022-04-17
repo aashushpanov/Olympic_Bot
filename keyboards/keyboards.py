@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ReplyKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-from utils.db.get import get_olympiads
+from utils.db.get import get_olympiads, get_admins
 from utils.menu.MenuNode import MenuNode, move
 
 delete_keyboard_call = CallbackData('del')
@@ -11,6 +11,7 @@ cansel_event_call = CallbackData('cancel_event')
 olympiad_call = CallbackData('olympiad', 'data')
 grade_call = CallbackData('grade', 'data')
 time_call = CallbackData('time', 'data')
+choose_admin_call = CallbackData('choose_admin', 'data')
 
 
 def keyboard_handlers(dp: Dispatcher):
@@ -56,6 +57,7 @@ def yes_no_keyboard(callback):
 def cansel_keyboard():
     markup = InlineKeyboardMarkup()
     markup.insert(InlineKeyboardButton(text='\U0000274C Отмена', callback_data=cansel_event_call.new()))
+    return markup
 
 
 def callbacks_keyboard(texts: list, callbacks: list, cansel_button: bool = False):
@@ -89,6 +91,7 @@ def literal_keyboard():
     keyboard.add(*buttons)
     return keyboard
 
+
 def time_keyboard():
     markup = InlineKeyboardMarkup()
     for hour in range(12, 22):
@@ -109,4 +112,15 @@ def available_grades_keyboard(grades):
     markup = InlineKeyboardMarkup()
     for grade in grades:
         markup.insert(InlineKeyboardButton(text=str(grade), callback_data=grade_call.new(data=grade)))
+    return markup
+
+
+def admins_keyboard():
+    admins = get_admins()
+    markup = InlineKeyboardMarkup(row_width=1)
+    for _, admin in admins.iterrows():
+        admin_name = '{} {}'.format(admin['last_name'], admin['first_name'])
+        admin_id = admin['admin_id']
+        markup.insert(InlineKeyboardButton(text=admin_name, callback_data=choose_admin_call.new(data=admin_id)))
+    markup.insert(InlineKeyboardButton(text='Задать всем', callback_data=choose_admin_call.new(data='all')))
     return markup

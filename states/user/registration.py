@@ -50,9 +50,11 @@ async def cmd_cancel(message: types.Message | types.CallbackQuery, state: FSMCon
     match message:
         case types.Message():
             await message.answer("Действие отменено")
+            await message.delete()
         case types.CallbackQuery():
             await message.answer()
             await message.message.answer('Действие отменено')
+            await message.message.delete()
 
 
 async def start(callback: types.CallbackQuery):

@@ -59,8 +59,8 @@ def get_user(user_id):
     with database() as (cur, conn):
         sql = "SELECT first_name, last_name, grade, literal, interest FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
-        res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['first_name', 'last_name', 'grade', 'literal', 'interest'])
+        res = cur.fetchone()
+        data = pd.Series(res, index=['first_name', 'last_name', 'grade', 'literal', 'interest'])
     return data
 
 
@@ -70,6 +70,15 @@ def get_users():
         cur.execute(sql)
         result = cur.fetchall()
         data = pd.DataFrame(result, columns=['user_id', 'first_name', 'last_name', 'grade', 'literal', 'interest'])
+    return data
+
+
+def get_admins():
+    with database() as (cur, conn):
+        sql = "SELECT id, first_name, last_name FROM users WHERE is_admin = 1"
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['admin_id', 'first_name', 'last_name'])
     return data
 
 
@@ -147,3 +156,30 @@ def get_notifications(users_id):
         data = pd.DataFrame(res, columns=['user_id', 'olympiad_code', 'message', 'type'])
         conn.commit()
     return data
+
+
+def get_questions_counts():
+    with database() as (cur, conn):
+        sql = "SELECT count(no) FROM questions WHERE answer  = ''"
+        cur.execute(sql)
+        res = cur.fetchall()
+    return res[0][0]
+
+
+def get_new_questions():
+    with database() as (cur, conn):
+        sql = "SELECT no, from_user, message, message_id FROM questions WHERE answer = '' "
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['no', 'user_id', 'message', 'message_id'])
+    return data
+
+
+def get_question(no):
+    with database() as (cur, conn):
+        sql = "SELECT from_user, message, message_id, answer, to_admin FROM questions WHERE no = %s "
+        cur.execute(sql, [no])
+        res = cur.fetchone()
+        data = pd.Series(res, index=['from_user', 'message', 'message_id', 'answer', 'to_admin'])
+    return data
+

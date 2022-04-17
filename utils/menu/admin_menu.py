@@ -1,5 +1,6 @@
 from aiogram.utils.callback_data import CallbackData
 
+from fone_tasks.updates import show_admin_question_call
 from utils.menu.MenuNode import MenuNode, NodeGenerator
 
 set_olympiads_call = CallbackData('set_olympiads')
@@ -52,10 +53,11 @@ def set_admin_menu(main_node):
 
 
 def set_group_admin_menu():
-    group_admin_menu = MenuNode('Меню')
+    group_admin_menu = MenuNode('Меню', id='group_menu')
 
     group_admin_menu.set_childs([
-        MenuNode(text='Установить администраторов', callback=set_admins_call.new())
+        MenuNode(text='Установить администраторов', callback=set_admins_call.new()),
+        MenuNode(text='Вопросы от учеников', callback=show_admin_question_call.new())
     ])
 
     return group_admin_menu

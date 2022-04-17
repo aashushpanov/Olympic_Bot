@@ -13,17 +13,17 @@ from states.user import register_user_states
 from commands.user import set_user_commands
 from handlers import register_handlers, register_errors_handlers
 
-TIMEOUT = 20
+TIMEOUT = 1000
 
 
 async def setup(dp: Dispatcher):
+    register_handlers(dp)
     register_errors_handlers(dp)
     register_filters(dp)
     register_admin_states(dp)
     register_user_states(dp)
     register_student_handlers(dp)
     register_admin_handlers(dp)
-    register_handlers(dp)
     keyboard_handlers(dp)
     await set_user_commands(bot)
 

@@ -2,7 +2,7 @@ from aiogram import types
 
 from utils.menu.MenuNode import MenuNode
 from keyboards.keyboards import tree_menu_keyboard
-from utils.menu.admin_menu import set_admin_menu
+from utils.menu.admin_menu import set_admin_menu, set_group_admin_menu
 from utils.menu.user_menu import set_user_menu, set_interest_menu
 
 
@@ -10,6 +10,7 @@ main_menu = MenuNode()
 
 set_user_menu(main_menu)
 set_admin_menu(main_menu)
+admin_group_menu = set_group_admin_menu()
 
 user_menu = set_user_menu(root_id='user')
 
@@ -18,6 +19,7 @@ interest_menu = set_interest_menu()
 menu_childs = main_menu.all_childs()
 menu_childs.update(user_menu.all_childs())
 menu_childs.update(interest_menu.all_childs())
+menu_childs.update(admin_group_menu.all_childs())
 
 
 def reset_interest_menu():
