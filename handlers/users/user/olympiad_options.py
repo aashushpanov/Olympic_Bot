@@ -27,8 +27,8 @@ def register_olympiad_options_handlers(dp: Dispatcher):
 async def get_dates(callback: types.CallbackQuery, callback_data: dict):
     await callback.answer()
     olympiad = get_olympiad(callback_data.get('data'))
-    start_date = olympiad['start_date'].item()
-    finish_date = olympiad['finish_date'].item()
+    start_date = olympiad['start_date']
+    finish_date = olympiad['finish_date']
     status = 'проходила ' if dt.date.today() > finish_date else 'проходит '
     if start_date == finish_date:
         dates = finish_date.strftime('%d.%m.%y')
@@ -41,7 +41,7 @@ async def get_key(callback: types.CallbackQuery, callback_data: dict):
     await callback.answer()
     user_id = callback.from_user.id
     olympiad_code = callback_data.get('data')
-    stage = get_olympiad(olympiad_code)['stage'].item()
+    stage = get_olympiad(olympiad_code)['stage']
     key = get_olympiad_status(user_id, olympiad_code, stage)['taken_key']
     if key == '':
         key = get_key_from_db(user_id, olympiad_code, stage)
@@ -55,7 +55,7 @@ async def get_key(callback: types.CallbackQuery, callback_data: dict):
 async def confirm_registration_question(callback: types.CallbackQuery, callback_data: dict):
     await callback.answer()
     olympiad_code = callback_data.get('data')
-    stage = get_olympiad(olympiad_code)['stage'].item()
+    stage = get_olympiad(olympiad_code)['stage']
     status = get_olympiad_status(callback.from_user.id, olympiad_code, stage)['status']
     if status == 'idle':
         await callback.message.answer('Удалось зарегистрироваться?',
@@ -77,7 +77,7 @@ async def confirm_registration(callback: types.CallbackQuery, callback_data: dic
 async def confirm_execution_question(callback: types.CallbackQuery, callback_data: dict):
     await callback.answer()
     olympiad_code = callback_data.get('data')
-    stage = get_olympiad(olympiad_code)['stage'].item()
+    stage = get_olympiad(olympiad_code)['stage']
     status = get_olympiad_status(callback.from_user.id, olympiad_code, stage)['status']
     if status == 'reg':
         await callback.message.answer('Удалось пройти олимпиаду?',
@@ -94,4 +94,3 @@ async def confirm_execution(callback: types.CallbackQuery, callback_data: dict):
     stage = callback_data.get('stage')
     set_execution(olympiad_code, user_id, stage)
     await callback.message.answer('Выполнение подтверждено')
-

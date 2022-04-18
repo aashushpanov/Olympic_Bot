@@ -11,6 +11,7 @@ set_admins_call = CallbackData('set_admins')
 get_olympiads_file_call = CallbackData('get_olympiads_file')
 get_subjects_file_call = CallbackData('get_subjects_file')
 get_status_file_call = CallbackData('get_status_file')
+get_answer_file_call = CallbackData('get_answer_file')
 delete_subjects_call = CallbackData('delete_subjects')
 delete_olympiads_call = CallbackData('delete_olympiads')
 
@@ -57,7 +58,8 @@ def set_group_admin_menu():
 
     group_admin_menu.set_childs([
         MenuNode(text='Установить администраторов', callback=set_admins_call.new()),
-        MenuNode(text='Вопросы от учеников', callback=show_admin_question_call.new())
+        MenuNode(text='Вопросы от учеников', callback=show_admin_question_call.new()),
+        MenuNode(text='Выгрузка ответов', callback=get_answer_file_call.new())
     ])
 
     return group_admin_menu

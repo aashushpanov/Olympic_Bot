@@ -8,7 +8,7 @@ from filters import IsAdmin
 from fone_tasks.updates import show_admin_question_call
 from keyboards.keyboards import callbacks_keyboard, delete_keyboard_call
 from loader import bot
-from utils.db.add import set_message_id_to_questions, add_question_answer
+from utils.db.add import set_message_id_to_questions, add_question_answer, change_files
 from utils.db.get import get_new_questions, get_question, get_user
 
 question_answer_call = CallbackData('q_a', 'no', 'id')
@@ -53,6 +53,7 @@ async def question_answer(message: types.Message):
             text = 'Ответ на ваш вопрос номер {} от {} {}:\n\n{}'.format(question_no, admin['last_name'],
                                                                          admin['first_name'], answer)
             await bot.send_message(chat_id=user_id, text=text)
+            change_files(['answers_file'])
         else:
             await message.answer('На этот вопрос уже ответили')
             await message.delete()

@@ -45,10 +45,11 @@ async def get_my_olympiads(node, **kwargs):
     for _, olympiad in olympiads.iterrows():
         next_node = node.blind_node.id
         olympiad_grade = olympiad['grade']
+        text = olympiad['name']
         if user_grade != olympiad_grade:
-            text = olympiad['name'] + ' (за {} класс)'.format(olympiad_grade)
-        else:
-            text = olympiad['name']
+            text += ' (за {} класс)'.format(olympiad_grade)
+        if olympiad['active'] == 0:
+            text += ' (прошла)'
         yield MenuNode(text=text, callback=move.new(action='d', node=next_node, data=olympiad['code'], width=1))
 
 
@@ -56,18 +57,18 @@ async def register_olympiads_options(_, **kwargs):
     callback = kwargs.get('callback')
     olympiad_code = kwargs.get('data')
     olympiad = get_olympiad(olympiad_code)
-    stage = olympiad['stage'].item()
+    stage = olympiad['stage']
     olympiad_status = get_olympiad_status(callback.from_user.id, olympiad_code, stage)
-    reg_url = olympiad['urls'].item().get('reg_url')
-    site_url = olympiad['urls'].item().get('site_url')
+    reg_url = olympiad['urls'].get('reg_url')
+    site_url = olympiad['urls'].get('site_url')
     nodes = []
-    if olympiad['pre_registration'].item() and olympiad_status['status'] == 'idle' and reg_url:
+    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle' and reg_url:
         nodes.append(MenuNode(text='Зарегистрироваться', callback=reg_url))
     if site_url:
         nodes.append(MenuNode(text='Сайт олимпиады', callback=site_url))
-    if olympiad['key_needed'].item():
+    if olympiad['key_needed'] and olympiad['keys_count']:
         nodes.append(MenuNode(text='Получить ключ', callback=get_key_call.new(data=olympiad_code)))
-    if olympiad['pre_registration'].item() and olympiad_status['status'] == 'idle':
+    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle':
         nodes.append(MenuNode(text='Подтвердить регистрацию', callback=confirm_registration_question_call.new(data=olympiad_code)))
     if olympiad_status['status'] == 'reg':
         nodes.append(MenuNode(text='Подтвердить участие', callback=confirm_execution_question_call.new(data=olympiad_code)))

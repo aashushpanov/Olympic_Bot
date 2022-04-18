@@ -1,6 +1,6 @@
 import pandas as pd
 
-from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status
+from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers
 
 
 def make_olympiads_with_dates_file():
@@ -66,4 +66,22 @@ def make_olympiads_status_file():
         new_olympiad_status = pd.DataFrame([[f_name, l_name, grade, olympiad_name, subject, key, status]], columns=columns)
         status_file = pd.concat([status_file, new_olympiad_status], axis=0)
     status_file.to_excel(file_path, index=False)
+    return file_path
+
+
+def make_answers_file():
+    file_path = 'data/files/to_send/answers_file.xlsx'
+    answers = get_answers()
+    users = get_users()
+    answers = answers.join(users.set_index('user_id'), on='to_admin')
+    columns = ['Номер вопроса', 'Вопрос', 'Ответ', 'Дал ответ']
+    answers_file = pd.DataFrame(columns=columns)
+    for _, row in answers.iterrows():
+        question_no = row['no']
+        question = row['message']
+        answer = row['answer']
+        from_admin = '{} {}'.format(row['last_name'], row['first_name'])
+        answer_row = pd.DataFrame([[question_no, question, answer, from_admin]], columns=columns)
+        answers_file = pd.concat([answers_file, answer_row], axis=0)
+    answers_file.to_excel(file_path, index=False)
     return file_path

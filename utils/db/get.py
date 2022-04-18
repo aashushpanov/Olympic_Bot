@@ -115,8 +115,8 @@ def get_olympiad(code):
         sql = "SELECT ol_name, subject_code, stage, start_date, finish_date, active, grade, key_needed," \
               " pre_registration, urls, keys_count FROM olympiads WHERE code = %s"
         cur.execute(sql, [code])
-        res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['name', 'subject_code', 'stage', 'start_date', 'finish_date', 'active',
+        res = cur.fetchone()
+        data = pd.Series(res, index=['name', 'subject_code', 'stage', 'start_date', 'finish_date', 'active',
                                           'grade', 'key_needed', 'pre_registration', 'urls', 'keys_count'])
     return data
 
@@ -183,3 +183,11 @@ def get_question(no):
         data = pd.Series(res, index=['from_user', 'message', 'message_id', 'answer', 'to_admin'])
     return data
 
+
+def get_answers():
+    with database() as (cur, conn):
+        sql = "SELECT no, from_user, message, message_id, answer, to_admin FROM questions"
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['no', 'from_user', 'message', 'message_id', 'answer', 'to_admin'])
+    return data
