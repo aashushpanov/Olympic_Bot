@@ -63,8 +63,8 @@ async def start(callback: types.CallbackQuery):
         await callback.answer("Вы уже зарегистрированы")
         return
     await callback.message.delete_reply_markup()
-    await callback.message.answer("Введите имя (только имя),\nв любой момент можете написать 'отмена', если не хотите продолжать "
-                                  "регистрацию")
+    await callback.message.answer("Введите имя (только имя),\nв любой момент можете написать 'отмена', если не хотите "
+                                  "продолжать регистрацию")
     await Registration.get_f_name.set()
 
 
@@ -136,9 +136,10 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
                                       .format('\n'.join(list(olympiads_to_add['name']))))
     else:
         await callback.message.answer('К сожалению ничего добавить не удалось')
-    await callback.answer('')
+    await callback.answer()
     await state.finish()
     await state.finish()
+    await callback.message.answer('Регистрация завершена')
 
 
 def add_olympiads(interests, user_id, grade):

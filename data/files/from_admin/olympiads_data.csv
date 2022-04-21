@@ -1,6 +1,26 @@
 ﻿Префикс;Название;Предмет;мл. класс;ст. класс;ссылка на регистрацию;ссылка на сайт олимпиады
 v;ВСОШ по английскому языку;Английский язык;5;11;;https://vos.olimpiada.ru/engl/2021_2022
-v;ВСОШ по астрономии;Астрономия;asd;11;;https://vos.olimpiada.ru/astr/2021_2022
-m;654;Астрономия;5;asd;https://reg.olimpiada.ru/login/;https://mosastro.olimpiada.ru
-m;МОШ по информатике;234;6;9;https://reg.olimpiada.ru/login/;https://mos-inf.olimpiada.ru/
+v;ВСОШ по астрономии;Астрономия;5;11;;https://vos.olimpiada.ru/astr/2021_2022
+m;МОШ по астрономии;Астрономия;5;11;https://reg.olimpiada.ru/login/;https://mosastro.olimpiada.ru
+m;МОШ по информатике;Информатика;6;9;https://reg.olimpiada.ru/login/;https://mos-inf.olimpiada.ru/
 m;МОШ по истории;История;5;11;https://reg.olimpiada.ru/login/;https://moshist.ru/
+v;ВСОШ по географии;География;5;11;;https://olimpiada.ru
+v;ВСОШ по информатике;Информатика;5;11;;https://olimpiada.ru
+v;ВСОШ по исскуству;Исскуство (МХК);5;11;;https://olimpiada.ru
+v;ВСОШ по испанскому языку;Испанский язык;5;11;;https://olimpiada.ru
+v;ВСОШ по итальянскому языку;Итальянский язык;5;11;;https://olimpiada.ru
+v;ВСОШ по китайскому языку;Китайский язык;5;11;;https://olimpiada.ru
+v;ВСОШ по литературе;Литература;5;11;;https://olimpiada.ru
+v;ВСОШ по математике;Математика;5;11;;https://olimpiada.ru
+v;ВСОШ по немецкому языку;Немецкий язык;5;11;;https://olimpiada.ru
+v;ВСОШ по ОБЖ;ОБЖ;5;11;;https://olimpiada.ru
+v;ВСОШ по обществознанию;Обществознание;5;11;;https://olimpiada.ru
+v;ВСОШ по праву;Право;5;11;;https://olimpiada.ru
+v;ВСОШ по русскому языку;Русский язык;5;11;;https://olimpiada.ru
+v;ВСОШ по технологии;Технология;5;11;;https://olimpiada.ru
+v;ВСОШ по физике;Физика;5;11;;https://olimpiada.ru
+v;ВСОШ по физической культуре;Физическая культура;5;11;;https://olimpiada.ru
+v;ВСОШ по французскому языку;Французский язык;5;11;;https://olimpiada.ru
+v;ВСОШ по химии;Химия;5;11;;https://olimpiada.ru
+v;ВСОШ по экологии;Экология;5;11;;https://olimpiada.ru
+v;ВСОШ по экономике;Экономика;5;11;;https://olimpiada.ru

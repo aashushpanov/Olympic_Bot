@@ -38,8 +38,9 @@ async def get_subject(callback: types.CallbackQuery, state: FSMContext, callback
 
 async def get_olympiad(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
     data = await state.get_data('subject')
-    subject = data['subject']
-    if subject is None:
+    try:
+        subject = data['subject']
+    except KeyError:
         return
     await AddOlympiad.choose_olympiad.set()
     await callback.message.delete()
