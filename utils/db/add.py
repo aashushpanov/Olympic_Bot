@@ -22,6 +22,13 @@ def add_interests(user_id, interests):
         conn.commit()
 
 
+def add_notify_time(time, user_id):
+    with database() as (cur, conn):
+        sql = "UPDATE users SET notify_time = %s WHERE id = %s"
+        cur.execute(sql, [time, user_id])
+        conn.commit()
+
+
 async def set_admin_access(user_id):
     with database() as (cur, conn):
         sql = "UPDATE users SET is_admin = 1 WHERE id = %s"

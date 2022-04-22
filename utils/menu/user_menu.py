@@ -15,6 +15,7 @@ add_new_olympiad_call = CallbackData('add_new_olympiad')
 confirm_registration_question_call = CallbackData('confirm_registration_qw', 'data')
 confirm_execution_question_call = CallbackData('confirm_execution_qw', 'data')
 question_to_admin_call = CallbackData('question_to_admin')
+change_notify_time_call = CallbackData('change_notify_time')
 
 
 async def get_olympiad_registrations(node, **kwargs):
@@ -93,7 +94,7 @@ def set_user_menu(main_node=None, root_id='0.1'):
     user_menu.child(text='Личные данные').set_childs([
         MenuNode('Добавить предметы', callback=add_new_interests_call.new()),
         NodeGenerator('Удалить предметы', func=get_interests),
-        MenuNode('Изменить время уведомлений')
+        MenuNode('Изменить время уведомлений', callback=change_notify_time_call.new())
     ])
 
     user_menu.child(text='Личные данные').child(text='Удалить предметы').add_blind_node('del_subj')
