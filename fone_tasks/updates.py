@@ -105,16 +105,17 @@ def create_question_notifications():
     except IndexError:
         olympiad_code = ''
     questions_counts = get_questions_counts()
-    admins = get_admins()
-    columns = ['user_id', 'olympiad_code', 'message', 'type']
-    message = 'У вас есть неотвеченные вопросы ({})'.format(questions_counts)
-    notify_type = 'admin_question'
-    notifications = pd.DataFrame(columns=columns)
-    for _, admin in admins.iterrows():
-        notification = pd.DataFrame([[admin['admin_id'], olympiad_code, message, notify_type]], columns=columns)
-        notifications = pd.concat([notifications, notification], axis=0)
-    if not notifications.empty:
-        add_notifications(notifications)
+    if questions_counts:
+        admins = get_admins()
+        columns = ['user_id', 'olympiad_code', 'message', 'type']
+        message = 'У вас есть неотвеченные вопросы ({})'.format(questions_counts)
+        notify_type = 'admin_question'
+        notifications = pd.DataFrame(columns=columns)
+        for _, admin in admins.iterrows():
+            notification = pd.DataFrame([[admin['admin_id'], olympiad_code, message, notify_type]], columns=columns)
+            notifications = pd.concat([notifications, notification], axis=0)
+        if not notifications.empty:
+            add_notifications(notifications)
 
 
 async def send_notifications(notifications):
