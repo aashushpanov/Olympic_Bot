@@ -41,6 +41,7 @@ async def get_olympiad(callback: types.CallbackQuery, state: FSMContext, callbac
     try:
         subject = data['subject']
     except KeyError:
+        await callback.answer(text='Вы ничего не выбрали')
         return
     await AddOlympiad.choose_olympiad.set()
     await callback.message.delete()

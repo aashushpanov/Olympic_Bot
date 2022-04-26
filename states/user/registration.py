@@ -7,6 +7,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.utils.callback_data import CallbackData
 
 from filters import TimeAccess
+from utils.menu import user_menu
 from utils.menu.MenuNode import move
 from keyboards.keyboards import grad_keyboard, cansel_event_call, time_call, time_keyboard, literal_keyboard
 from utils.menu.user_menu import add_interest_call, confirm
@@ -63,8 +64,7 @@ async def start(callback: types.CallbackQuery):
         await callback.answer("Вы уже зарегистрированы")
         return
     await callback.message.delete_reply_markup()
-    await callback.message.answer("Введите имя (только имя),\nв любой момент можете написать 'отмена', если не хотите "
-                                  "продолжать регистрацию")
+    await callback.message.answer("Введите имя (только имя)")
     await Registration.get_f_name.set()
 
 
@@ -139,7 +139,7 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
     await callback.answer()
     await state.finish()
     await state.finish()
-    await callback.message.answer('Регистрация завершена')
+    await callback.message.answer('Регистрация завершена, можете вызвать /menu.')
 
 
 def add_olympiads(interests, user_id, grade):

@@ -16,6 +16,12 @@ def set_admin_handlers(dp: Dispatcher):
 async def set_admin(callback: types.CallbackQuery):
     await callback.answer()
     await update_admins()
+    admins = get_admins()
+    text = "Текущие администраторы:\n{}".format('\n'.join(
+        [row['last_name'] + ' ' + row['first_name'] + '\n' for _, row in admins.iterrows()]))
+    await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text)
+    for _, admin in admins.iterrows():
+        await bot.send_message(chat_id=admin['admin_id'], text="Вы администратор")
 
 
 async def update_admins():
@@ -28,9 +34,4 @@ async def update_admins():
         set_admin_access(list(admins_to_add))
     if admins_to_delete:
         remove_admin_access(list(admins_to_delete))
-    admins = get_admins()
-    text = "Текущие администраторы:\n{}".format('\n'.join(
-        [row['last_name'] + ' ' + row['first_name'] + '\n' for _, row in admins.iterrows()]))
-    await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text)
-    for _, admin in admins.iterrows():
-        await bot.send_message(chat_id=admin['admin_id'], test="Вы администратор")
+

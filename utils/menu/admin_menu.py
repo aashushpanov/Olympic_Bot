@@ -24,7 +24,7 @@ def set_admin_menu(main_node):
     admin_menu.set_childs([
         MenuNode('Данные олимпиад'),
         MenuNode('Выгрузки'),
-        MenuNode('admin_2')
+        # MenuNode('admin_2')
     ])
 
     admin_menu.child(text='Данные олимпиад').set_childs([
@@ -42,11 +42,11 @@ def set_admin_menu(main_node):
         MenuNode('Результаты прохождения олимпиад', callback=get_status_file_call.new())
     ])
 
-    admin_menu.child(text='admin_2').set_childs([
-        MenuNode('admin_2_0'),
-        MenuNode('admin_2_1'),
-        MenuNode('admin_2_2')
-    ])
+    # admin_menu.child(text='admin_2').set_childs([
+    #     MenuNode('admin_2_0'),
+    #     MenuNode('admin_2_1'),
+    #     MenuNode('admin_2_2')
+    # ])
 
     # all_childs = admin_menu.all_childs()
 

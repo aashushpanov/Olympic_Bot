@@ -20,10 +20,10 @@ async def setup(dp: Dispatcher):
     register_handlers(dp)
     register_errors_handlers(dp)
     register_filters(dp)
-    register_admin_states(dp)
-    register_user_states(dp)
     register_student_handlers(dp)
     register_admin_handlers(dp)
+    register_admin_states(dp)
+    register_user_states(dp)
     keyboard_handlers(dp)
     await set_user_commands(bot)
 
