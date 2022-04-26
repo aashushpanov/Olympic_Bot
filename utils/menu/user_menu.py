@@ -63,15 +63,15 @@ async def register_olympiads_options(_, **kwargs):
     reg_url = olympiad['urls'].get('reg_url')
     site_url = olympiad['urls'].get('site_url')
     nodes = []
-    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle' and reg_url:
+    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle' and reg_url and olympiad['active']:
         nodes.append(MenuNode(text='Зарегистрироваться', callback=reg_url))
     if site_url:
         nodes.append(MenuNode(text='Сайт олимпиады', callback=site_url))
-    if olympiad['key_needed'] and olympiad['keys_count']:
+    if olympiad['key_needed'] and olympiad['keys_count'] and olympiad['active']:
         nodes.append(MenuNode(text='Получить ключ', callback=get_key_call.new(data=olympiad_code)))
-    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle':
+    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle' and olympiad['active']:
         nodes.append(MenuNode(text='Подтвердить регистрацию', callback=confirm_registration_question_call.new(data=olympiad_code)))
-    if olympiad_status['status'] == 'reg':
+    if olympiad_status['status'] == 'reg' and olympiad['active']:
         nodes.append(MenuNode(text='Подтвердить участие', callback=confirm_execution_question_call.new(data=olympiad_code)))
     nodes.append(MenuNode(text='Узнать даты проведения', callback=get_dates_call.new(data=olympiad_code)))
     for node in nodes:
@@ -101,19 +101,19 @@ def set_user_menu(main_node=None, root_id='0.1'):
 
     user_menu.child(text='Олимпиады').set_childs([
         NodeGenerator(text='Список моих олимпиад', func=get_my_olympiads),
-        MenuNode('Добавить отдельные олимпиады', callback=add_new_olympiad_call.new()),
-        NodeGenerator('Регистрации', func=get_olympiad_registrations)
+        MenuNode('Добавить отдельные олимпиады', callback=add_new_olympiad_call.new())
+        # NodeGenerator('Регистрации', func=get_olympiad_registrations)
     ])
 
     user_menu.child(text='Олимпиады').child(text='Список моих олимпиад').add_blind_node('list_olymp', type='generator',
                                                                                         func=register_olympiads_options)
     user_menu.child(text='Олимпиады').child(text='Список моих олимпиад').blind_node.add_blind_node('ol_opt')
 
-    user_menu.child(text='Олимпиады').child(text='Регистрации').add_blind_node('reg_olymp')
-    user_menu.child(text='Олимпиады').child(text='Регистрации').set_sub_childs([
-        MenuNode('Выполнить', callback=call.new(data='')),
-        MenuNode('Забыть', callback=call.new(data=''))
-    ])
+    # user_menu.child(text='Олимпиады').child(text='Регистрации').add_blind_node('reg_olymp')
+    # user_menu.child(text='Олимпиады').child(text='Регистрации').set_sub_childs([
+    #     MenuNode('Выполнить', callback=call.new(data='')),
+    #     MenuNode('Забыть', callback=call.new(data=''))
+    # ])
 
     user_menu.child(text='Обратная связь').set_childs([
         MenuNode('Задать вопрос про олимпиады', callback=question_to_admin_call.new()),

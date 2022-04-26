@@ -117,7 +117,9 @@ async def load_ol_file(message: types.Message, state: FSMContext):
         exist_list = olympiads_to_str(olympiads_exists)
         await state.update_data(olympiads_new=olympiads_new, subjects_not_existing=subjects_not_existing,
                                 olympiads_exists=olympiads_exists)
+        exist_check = 1
         if exist_list:
+            exist_check = 0
             await message.answer('Эти олимпиады  уже существуют:\n{}'.format('\n'.join(exist_list)),
                                  reply_markup=callbacks_keyboard(
                                      texts=['Обновить данные по ним'], callbacks=[update_olympiads_call.new()]))
@@ -136,7 +138,8 @@ async def load_ol_file(message: types.Message, state: FSMContext):
             else:
                 await message.answer('Ничего не добавлено')
             os.remove(file_path)
-            await state.finish()
+            if exist_check:
+                await state.finish()
     else:
         await message.answer('Что-то пошло не так.')
         await state.finish()
@@ -391,7 +394,7 @@ def parsing_dates(dates_load: pd.DataFrame):
                 code = code.item()
             start_date = str_to_date(row['дата начала'])
             finish_date = str_to_date(row['дата окончания'])
-            active = 1 if dt.date.today() < finish_date else 0
+            active = 1 if dt.date.today() <= finish_date else 0
             key = 1 if row['ключ'].lower() == 'да' else 0
             pre_registration = 1 if row['предварительная регистрация'].lower() == 'да' else 0
             date = pd.DataFrame([[code, row['Название'], grade, start_date, finish_date, row['этап'],

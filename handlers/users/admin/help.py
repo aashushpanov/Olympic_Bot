@@ -38,5 +38,6 @@ async def delete_olympiads(message: types.Message):
 
 
 async def set_keys_help(message: types.Message):
-    text = "Выберите класс и отправьте сюда csv-файл с ключами ВСОШ скаченный с статграда. Этот файл не нужно изменять."
+    text = "Выберите класс и отправьте сюда csv-файл с ключами ВСОШ, скачанный с СтатГрада. Этот файл не нужно " \
+           "изменять. "
     await message.answer(text=text)
