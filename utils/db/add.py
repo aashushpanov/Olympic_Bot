@@ -31,7 +31,7 @@ def add_notify_time(time, user_id):
 
 def set_admin_access(user_ids):
     with database() as (cur, conn):
-        sql = "UPDATE users SET is_admin = 1 WHERE id = ANY(%s)"
+        sql = "UPDATE users SET is_admin = 2 WHERE id = ANY(%s)"
         cur.execute(sql, [user_ids])
         conn.commit()
 

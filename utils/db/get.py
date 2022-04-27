@@ -75,10 +75,19 @@ def get_users():
 
 def get_admins():
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name FROM users WHERE is_admin = 1"
+        sql = "SELECT id, first_name, last_name FROM users WHERE is_admin = 2"
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['admin_id', 'first_name', 'last_name'])
+    return data
+
+
+def get_class_managers():
+    with database() as (cur, conn):
+        sql = "SELECT id, first_name, last_name, grade, literal FROM users WHERE is_admin = 1"
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['admin_id', 'first_name', 'last_name', 'grade', 'literal'])
     return data
 
 

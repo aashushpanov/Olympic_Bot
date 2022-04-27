@@ -15,6 +15,7 @@ def main_menu_handlers(dp: Dispatcher):
     dp.register_message_handler(show_main_menu, IsExist(1), commands=['menu'], chat_type=types.ChatType.PRIVATE, state='*')
     dp.register_message_handler(reg_suggestion, IsExist(0), commands=['menu'], chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(show_admins_group_menu, IsExist(1), commands=['menu'], is_chat_admin=True, chat_id=config.ADMIN_GROUP_ID)
+    dp.register_message_handler(show_admins_group_menu, IsExist(1), commands=['menu'], is_chat_admin=True, chat_id=config.CLASS_MANAGERS_GROUP_ID)
     dp.register_callback_query_handler(list_menu, move.filter(), TimeAccess(), state='*')
 
 

@@ -154,8 +154,7 @@ async def personal_data_agreement(callback: types.CallbackQuery, state: FSMConte
         await callback.message.answer('К сожалению ничего добавить не удалось')
     await callback.answer()
     await state.finish()
-    await state.finish()
-    await change_files(['users_file'])
+    change_files(['users_file'])
     await callback.message.answer('Регистрация завершена, можете вызвать /menu.')
 
 
