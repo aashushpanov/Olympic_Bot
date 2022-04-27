@@ -7,11 +7,11 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.utils.callback_data import CallbackData
 
 from filters import TimeAccess
-from utils.menu import user_menu
 from utils.menu.MenuNode import move
-from keyboards.keyboards import grad_keyboard, cansel_event_call, time_call, time_keyboard, literal_keyboard
+from keyboards.keyboards import grad_keyboard, cansel_event_call, time_call, time_keyboard, literal_keyboard, \
+    yes_no_keyboard
 from utils.menu.user_menu import add_interest_call, confirm
-from utils.db.add import add_user, add_olympiads_to_track
+from utils.db.add import add_user, add_olympiads_to_track, change_files
 from utils.db.get import is_exist, get_olympiads
 from utils.menu.menu_structure import list_menu, interest_menu
 
@@ -19,6 +19,7 @@ ru_abc = {'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к'
           'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я'}
 
 reg_callback = CallbackData('reg')
+personal_data_agreement_call = CallbackData('personal_data_agreement')
 
 
 class Registration(StatesGroup):
@@ -28,6 +29,7 @@ class Registration(StatesGroup):
     get_literal = State()
     get_interest = State()
     get_notifications_time = State()
+    personal_data_agreement = State()
 
 
 def register_registration_handlers(dp: Dispatcher):
@@ -44,6 +46,8 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(get_interest, confirm.filter(), state=Registration.get_interest)
     dp.register_callback_query_handler(get_notifications_time, time_call.filter(),
                                        state=Registration.get_notifications_time)
+    dp.register_callback_query_handler(personal_data_agreement, personal_data_agreement_call.filter(), TimeAccess(1),
+                                       state=Registration.personal_data_agreement)
 
 
 async def cmd_cancel(message: types.Message | types.CallbackQuery, state: FSMContext):
@@ -125,11 +129,23 @@ async def get_interest(callback: types.CallbackQuery, state: FSMContext):
 
 
 async def get_notifications_time(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
-    time = callback_data.get('data')
+    time = int(callback_data.get('data'))
     await callback.answer()
+    await state.update_data(time=time)
+    markup = yes_no_keyboard(callback=personal_data_agreement_call.new())
+    await callback.message.answer('Вы согласны на обработку персональных данных?', reply_markup=markup)
+    await Registration.personal_data_agreement.set()
+
+
+async def personal_data_agreement(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    await callback.answer()
+    await callback.message.delete()
     user = await state.get_data()
-    await add_user(callback.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'),
-                   user.get('literal'), user.get('interest'), time=int(time))
+    try:
+        await add_user(callback.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'),
+                       user.get('literal'), user.get('interest'), user.get('time'))
+    except KeyError:
+        await callback.message.answer('Что-то пошло не так')
     olympiads_to_add = add_olympiads(user.get('interest'), callback.from_user.id, user.get('grade'))
     if not olympiads_to_add.empty:
         await callback.message.answer('Следующие олимпиады за ваш класс добавлены в отслеживаемые:\n{}'
@@ -139,14 +155,14 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
     await callback.answer()
     await state.finish()
     await state.finish()
+    await change_files(['users_file'])
     await callback.message.answer('Регистрация завершена, можете вызвать /menu.')
 
 
 def add_olympiads(interests, user_id, grade):
     olympiads = get_olympiads()
     olympiads_to_add = pd.DataFrame(olympiads[(olympiads['subject_code'].isin(interests)) &
-                                              (olympiads['grade'] == int(grade))], columns=olympiads.columns)
+                                              (olympiads['grade'] == int(grade)) & (olympiads['active'])],
+                                    columns=olympiads.columns)
     add_olympiads_to_track(olympiads_to_add, user_id)
     return olympiads_to_add
-    
-    

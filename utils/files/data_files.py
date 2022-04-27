@@ -3,6 +3,16 @@ import pandas as pd
 from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers
 
 
+def make_users_file():
+    file_path = 'data/files/to_send/users.xlsx'
+    users = get_users()
+    columns = ['Фамилия', 'Имя', 'Номер класса', 'Буква класса']
+    users_file = users[['last_name', 'first_name', 'grade', 'literal']]
+    users_file.columns = columns
+    users_file.to_excel(file_path, index=False)
+    return file_path
+
+
 def make_olympiads_with_dates_file():
     file_path = 'data/files/to_send/all_olympiads.xlsx'
     olympiads = get_olympiads()
