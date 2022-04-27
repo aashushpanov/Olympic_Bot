@@ -57,10 +57,10 @@ def get_all_olympiads_status():
 
 def get_user(user_id):
     with database() as (cur, conn):
-        sql = "SELECT first_name, last_name, grade, literal, interest FROM users WHERE id = %s"
+        sql = "SELECT first_name, last_name, grade, literal, interest, notify_time FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchone()
-        data = pd.Series(res, index=['first_name', 'last_name', 'grade', 'literal', 'interest'])
+        data = pd.Series(res, index=['first_name', 'last_name', 'grade', 'literal', 'interest', 'notify_time'])
     return data
 
 

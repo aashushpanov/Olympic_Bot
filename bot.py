@@ -3,6 +3,7 @@ import asyncio
 from aiogram import executor, Dispatcher
 
 from filters import register_filters
+from states.class_manager import register_class_manager_handlers
 from keyboards.keyboards import keyboard_handlers
 from loader import dp, bot
 from handlers.users.admin import register_admin_handlers
@@ -22,6 +23,7 @@ async def setup(dp: Dispatcher):
     register_filters(dp)
     register_student_handlers(dp)
     register_admin_handlers(dp)
+    register_class_manager_handlers(dp)
     register_admin_states(dp)
     register_user_states(dp)
     keyboard_handlers(dp)

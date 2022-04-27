@@ -29,6 +29,14 @@ def add_notify_time(time, user_id):
         conn.commit()
 
 
+def add_class_manager(user_id, f_name, l_name, grad, literal, time):
+    with database() as (cur, conn):
+        sql = "UPDATE users SET first_name, last_name, grad, literal, notify_time, interest, is_admin VALUES" \
+              " (%s, %s, %s, %s, %s, [], 1) WHERE id = %s"
+        cur.execute(sql, [f_name, l_name, grad, literal, time, user_id])
+        conn.commit()
+
+
 def set_admin_access(user_ids):
     with database() as (cur, conn):
         sql = "UPDATE users SET is_admin = 2 WHERE id = ANY(%s)"

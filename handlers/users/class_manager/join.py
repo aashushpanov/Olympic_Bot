@@ -1,1 +1,0 @@
-def register_join_handl

@@ -14,6 +14,6 @@ PORT = str(os.getenv("PORT"))
 URL = str(os.getenv("URL_VPS"))
 
 ADMIN_GROUP_ID = str(os.getenv("ADMIN_GROUP_ID"))
-CLASS_MANAGERS_GROUP_ID = str(os.getenv("CLASS_MANAGERS_GROUP_ID"))
+CLASS_MANAGERS_PASSWORD = str(os.getenv("CLASS_MANAGERS_PASSWORD"))
 
 
