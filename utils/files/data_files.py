@@ -3,11 +3,13 @@ import pandas as pd
 from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers
 
 
-def make_users_file():
+def make_users_file(grade: int = None, literals: list = None):
     file_path = 'data/files/to_send/users.xlsx'
     users = get_users()
     columns = ['Фамилия', 'Имя', 'Номер класса', 'Буква класса']
     users_file = users[['last_name', 'first_name', 'grade', 'literal']]
+    if grade is not None and literals is not None:
+        users_file = users_file[(users_file['grade'] == grade) & (users_file['literal'].isin(literals))]
     users_file.columns = columns
     users_file.to_excel(file_path, index=False)
     return file_path
@@ -43,7 +45,7 @@ def make_olympiads_with_dates_file():
     return file_path
 
 
-def make_olympiads_status_file():
+def make_olympiads_status_file(grade: int = None, literals: list = None):
     file_path = 'data/files/to_send/status_file.xlsx'
     users = get_users()
     olympiads = get_olympiads()
@@ -52,6 +54,9 @@ def make_olympiads_status_file():
     olympiads_status = olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='real')
     olympiads_status = olympiads_status.join(subjects.set_index('code'), on='subject_code')
     olympiads_status = olympiads_status.join(users.set_index('user_id'), on='user_id', rsuffix='user')
+    if grade is not None and literals is not None:
+        olympiads_status = olympiads_status[(olympiads_status['grade'] == grade) &
+                                            (olympiads_status['literal'].isin(literals))]
     columns = ['Имя', 'Фамилия', 'Класс', 'Олимпиада', 'Предмет', 'Ключ', 'Статус']
     status_file = pd.DataFrame(columns=columns)
     for _, olympiad_status in olympiads_status.iterrows():

@@ -146,7 +146,7 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
     user_id = callback.from_user.id
     literal = ''.join(user['literal'])
     add_class_manager(user_id, user['f_name'], user['l_name'], user['grade'], literal, time)
-    await callback.message.answer('Вы зарегистрированы как классный руководитель {}'
+    await callback.message.answer("Вы зарегистрированы как классный руководитель {}. Можете вызвать /menu"
                                   .format(', '.join([str(user['grade']) + literal for literal in user['literal']])))
     await state.finish()
 
@@ -157,6 +157,6 @@ async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
     user = get_user(user_id)
     add_class_manager(user_id, user['first_name'], user['last_name'], user['grade'],
                       user['literal'], user['notify_time'])
-    await callback.message.answer('Вы зарегистрированы как классный руководитель {}'
+    await callback.message.answer("Вы зарегистрированы как классный руководитель {}. Можете вызвать /menu"
                                   .format(str(user['grade']) + user['literal']))
     await state.finish()

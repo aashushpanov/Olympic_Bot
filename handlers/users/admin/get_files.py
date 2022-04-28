@@ -1,4 +1,3 @@
-import pandas as pd
 from aiogram import Dispatcher, types
 from aiogram.types import InputFile
 
