@@ -3,15 +3,19 @@ from aiogram.utils.callback_data import CallbackData
 from utils.menu.MenuNode import MenuNode
 
 
-class_manager_registration_call = CallbackData('class_manager_registration')
 
 
 def set_class_manager_menu():
-    class_manager_menu = MenuNode()
+    class_manager_menu = MenuNode(id='cm_menu')
 
     class_manager_menu.set_childs([
-        MenuNode('Регистрация', callback=class_manager_registration_call.new()),
+        MenuNode('Личные данные'),
         MenuNode('Данные по классу')
+    ])
+
+    class_manager_menu.child('Данные по классу').set_childs([
+        MenuNode('Список учеников'),
+        MenuNode('Статусы олимпиад')
     ])
 
     return class_manager_menu

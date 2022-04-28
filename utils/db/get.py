@@ -3,7 +3,7 @@ from .connect import database
 import pandas as pd
 
 
-async def get_access(user_id):
+def get_access(user_id: int) -> object:
     with database() as (cur, conn):
         sql = "SELECT is_admin FROM users WHERE id = %s"
         cur.execute(sql, [user_id])

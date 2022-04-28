@@ -152,10 +152,9 @@ async def personal_data_agreement(callback: types.CallbackQuery, state: FSMConte
                                       .format('\n'.join(list(olympiads_to_add['name']))))
     else:
         await callback.message.answer('К сожалению ничего добавить не удалось')
-    await callback.answer()
-    await state.finish()
-    change_files(['users_file'])
+    await change_files(['users_file'])
     await callback.message.answer('Регистрация завершена, можете вызвать /menu.')
+    await state.finish()
 
 
 def add_olympiads(interests, user_id, grade):

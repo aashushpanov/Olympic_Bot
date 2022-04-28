@@ -10,7 +10,7 @@ async def manager():
     hour = dt.datetime.today().time().hour
     # await greeting()
     if 0 < hour < 1:
-        update_admins()
+        await update_admins()
         update_olympiads_activity()
         update_olympiads_to_track()
         update_missed_olympiads()
