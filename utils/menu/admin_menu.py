@@ -12,6 +12,7 @@ get_olympiads_file_call = CallbackData('get_olympiads_file')
 get_subjects_file_call = CallbackData('get_subjects_file')
 get_status_file_call = CallbackData('get_status_file')
 get_users_file_call = CallbackData('get_users')
+get_cm_file_call = CallbackData('get_cm_file')
 get_answer_file_call = CallbackData('get_answer_file')
 delete_subjects_call = CallbackData('delete_subjects')
 delete_olympiads_call = CallbackData('delete_olympiads')
@@ -38,7 +39,8 @@ def set_admin_menu(main_node):
     ])
 
     admin_menu.child(text='Выгрузки').set_childs([
-        MenuNode('Список пользователей', callback=get_users_file_call.new()),
+        MenuNode('Список учащихся', callback=get_users_file_call.new()),
+        MenuNode('Список классных руководителей', callback=get_cm_file_call.new()),
         MenuNode('Список предметов', callback=get_subjects_file_call.new()),
         MenuNode('Список олимпиад', callback=get_olympiads_file_call.new()),
         MenuNode('Результаты прохождения олимпиад', callback=get_status_file_call.new())

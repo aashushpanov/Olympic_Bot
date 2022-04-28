@@ -3,20 +3,21 @@ import pandas as pd
 from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers
 
 
-def make_users_file(grade: int = None, literals: list = None):
+def make_users_file(grade: int = None, literals: list = None, users_type='students'):
     file_path = 'data/files/to_send/users.xlsx'
     users = get_users()
-    columns = ['Фамилия', 'Имя', 'Номер класса', 'Буква класса', 'Права']
+    columns = ['Фамилия', 'Имя', 'Номер класса', 'Буква класса']
     users_file = users[['last_name', 'first_name', 'grade', 'literal', 'is_admin']]
+    match users_type:
+        case 'class_manager':
+            users_file = users_file[users_file['is_admin'] == 1]
+        case _:
+            users_file = users_file[users_file['is_admin'] == 0]
+    users_file.drop(columns=['is_admin'], inplace=True)
     if grade is not None and literals is not None:
         users_file = users_file[(users_file['grade'] == grade) & (users_file['literal'].isin(literals))]
-    users_file_copy = users_file.copy()
-    users_file_copy.astype({'is_admin': 'object'})
-    users_file_copy.loc[users_file_copy.is_admin == 0, 'is_admin'] = 'Ученик'
-    users_file_copy.loc[users_file_copy.is_admin == 1, 'is_admin'] = 'Классный руководитель'
-    users_file_copy.loc[users_file_copy.is_admin == 2, 'is_admin'] = 'Администратор'
-    users_file_copy.columns = columns
-    users_file_copy.to_excel(file_path, index=False)
+    users_file.columns = columns
+    users_file.to_excel(file_path, index=False)
     return file_path
 
 

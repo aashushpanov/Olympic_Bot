@@ -197,6 +197,13 @@ def add_notifications(notifications: DataFrame):
         conn.commit()
 
 
+def clean_notifications():
+    with database() as (cur, conn):
+        sql = "DELETE from notifications"
+        cur.execute(sql)
+        conn.commit()
+
+
 def add_question(question: Series):
     with database() as (cur, conn):
         sql = "INSERT INTO questions (from_user, message, answer) VALUES (%s, %s, '') RETURNING no"

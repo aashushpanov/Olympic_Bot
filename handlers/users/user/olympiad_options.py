@@ -46,7 +46,8 @@ async def get_key(callback: types.CallbackQuery, callback_data: dict):
     if key == '':
         key = get_key_from_db(user_id, olympiad_code, stage)
     if key:
-        await callback.message.answer('Ваш ключ:\n{}\nЕсли данный ключ не работает, обратитесь к классному '
+        await callback.message.answer(key)
+        await callback.message.answer('Это ваш ключ. Если он не работает, обратитесь к классному '
                                       'руководителю.'.format(key))
     else:
         await callback.message.answer('К сожалению, ключ получить не удалось')

@@ -68,7 +68,8 @@ async def start(callback: types.CallbackQuery):
         await callback.answer("Вы уже зарегистрированы")
         return
     await callback.message.delete_reply_markup()
-    await callback.message.answer("Введите имя (только имя)")
+    await callback.message.answer("Введите имя (только имя). Обратите внимание, данные"
+                                  " после регистрации будет поменять.")
     await Registration.get_f_name.set()
 
 

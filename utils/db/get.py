@@ -39,7 +39,8 @@ def get_olympiads_by_status(user_id, status):
 
 def get_olympiad_status(user_id, code, stage):
     with database() as (cur, conn):
-        sql = "SELECT status, stage, taken_key FROM  olympiad_status WHERE olympiad_code = %s AND user_id = %s AND stage = %s"
+        sql = "SELECT status, stage, taken_key FROM  olympiad_status WHERE olympiad_code = %s" \
+              " AND user_id = %s AND stage = %s"
         cur.execute(sql, [code, user_id, stage])
         res = cur.fetchone()
         data = pd.Series(res, index=['status', 'stage', 'taken_key'])
