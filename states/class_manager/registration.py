@@ -6,7 +6,7 @@ from aiogram.utils.callback_data import CallbackData
 from data import config
 from filters import IsExist
 from keyboards.keyboards import callbacks_keyboard, grad_keyboard, literal_keyboard, time_keyboard, time_call
-from utils.db.add import add_class_manager
+from utils.db.add import add_class_manager, change_files
 from utils.db.get import get_user, get_access
 
 ru_abc = {'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф',
@@ -149,6 +149,7 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
     await callback.message.answer("Вы зарегистрированы как классный руководитель {}. Можете вызвать /menu"
                                   .format(', '.join([str(user['grade']) + literal for literal in user['literal']])))
     await state.finish()
+    change_files(['users_file'])
 
 
 async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
@@ -160,3 +161,4 @@ async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer("Вы зарегистрированы как классный руководитель {}. Можете вызвать /menu"
                                   .format(str(user['grade']) + user['literal']))
     await state.finish()
+    change_files(['users_file'])

@@ -66,10 +66,11 @@ def get_user(user_id):
 
 def get_users():
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name, grade, literal, interest  FROM users"
+        sql = "SELECT id, first_name, last_name, grade, literal, interest, is_admin  FROM users"
         cur.execute(sql)
         result = cur.fetchall()
-        data = pd.DataFrame(result, columns=['user_id', 'first_name', 'last_name', 'grade', 'literal', 'interest'])
+        data = pd.DataFrame(result, columns=['user_id', 'first_name', 'last_name', 'grade',
+                                             'literal', 'interest', 'is_admin'])
     return data
 
 

@@ -123,6 +123,7 @@ async def add_interest(callback: types.CallbackQuery, state: FSMContext, callbac
 
 async def get_interest(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
+    await callback.message.delete()
     reply_markup = time_keyboard()
     await callback.message.answer('Выберете удобное время для уведомлений', reply_markup=reply_markup)
     await Registration.get_notifications_time.set()
