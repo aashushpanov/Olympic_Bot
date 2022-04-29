@@ -43,9 +43,14 @@ async def get_olympiad(callback: types.CallbackQuery, state: FSMContext, callbac
     except KeyError:
         await callback.answer(text='Вы ничего не выбрали')
         return
-    await AddOlympiad.choose_olympiad.set()
     await callback.message.delete()
-    await callback.message.answer('Выберете олимпиаду', reply_markup=olympiads_keyboard(subject))
+    markup = olympiads_keyboard(subject)
+    if len(markup.inline_keyboard):
+        await AddOlympiad.choose_olympiad.set()
+        await callback.message.answer('Выберете олимпиаду', reply_markup=markup)
+    else:
+        await callback.message.answer('Олимпиад за этот предмет уже нет.')
+        await state.finish()
 
 
 async def get_grade(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):

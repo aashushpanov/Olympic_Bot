@@ -3,8 +3,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from filters import TimeAccess
-from utils.db.add import add_interests
-from utils.db.get import get_user, get_subjects
+from utils.db.add import add_interests, add_olympiads_to_track
+from utils.db.get import get_user, get_subjects, get_olympiads, get_tracked_olympiads
 from utils.menu.menu_structure import list_menu, interest_menu
 from utils.menu.user_menu import add_new_interests_call, add_interest_call, confirm, del_interest_call
 
@@ -46,6 +46,10 @@ async def parsing_interests(callback: types.CallbackQuery, state: FSMContext, ca
     interests_name = list(subjects[subjects['code'].isin(current_interests)]['subject_name'].values)
     await callback.message.delete()
     await callback.message.answer('Текущие отслеживаемые предметы:\n{}'.format('\n'.join(interests_name)))
+    new_olympiads = update_olympiads_to_track(user_id)
+    if not new_olympiads.empty:
+        await callback.message.answer('Следующие олимпиады за ваш класс добавлены в отслеживаемые:\n{}'
+                                      .format('\n'.join(list(new_olympiads['name']))))
     await state.finish()
 
 
@@ -59,5 +63,17 @@ async def delete_interest(callback: types.CallbackQuery, callback_data: dict):
         await callback.answer('Удалено')
     except ValueError:
         pass
+
+
+def update_olympiads_to_track(user_id):
+    olympiads = get_olympiads()
+    user = get_user(user_id)
+    tracked = list(get_tracked_olympiads(user_id)['olympiad_code'].values)
+    new_olympiads = olympiads[(olympiads['subject_code'].isin(user['interest'])) &
+                              (olympiads['grade'] == int(user['grade'])) &
+                              (olympiads['active'] == 1) & (~olympiads['code'].isin(tracked))]
+    if not new_olympiads.empty:
+        add_olympiads_to_track(new_olympiads, user_id)
+    return new_olympiads
 
 
