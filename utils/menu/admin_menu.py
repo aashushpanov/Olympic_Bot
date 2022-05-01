@@ -16,6 +16,10 @@ get_cm_file_call = CallbackData('get_cm_file')
 get_answer_file_call = CallbackData('get_answer_file')
 delete_subjects_call = CallbackData('delete_subjects')
 delete_olympiads_call = CallbackData('delete_olympiads')
+announcement_call = CallbackData('announcement')
+grade_announcement_call = CallbackData('grade_announcement')
+olympiad_announcement_call = CallbackData('olympiad_announcement')
+subject_announcement_call = CallbackData('subject_announcement')
 
 
 def set_admin_menu(main_node):
@@ -26,7 +30,7 @@ def set_admin_menu(main_node):
     admin_menu.set_childs([
         MenuNode('Данные олимпиад'),
         MenuNode('Выгрузки'),
-        # MenuNode('admin_2')
+        MenuNode('Объявление')
     ])
 
     admin_menu.child(text='Данные олимпиад').set_childs([
@@ -46,11 +50,12 @@ def set_admin_menu(main_node):
         MenuNode('Результаты прохождения олимпиад', callback=get_status_file_call.new())
     ])
 
-    # admin_menu.child(text='admin_2').set_childs([
-    #     MenuNode('admin_2_0'),
-    #     MenuNode('admin_2_1'),
-    #     MenuNode('admin_2_2')
-    # ])
+    admin_menu.child(text='Объявление').set_childs([
+        MenuNode('Всем', callback=announcement_call.new()),
+        MenuNode('По классу', callback=grade_announcement_call.new()),
+        MenuNode('По олимпиаде', callback=olympiad_announcement_call.new()),
+        MenuNode('По предмету', callback=subject_announcement_call.new())
+    ])
 
     # all_childs = admin_menu.all_childs()
 

@@ -1,3 +1,5 @@
+import asyncio
+
 import pandas as pd
 import datetime as dt
 
@@ -123,22 +125,35 @@ async def send_notifications(notifications):
     for _, notification in notifications.iterrows():
         text = notification['message']
         olympiad_code = notification['olympiad_code']
-        stage = olympiads[olympiads['code'] == olympiad_code]['stage'].item()
+        stage = int(olympiads[olympiads['code'] == olympiad_code]['stage'].item())
         if notification['type'] == 'reg_notify':
             reg_url = olympiads[olympiads['code'] == olympiad_code]['urls'].iloc[0].get('reg_url')
             reg_url = reg_url if reg_url else 'https://olimpiada.ru/'
             reply_markup = callbacks_keyboard(texts=['Ссылка на регистрацию', 'Зарегистрировался', 'Скрыть'],
                                               callbacks=[reg_url, confirm_registration_call.new(data=olympiad_code, stage=stage),
                                                          delete_keyboard_call.new()])
-            await bot.send_message(notification['user_id'], text=text, reply_markup=reply_markup)
+            try:
+                await bot.send_message(chat_id=notification['user_id'], text=text, reply_markup=reply_markup)
+            except Exception as error:
+                print(error)
         elif notification['type'] == 'done_notify':
             reply_markup = callbacks_keyboard(texts=['Пройдена', 'Скрыть'],
                                               callbacks=[confirm_execution_call.new(data=olympiad_code, stage=stage),
                                                          delete_keyboard_call.new()])
-            await bot.send_message(notification['user_id'], text=text, reply_markup=reply_markup)
+            try:
+                await bot.send_message(chat_id=notification['user_id'], text=text, reply_markup=reply_markup)
+            except Exception as error:
+                print(error)
         elif notification['type'] == 'done_notify':
-            await bot.send_message(notification['user_id'], text=text)
+            try:
+                await bot.send_message(notification['user_id'], text=text)
+            except Exception as error:
+                print(error)
         elif notification['type'] == 'admin_question':
             reply_markup = callbacks_keyboard(texts=['Показать', 'Скрыть'],
                                               callbacks=[show_admin_question_call.new(), delete_keyboard_call.new()])
-            await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text, reply_markup=reply_markup)
+            try:
+                await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text, reply_markup=reply_markup)
+            except Exception as error:
+                print(error)
+        await asyncio.sleep(0.04)

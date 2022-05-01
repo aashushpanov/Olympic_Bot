@@ -16,6 +16,7 @@ confirm_registration_question_call = CallbackData('confirm_registration_qw', 'da
 confirm_execution_question_call = CallbackData('confirm_execution_qw', 'data')
 question_to_admin_call = CallbackData('question_to_admin')
 change_notify_time_call = CallbackData('change_notify_time')
+get_nearest_olympiads_call= CallbackData('get_nearest_olympiads')
 
 
 async def get_olympiad_registrations(node, **kwargs):
@@ -101,8 +102,8 @@ def set_user_menu(main_node=None, root_id='0.1'):
 
     user_menu.child(text='Олимпиады').set_childs([
         NodeGenerator(text='Список моих олимпиад', func=get_my_olympiads),
-        MenuNode('Добавить отдельные олимпиады', callback=add_new_olympiad_call.new())
-        # NodeGenerator('Регистрации', func=get_olympiad_registrations)
+        MenuNode('Добавить отдельные олимпиады', callback=add_new_olympiad_call.new()),
+        MenuNode('Ближайшие олимпиады', callback=get_nearest_olympiads_call.new())
     ])
 
     user_menu.child(text='Олимпиады').child(text='Список моих олимпиад').add_blind_node('list_olymp', type='generator',

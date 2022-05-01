@@ -69,7 +69,7 @@ async def start(callback: types.CallbackQuery):
         return
     await callback.message.delete_reply_markup()
     await callback.message.answer("Введите имя (только имя). Обратите внимание, данные"
-                                  " после регистрации будет поменять.")
+                                  " после регистрации нельзя поменять.")
     await Registration.get_f_name.set()
 
 
@@ -133,6 +133,7 @@ async def get_interest(callback: types.CallbackQuery, state: FSMContext):
 async def get_notifications_time(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
     time = int(callback_data.get('data'))
     await callback.answer()
+    await callback.message.delete()
     await state.update_data(time=time)
     markup = yes_no_keyboard(callback=personal_data_agreement_call.new())
     await callback.message.answer('Вы согласны на обработку персональных данных?', reply_markup=markup)
@@ -154,7 +155,7 @@ async def personal_data_agreement(callback: types.CallbackQuery, state: FSMConte
                                       .format('\n'.join(list(olympiads_to_add['name']))))
     else:
         await callback.message.answer('К сожалению ничего добавить не удалось')
-    await change_files(['users_file'])
+    change_files(['users_file'])
     await callback.message.answer('Регистрация завершена, можете вызвать /menu.')
     await state.finish()
 

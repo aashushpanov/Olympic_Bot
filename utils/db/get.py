@@ -25,6 +25,7 @@ def get_tracked_olympiads(user_id):
         cur.execute(sql, [user_id])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['olympiad_code', 'status', 'stage', 'taken_key'])
+        data = data.astype({'stage': 'int32'})
     return data
 
 
@@ -34,6 +35,7 @@ def get_olympiads_by_status(user_id, status):
         cur.execute(sql, [user_id, status])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['olympiad_code', 'stage', 'taken_key'])
+        data = data.astype({'stage': 'int32'})
     return data
 
 
@@ -53,6 +55,7 @@ def get_all_olympiads_status():
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['user_id', 'olympiad_code', 'status', 'stage', 'taken_key'])
+        data = data.astype({'stage': 'int32'})
         return data
 
 
@@ -72,6 +75,7 @@ def get_users():
         result = cur.fetchall()
         data = pd.DataFrame(result, columns=['user_id', 'first_name', 'last_name', 'grade',
                                              'literal', 'interest', 'is_admin'])
+        data = data.astype({'grade': 'int32'})
     return data
 
 
@@ -95,7 +99,7 @@ def get_class_managers():
 
 def get_users_by_notification_time(time):
     with database() as (cur, conn):
-        sql = "SELECT id FROM users WHERE notify_time < %s"
+        sql = "SELECT id FROM users WHERE notify_time <= %s"
         cur.execute(sql, [time])
         res = [x[0] for x in cur.fetchall()]
     return res
@@ -118,6 +122,10 @@ def get_olympiads():
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['code', 'name', 'subject_code', 'stage', 'start_date', 'finish_date',
                                           'active', 'grade', 'key_needed', 'pre_registration', 'urls', 'keys_count'])
+        data['stage'] = data['stage'].fillna(-1)
+        data[['key_needed', 'pre_registration']] = data[['key_needed', 'pre_registration']].fillna(0)
+        data = data.astype({'stage': 'int32', 'grade': 'int32', 'pre_registration': 'int32',
+                            'key_needed': 'int32', 'keys_count': 'int32'})
     return data
 
 
@@ -128,7 +136,7 @@ def get_olympiad(code):
         cur.execute(sql, [code])
         res = cur.fetchone()
         data = pd.Series(res, index=['name', 'subject_code', 'stage', 'start_date', 'finish_date', 'active',
-                                          'grade', 'key_needed', 'pre_registration', 'urls', 'keys_count'])
+                                     'grade', 'key_needed', 'pre_registration', 'urls', 'keys_count'])
     return data
 
 

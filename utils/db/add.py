@@ -54,8 +54,8 @@ def remove_admin_access(user_ids):
 def add_olympiads(olympiads: DataFrame):
     with database() as (cur, conn):
         for _, olympiad in olympiads.iterrows():
-            sql = "INSERT INTO olympiads (code, ol_name, subject_code, grade, active, urls)" \
-                  " VALUES (%s, %s, %s, %s, %s, %s)"
+            sql = "INSERT INTO olympiads (code, ol_name, subject_code, grade, active, urls, key_needed, pre_registration)" \
+                  " VALUES (%s, %s, %s, %s, %s, %s, 0, 0)"
             cur.execute(sql, [olympiad['code'], olympiad['name'], olympiad['subject_code'], olympiad['grade'], 0,
                               Json(olympiad['urls'])])
         conn.commit()
