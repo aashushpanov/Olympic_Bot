@@ -60,7 +60,8 @@ async def confirm_registration_question(callback: types.CallbackQuery, callback_
     status = get_olympiad_status(callback.from_user.id, olympiad_code, stage)['status']
     if status == 'idle':
         await callback.message.answer('Удалось зарегистрироваться?',
-                                      reply_markup=yes_no_keyboard(confirm_registration_call.new(data=olympiad_code, stage=stage)))
+                                      reply_markup=yes_no_keyboard(confirm_registration_call.new(data=olympiad_code,
+                                                                                                 stage=stage)))
     else:
         await callback.message.answer('Вы уже заявили о регистрации на эту олимпиаду')
 
@@ -82,7 +83,8 @@ async def confirm_execution_question(callback: types.CallbackQuery, callback_dat
     status = get_olympiad_status(callback.from_user.id, olympiad_code, stage)['status']
     if status == 'reg':
         await callback.message.answer('Удалось пройти олимпиаду?',
-                                      reply_markup=yes_no_keyboard(confirm_execution_call.new(data=olympiad_code, stage=stage)))
+                                      reply_markup=yes_no_keyboard(confirm_execution_call.new(data=olympiad_code,
+                                                                                              stage=stage)))
     elif status == 'done':
         await callback.message.answer('Вы уже заявили о выполнении данной олимпиады')
 
@@ -97,7 +99,7 @@ async def confirm_execution(callback: types.CallbackQuery, callback_data: dict):
     await callback.message.answer('Выполнение подтверждено')
 
 
-async def get_nearest_olympiads(callback: types.CallbackQuery, callback_data: dict):
+async def get_nearest_olympiads(callback: types.CallbackQuery):
     await callback.answer()
     user = get_user(callback.from_user.id)
     olympiads = get_olympiads()

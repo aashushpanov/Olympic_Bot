@@ -18,45 +18,46 @@ def register_get_files_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(send_cm_file, get_cm_file_call.filter())
     dp.register_callback_query_handler(send_olympiads_with_dates_file, get_olympiads_file_call.filter(), state='*')
     dp.register_callback_query_handler(send_subjects_file, get_subjects_file_call.filter(), state='*')
-    dp.register_callback_query_handler(send_olympiads_template_file, get_olympiads_template_file_call.filter(), state='*')
+    dp.register_callback_query_handler(send_olympiads_template_file, get_olympiads_template_file_call.filter(),
+                                       state='*')
     dp.register_callback_query_handler(send_dates_template_file, get_dates_template_file_call.filter(), state='*')
     dp.register_callback_query_handler(send_subjects_template_file, get_subjects_template_file_call.filter(), state='*')
     dp.register_callback_query_handler(send_answers_file, get_answer_file_call.filter(), state='*')
 
 
-async def send_users_file(callback: types.CallbackQuery, callback_data: dict):
+async def send_users_file(callback: types.CallbackQuery):
     await send_file(callback, 'users_file')
 
 
-async def send_cm_file(callback: types.CallbackQuery, callback_data: dict):
+async def send_cm_file(callback: types.CallbackQuery):
     await send_file(callback, 'cm_file')
 
 
-async def send_olympiads_with_dates_file(callback: types.CallbackQuery, callback_data: dict):
+async def send_olympiads_with_dates_file(callback: types.CallbackQuery):
     await send_file(callback, 'olympiads_file')
 
 
-async def send_olympiads_template_file(callback: types.CallbackQuery, callback_data: dict):
+async def send_olympiads_template_file(callback: types.CallbackQuery):
     await send_file(callback, 'olympiads_template')
 
 
-async def send_subjects_file(callback: types.CallbackQuery, callback_data: dict):
+async def send_subjects_file(callback: types.CallbackQuery):
     await send_file(callback, 'subjects_file')
 
 
-async def send_subjects_template_file(callback: types.CallbackQuery, callback_data: dict):
+async def send_subjects_template_file(callback: types.CallbackQuery):
     await send_file(callback, 'subjects_template')
 
 
-async def send_dates_template_file(callback: types.CallbackQuery, callback_data: dict):
+async def send_dates_template_file(callback: types.CallbackQuery):
     await send_file(callback, 'dates_template')
 
 
-async def send_status_file(callback: types.CallbackQuery, callback_data: dict):
+async def send_status_file(callback: types.CallbackQuery):
     await send_file(callback, 'status_file')
 
 
-async def send_answers_file(callback: types.CallbackQuery, callback_data: dict):
+async def send_answers_file(callback: types.CallbackQuery):
     await send_file(callback, 'answers_file')
 
 

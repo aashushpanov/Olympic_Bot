@@ -256,7 +256,7 @@ async def confirm_load_files(callback: types.CallbackQuery, state: FSMContext, c
             await state.finish()
 
 
-async def update_data(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
+async def update_data(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.delete_reply_markup()
     data = await state.get_data()

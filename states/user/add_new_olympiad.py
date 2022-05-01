@@ -23,7 +23,7 @@ def register_add_new_olympiad_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(add_new_olympiad, grade_call.filter(), state=AddOlympiad.choose_grade)
 
 
-async def start(callback: types.CallbackQuery, state: FSMContext):
+async def start(callback: types.CallbackQuery):
     await AddOlympiad.choose_subject.set()
     message = callback.message
     await message.delete()
@@ -36,7 +36,7 @@ async def get_subject(callback: types.CallbackQuery, state: FSMContext, callback
     await callback.answer('Выбрано')
 
 
-async def get_olympiad(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
+async def get_olympiad(callback: types.CallbackQuery, state: FSMContext):
     data = await state.get_data('subject')
     try:
         subject = data['subject']

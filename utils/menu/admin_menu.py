@@ -1,7 +1,7 @@
 from aiogram.utils.callback_data import CallbackData
 
 from fone_tasks.updates import show_admin_question_call
-from utils.menu.MenuNode import MenuNode, NodeGenerator
+from utils.menu.MenuNode import MenuNode
 
 set_olympiads_call = CallbackData('set_olympiads')
 set_subjects_call = CallbackData('set_subjects')

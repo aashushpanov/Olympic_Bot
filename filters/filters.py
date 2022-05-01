@@ -15,7 +15,7 @@ class IsAdmin(Filter):
 class IsClassManager(Filter):
 
     async def check(self, message: types.Message):
-        access = await get_access(message.from_user.id)
+        access = get_access(message.from_user.id)
         return 1 if access == 1 else 0
 
 
@@ -29,6 +29,8 @@ class TimeAccess(Filter):
                 message = callback.message
             case types.Message():
                 message = callback
+            case _:
+                raise TypeError
         delta = abs(dt.datetime.now() - message.date)
         access = 15 * self.minutes - delta.seconds
         return 0 if access < 0 else 1

@@ -28,7 +28,7 @@ def delete_data_handlers(dp: Dispatcher):
                                 content_types=types.ContentTypes.DOCUMENT)
 
 
-async def start(callback: types.CallbackQuery, callback_data: dict):
+async def start(callback: types.CallbackQuery):
     await callback.answer()
     if callback.data == 'delete_subjects':
         reply_markup = callbacks_keyboard(texts=['Пример файла на удаление предметов', 'Список текущих предметов'],
@@ -106,7 +106,8 @@ def parsing_olympiads_to_delete(olympiads_to_delete):
     subjects = get_subjects()
     olympiads = olympiads.join(subjects.set_index('code'), on='subject_code')
     for _, row in olympiads_to_delete.iterrows():
-        codes = olympiads[(olympiads['name'] == row['Название']) & (olympiads['subject_name'] == row['Предмет'])]['code'].values
+        codes = olympiads[(olympiads['name'] == row['Название']) &
+                          (olympiads['subject_name'] == row['Предмет'])]['code'].values
         for code in codes:
             olympiads_codes.append(code)
     status = 'ok'

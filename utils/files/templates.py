@@ -23,7 +23,9 @@ def make_olympiads_dates_template():
     return file_path
 
 
-def make_subjects_template(subjects: list = []):
+def make_subjects_template(subjects=None):
+    if subjects is None:
+        subjects = []
     file_path = 'data/files/to_send/subjects_template.xlsx'
     columns = ['Предмет', 'Код предмета', 'Раздел']
     subjects_template = pd.DataFrame([[x, '', ''] for x in subjects], columns=columns)
@@ -31,7 +33,9 @@ def make_subjects_template(subjects: list = []):
     return file_path
 
 
-def make_olympiads_template(olympiads: list = []):
+def make_olympiads_template(olympiads=None):
+    if olympiads is None:
+        olympiads = []
     file_path = 'data/files/to_send/olympiads_template.xlsx'
     subjects = get_subjects()
     subjects_list = list(subjects['subject_name'].values)

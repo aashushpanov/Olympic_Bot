@@ -54,7 +54,7 @@ async def password_check(message: types.Message):
     await RegistrationClassManager.start.set()
 
 
-async def start(message: types.Message, state: FSMContext):
+async def start(message: types.Message):
     if message.text == config.CLASS_MANAGERS_PASSWORD:
         user = get_user(message.from_user.id)
         grade = 'Класс: {}'.format(str(user['grade']) + user['literal'])
@@ -127,12 +127,12 @@ async def get_literal(message: types.Message, state: FSMContext):
         return
 
 
-async def add_extra_literal(callback: types.CallbackQuery, state: FSMContext):
+async def add_extra_literal(callback: types.CallbackQuery):
     reply_markup = literal_keyboard()
     await callback.message.answer('Введите литеру дополнительного класса', reply_markup=reply_markup)
 
 
-async def confirm_literals(callback: types.CallbackQuery, state: FSMContext):
+async def confirm_literals(callback: types.CallbackQuery):
     await callback.answer()
     await RegistrationClassManager.get_notifications_time.set()
     reply_markup = time_keyboard()

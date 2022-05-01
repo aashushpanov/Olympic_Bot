@@ -84,7 +84,8 @@ def make_olympiads_status_file(grade: int = None, literals: list = None):
                 status = 'Пропущена'
             case _:
                 status = 'Не определен'
-        new_olympiad_status = pd.DataFrame([[f_name, l_name, grade, olympiad_name, subject, key, status]], columns=columns)
+        new_olympiad_status = pd.DataFrame([[f_name, l_name, grade, olympiad_name, subject, key, status]],
+                                           columns=columns)
         status_file = pd.concat([status_file, new_olympiad_status], axis=0)
     status_file.to_excel(file_path, index=False)
     return file_path

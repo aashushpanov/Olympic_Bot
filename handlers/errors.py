@@ -9,17 +9,17 @@ def register_errors_handlers(dp: Dispatcher):
     dp.register_errors_handler(invalid_query_id, exception=InvalidQueryID)
 
 
-async def message_not_modified(update, error):
+async def message_not_modified():
     return True
 
 
-async def message_to_delete(update, error):
+async def message_to_delete():
     return True
 
 
-async def message_not_found(update, error):
+async def message_not_found():
     return True
 
 
-async def invalid_query_id(update, error):
+async def invalid_query_id():
     return True

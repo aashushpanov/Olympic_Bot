@@ -29,7 +29,7 @@ def set_key_handlers(dp: Dispatcher):
                                        state=AddKeys.load_confirm)
 
 
-async def start(callback: types.CallbackQuery, callback_data: dict):
+async def start(callback: types.CallbackQuery):
     await callback.answer()
     grades = [x for x in range(3, 12)]
     await callback.message.answer('Выберите класс', reply_markup=available_grades_keyboard(grades))
@@ -60,7 +60,8 @@ async def confirm_keys_file(message: types.Message, state: FSMContext):
         if conflict_subjects:
             await message.answer('Для следующих предметов есть несколько олимпиад:\n{}\n\nВозможно дублирование '
                                  'олимпиад или неправильно выставлена необходимость ключа'
-                                 .format('\n'.join([subject + ': ' + str(olympiads) for subject, olympiads in conflict_subjects.items()])))
+                                 .format('\n'.join([subject + ': ' + str(olympiads)
+                                                    for subject, olympiads in conflict_subjects.items()])))
         if not keys.empty:
             await message.answer('''Ключи для {}-х классов готовы к загрузке, убедитесь в правильности файла.\n\n
             Найдены следующие предметы:\n{}\n\nЗагрузить?'''
@@ -68,7 +69,7 @@ async def confirm_keys_file(message: types.Message, state: FSMContext):
                                  reply_markup=yes_no_keyboard(callback=load_keys_to_db_call.new()))
 
 
-async def load_keys_file(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
+async def load_keys_file(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete_reply_markup()
     await callback.answer()
     data = await state.get_data()
@@ -83,7 +84,8 @@ async def load_keys_file(callback: types.CallbackQuery, state: FSMContext, callb
 
 
 def parce_keys(keys_file, grade):
-    keys_file = keys_file.loc[:, (~keys_file.columns.str.contains('^Unnamed')) & (~keys_file.columns.str.contains('Ключи'))]
+    keys_file = keys_file.loc[:, (~keys_file.columns.str.contains('^Unnamed')) &
+                                 (~keys_file.columns.str.contains('Ключи'))]
     keys_file = keys_file.drop([0])
     keys_file.dropna(axis=0, how='all', inplace=True)
     keys_file.dropna(axis=1, how='all', inplace=True)

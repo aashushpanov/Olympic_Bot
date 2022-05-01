@@ -20,7 +20,7 @@ def register_questions_handlers(dp: Dispatcher):
     dp.register_message_handler(receive_question, state=AddQuestion.admin_question)
 
 
-async def start(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
+async def start(callback: types.CallbackQuery):
     await callback.answer()
     await callback.message.answer('Опишите проблему максимально точно и, при необходимости, укажите название '
                                   'олимпиады.\n\nНапишите вопрос здесь \U00002B07', reply_markup=cansel_keyboard())
@@ -36,7 +36,8 @@ async def receive_question(message: types.Message, state: FSMContext):
     question = pd.Series([message.from_user.id, question_from + question_text], index=index)
     question_no = add_question(question)
     await state.finish()
-    await message.answer('Вопрос зарегистрирован по номером {}, подождите пока администратор на него ответит.'.format(question_no))
+    await message.answer('Вопрос зарегистрирован по номером {}, подождите пока администратор на него ответит.'.
+                         format(question_no))
     text = 'Задан вопрос: {}\n\n{}'.format(question_no, question['message'])
     await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text)
     change_files(['answers_file'])

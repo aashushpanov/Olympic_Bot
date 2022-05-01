@@ -16,7 +16,7 @@ confirm_registration_question_call = CallbackData('confirm_registration_qw', 'da
 confirm_execution_question_call = CallbackData('confirm_execution_qw', 'data')
 question_to_admin_call = CallbackData('question_to_admin')
 change_notify_time_call = CallbackData('change_notify_time')
-get_nearest_olympiads_call= CallbackData('get_nearest_olympiads')
+get_nearest_olympiads_call = CallbackData('get_nearest_olympiads')
 
 
 async def get_olympiad_registrations(node, **kwargs):
@@ -71,9 +71,11 @@ async def register_olympiads_options(_, **kwargs):
     if olympiad['key_needed'] and olympiad['keys_count'] and olympiad['active']:
         nodes.append(MenuNode(text='Получить ключ', callback=get_key_call.new(data=olympiad_code)))
     if olympiad['pre_registration'] and olympiad_status['status'] == 'idle' and olympiad['active']:
-        nodes.append(MenuNode(text='Подтвердить регистрацию', callback=confirm_registration_question_call.new(data=olympiad_code)))
+        nodes.append(MenuNode(text='Подтвердить регистрацию',
+                              callback=confirm_registration_question_call.new(data=olympiad_code)))
     if olympiad_status['status'] == 'reg' and olympiad['active']:
-        nodes.append(MenuNode(text='Подтвердить участие', callback=confirm_execution_question_call.new(data=olympiad_code)))
+        nodes.append(MenuNode(text='Подтвердить участие',
+                              callback=confirm_execution_question_call.new(data=olympiad_code)))
     nodes.append(MenuNode(text='Узнать даты проведения', callback=get_dates_call.new(data=olympiad_code)))
     for node in nodes:
         yield node

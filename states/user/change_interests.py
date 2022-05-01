@@ -34,7 +34,7 @@ async def add_new_interests(callback: types.CallbackQuery, state: FSMContext, ca
     await callback.answer('Запомним')
 
 
-async def parsing_interests(callback: types.CallbackQuery, state: FSMContext, callback_data: dict = None):
+async def parsing_interests(callback: types.CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     data = await state.get_data()
     interests_new = data.get('interest')

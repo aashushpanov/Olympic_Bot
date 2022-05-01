@@ -40,7 +40,8 @@ async def tree_menu_keyboard(menu_node: MenuNode, callback: CallbackQuery = None
 
     if menu_node.parent:
         markup.insert(
-            InlineKeyboardButton(text="\U00002B05 Назад", callback_data=move.new(action='u', node=menu_node.id, data='', width=1)))
+            InlineKeyboardButton(text="\U00002B05 Назад",
+                                 callback_data=move.new(action='u', node=menu_node.id, data='', width=1)))
 
     return markup
 

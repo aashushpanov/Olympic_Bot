@@ -95,7 +95,7 @@ async def get_l_name(message: types.Message, state: FSMContext):
 
 
 async def get_grade(message: types.Message, state: FSMContext):
-    if int(message.text) in [x for x in range(3, 12)]:
+    if message.text.isdigit() and int(message.text) in [x for x in range(3, 12)]:
         await state.update_data(grade=message.text)
         await Registration.get_literal.set()
         reply_markup = literal_keyboard()
@@ -122,7 +122,7 @@ async def add_interest(callback: types.CallbackQuery, state: FSMContext, callbac
     await callback.answer('Запомним')
 
 
-async def get_interest(callback: types.CallbackQuery, state: FSMContext):
+async def get_interest(callback: types.CallbackQuery):
     await callback.answer()
     await callback.message.delete()
     reply_markup = time_keyboard()
@@ -140,7 +140,7 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
     await Registration.personal_data_agreement.set()
 
 
-async def personal_data_agreement(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
+async def personal_data_agreement(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.delete()
     user = await state.get_data()

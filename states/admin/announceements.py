@@ -123,6 +123,7 @@ async def sending_confirm(callback: types.CallbackQuery, state: FSMContext):
         for user in users:
             await bot.send_message(chat_id=user, text=message)
             await asyncio.sleep(0.04)
+        await callback.message.answer('Отправка завершена.')
 
 
 async def fix_announcement(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):

@@ -130,7 +130,8 @@ async def send_notifications(notifications):
             reg_url = olympiads[olympiads['code'] == olympiad_code]['urls'].iloc[0].get('reg_url')
             reg_url = reg_url if reg_url else 'https://olimpiada.ru/'
             reply_markup = callbacks_keyboard(texts=['Ссылка на регистрацию', 'Зарегистрировался', 'Скрыть'],
-                                              callbacks=[reg_url, confirm_registration_call.new(data=olympiad_code, stage=stage),
+                                              callbacks=[reg_url, confirm_registration_call.new(data=olympiad_code,
+                                                                                                stage=stage),
                                                          delete_keyboard_call.new()])
             try:
                 await bot.send_message(chat_id=notification['user_id'], text=text, reply_markup=reply_markup)

@@ -5,7 +5,7 @@ from data import config
 from filters import IsExist
 from loader import bot
 from utils.db.add import set_admin_access, remove_admin_access
-from utils.db.get import get_access, get_admins
+from utils.db.get import get_admins
 from utils.menu.admin_menu import set_admins_call
 
 
