@@ -68,13 +68,25 @@ def get_user(user_id):
     return data
 
 
-def get_users():
+def get_users(grades=None):
+    columns = ['user_id', 'first_name', 'last_name', 'grade',
+               'literal', 'interest', 'is_admin']
+    data = pd.DataFrame(columns=columns)
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name, grade, literal, interest, is_admin  FROM users"
-        cur.execute(sql)
-        result = cur.fetchall()
-        data = pd.DataFrame(result, columns=['user_id', 'first_name', 'last_name', 'grade',
-                                             'literal', 'interest', 'is_admin'])
+        if grades is None:
+            sql = "SELECT id, first_name, last_name, grade, literal, interest, is_admin" \
+                  "  FROM users"
+            cur.execute(sql)
+            result = cur.fetchall()
+            data = pd.DataFrame(result, columns=columns)
+        else:
+            for grade, literal in grades:
+                sql = "SELECT id, first_name, last_name, grade, literal, interest, is_admin" \
+                      "  FROM users WHERE grade = %s and literal = %s"
+                cur.execute(sql, [grade, literal])
+                result = cur.fetchall()
+                grade_data = pd.DataFrame(result, columns=columns)
+                data = pd.concat([data, grade_data], axis=0)
         data = data.astype({'grade': 'int32'})
     return data
 
