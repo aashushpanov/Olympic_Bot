@@ -226,3 +226,20 @@ def add_question_answer(question_no, answer, admin):
         sql = "UPDATE questions SET answer = %s, to_admin = %s WHERE no = %s"
         cur.execute(sql, [answer, admin, question_no])
         conn.commit()
+
+
+def add_google_doc_row(user_id, file_type):
+    with database() as (cur, conn):
+        sql = "INSERT INTO google_sheets (user_id, file_type) VALUES (%s, %s) RETURNING no"
+        cur.execute(sql, [user_id, file_type])
+        res = cur.fetchone()
+        conn.commit()
+    return res[0]
+
+
+def add_google_doc_url(no, url):
+    with database() as (cur, conn):
+        sql = "UPDATE google_sheets SET url = %s WHERE no = %s"
+        cur.execute(sql, [no, url])
+        conn.commit()
+

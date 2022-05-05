@@ -3,22 +3,22 @@ import pandas as pd
 from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers
 
 
-def make_users_file(grade: int = None, literals: list = None, users_type='students'):
+def make_users_file(grades: list = None, literals: list = None):
     file_path = 'data/files/to_send/users.xlsx'
-    users = get_users()
+    if len(grades) != len(literals):
+        raise IndexError('Не совпадает количество классов и букв.')
+    if grades and literals:
+        grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
+    else:
+        grade_list = None
+    users = get_users(grade_list)
     columns = ['Фамилия', 'Имя', 'Номер класса', 'Буква класса']
     users_file = users[['last_name', 'first_name', 'grade', 'literal', 'is_admin']]
-    match users_type:
-        case 'class_manager':
-            users_file = users_file[users_file['is_admin'] == 1]
-        case _:
-            users_file = users_file[users_file['is_admin'] == 0]
+    users_file = users_file[users_file['is_admin'] == 0]
     users_file.drop(columns=['is_admin'], inplace=True)
-    if grade is not None and literals is not None:
-        users_file = users_file[(users_file['grade'] == grade) & (users_file['literal'].isin(literals))]
     users_file.columns = columns
     users_file.to_excel(file_path, index=False)
-    return file_path
+    return file_path, users_file
 
 
 def make_olympiads_with_dates_file():
@@ -51,18 +51,21 @@ def make_olympiads_with_dates_file():
     return file_path
 
 
-def make_olympiads_status_file(grade: int = None, literals: list = None):
+def make_olympiads_status_file(grades: list = None, literals: list = None):
     file_path = 'data/files/to_send/status_file.xlsx'
+    if len(grades) != len(literals):
+        raise IndexError('Не совпадает количество классов и букв.')
+    if grades and literals:
+        grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
+    else:
+        grade_list = None
     users = get_users()
     olympiads = get_olympiads()
     subjects = get_subjects()
-    olympiads_status = get_all_olympiads_status()
+    olympiads_status = get_all_olympiads_status(grade_list)
     olympiads_status = olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='real')
     olympiads_status = olympiads_status.join(subjects.set_index('code'), on='subject_code')
     olympiads_status = olympiads_status.join(users.set_index('user_id'), on='user_id', rsuffix='user')
-    if grade is not None and literals is not None:
-        olympiads_status = olympiads_status[(olympiads_status['grade'] == grade) &
-                                            (olympiads_status['literal'].isin(literals))]
     columns = ['Имя', 'Фамилия', 'Класс', 'Олимпиада', 'Предмет', 'Ключ', 'Статус']
     status_file = pd.DataFrame(columns=columns)
     for _, olympiad_status in olympiads_status.iterrows():
@@ -88,7 +91,7 @@ def make_olympiads_status_file(grade: int = None, literals: list = None):
                                            columns=columns)
         status_file = pd.concat([status_file, new_olympiad_status], axis=0)
     status_file.to_excel(file_path, index=False)
-    return file_path
+    return file_path, status_file
 
 
 def make_answers_file():

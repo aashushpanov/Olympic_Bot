@@ -49,22 +49,33 @@ def get_olympiad_status(user_id, code, stage):
     return data
 
 
-def get_all_olympiads_status():
+def get_all_olympiads_status(grades=None):
+    columns = ['user_id', 'olympiad_code', 'status', 'stage', 'taken_key']
+    data = pd.DataFrame(columns=columns)
     with database() as (cur, conn):
-        sql = "SELECT user_id,olympiad_code, status, stage, taken_key FROM olympiad_status"
-        cur.execute(sql)
-        res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['user_id', 'olympiad_code', 'status', 'stage', 'taken_key'])
+        if grades is None:
+            sql = "SELECT user_id,olympiad_code, status, stage, taken_key FROM olympiad_status"
+            cur.execute(sql)
+            res = cur.fetchall()
+            data = pd.DataFrame(res, columns=columns)
+        else:
+            for grade, literal in grades:
+                sql = "SELECT user_id,olympiad_code, status, stage, taken_key FROM olympiad_status" \
+                      " INNER JOIN users ON user_id = users.id WHERE grade = %s AND literal = %s"
+                cur.execute(sql, [grade, literal])
+                res = cur.fetchall()
+                grade_data = pd.DataFrame(res, columns=columns)
+                data = pd.concat([data, grade_data], axis=0)
         data = data.astype({'stage': 'int32'})
         return data
 
 
 def get_user(user_id):
     with database() as (cur, conn):
-        sql = "SELECT first_name, last_name, grade, literal, interest, notify_time FROM users WHERE id = %s"
+        sql = "SELECT first_name, last_name, grade, literal, interest, notify_time, email FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchone()
-        data = pd.Series(res, index=['first_name', 'last_name', 'grade', 'literal', 'interest', 'notify_time'])
+        data = pd.Series(res, index=['first_name', 'last_name', 'grade', 'literal', 'interest', 'notify_time', 'email'])
     return data
 
 
@@ -102,10 +113,19 @@ def get_admins():
 
 def get_class_managers():
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name, grade, literal FROM users WHERE is_admin = 1"
+        sql = "SELECT id, first_name, last_name, grades, literals FROM class_managers"
         cur.execute(sql)
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['admin_id', 'first_name', 'last_name', 'grade', 'literal'])
+        data = pd.DataFrame(res, columns=['admin_id', 'first_name', 'last_name', 'grades', 'literals'])
+    return data
+
+
+def get_class_manager(user_id):
+    with database() as (cur, conn):
+        sql = "SELECT id, first_name, last_name, grades, literals FROM class_managers WHERE id = %s"
+        cur.execute(sql, [user_id])
+        res = cur.fetchone()
+        data = pd.Series(res, index=['admin_id', 'first_name', 'last_name', 'grades', 'literals'])
     return data
 
 
@@ -221,4 +241,13 @@ def get_answers():
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['no', 'from_user', 'message', 'message_id', 'answer', 'to_admin'])
+    return data
+
+
+def get_user_files(user_id):
+    with database() as (cur, conn):
+        sql = "SELECT no, file_type, url, is_changed FROM google_sheets WHERE user_id = %s"
+        cur.execute(sql, [user_id])
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['no', 'file_type', 'url', 'is_changed'])
     return data
