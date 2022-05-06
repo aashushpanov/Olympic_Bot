@@ -6,10 +6,11 @@ from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympia
 
 def make_users_file(grades: list = None, literals: list = None):
     file_path = 'data/files/to_send/users.xlsx'
-    if len(grades) != len(literals):
-        raise IndexError('Не совпадает количество классов и букв.')
     if grades and literals:
-        grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
+        if len(grades) != len(literals):
+            raise IndexError('Не совпадает количество классов и букв.')
+        else:
+            grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
     else:
         grade_list = None
     users = get_users(grade_list)
@@ -69,10 +70,11 @@ def make_olympiads_with_dates_file():
 
 def make_olympiads_status_file(grades: list = None, literals: list = None):
     file_path = 'data/files/to_send/status_file.xlsx'
-    if len(grades) != len(literals):
-        raise IndexError('Не совпадает количество классов и букв.')
     if grades and literals:
-        grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
+        if len(grades) != len(literals):
+            raise IndexError('Не совпадает количество классов и букв.')
+        else:
+            grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
     else:
         grade_list = None
     users = get_users()

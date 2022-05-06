@@ -33,8 +33,8 @@ def add_admin(user_id, f_name, l_name, time, email):
     with database() as (cur, conn):
         sql = "DELETE FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
-        sql = "INSERT INTO admins SET (id, first_name, last_name, access, notify_time, email)" \
-              " VALUES (%s, %s, %s, 1, %s, %s)"
+        sql = "INSERT INTO admins (id, first_name, last_name, access, notify_time, email, grades, literals)" \
+              " VALUES (%s, %s, %s, 2, %s, %s, '{}', '{}')"
         cur.execute(sql, [user_id, f_name, l_name, time, email])
         conn.commit()
 
@@ -46,8 +46,8 @@ def admin_migrate(user_ids):
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['id', 'f_name', 'l_name', 'n_time', 'email'])
         for _, row in data.iterrows():
-            sql = "INSERT INTO admins (id, first_name, last_name, email, access, notify_time)" \
-                  " VALUES (%s, %s, %s, %s, 2, %s)"
+            sql = "INSERT INTO admins (id, first_name, last_name, email, access, notify_time, grades, literals)" \
+                  " VALUES (%s, %s, %s, %s, 2, %s, '{}', '{}')"
             cur.execute(sql, [row['id'], row['f_name'], row['l_name'], row['email'], row['n_time']])
         conn.commit()
 
@@ -63,7 +63,7 @@ def add_class_manager(user_id, f_name, l_name, grades, literals, time, email):
     with database() as (cur, conn):
         sql = "DELETE FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
-        sql = "INSERT INTO admins SET (id, first_name, last_name, grades, literals, access, notify_time, email)" \
+        sql = "INSERT INTO admins (id, first_name, last_name, grades, literals, access, notify_time, email)" \
               " VALUES (%s, %s, %s, %s, %s, 1, %s, %s)"
         cur.execute(sql, [user_id, f_name, l_name, grades, literals, time, email])
         conn.commit()
@@ -279,6 +279,6 @@ def add_google_doc_row(user_id, file_type):
 def add_google_doc_url(no, url):
     with database() as (cur, conn):
         sql = "UPDATE google_sheets SET url = %s WHERE no = %s"
-        cur.execute(sql, [no, url])
+        cur.execute(sql, [url, no])
         conn.commit()
 

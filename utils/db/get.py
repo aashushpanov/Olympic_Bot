@@ -15,8 +15,12 @@ async def is_exist(user_id):
     with database() as (cur, conn):
         sql = "SELECT first_name FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
-        result = cur.fetchone()
-    return 1 if result else 0
+        result1 = cur.fetchone()
+
+        sql = "SELECT first_name FROM admins WHERE id = %s"
+        cur.execute(sql, [user_id])
+        result2 = cur.fetchone()
+    return 1 if result1 or result2 else 0
 
 
 def get_tracked_olympiads(user_id):

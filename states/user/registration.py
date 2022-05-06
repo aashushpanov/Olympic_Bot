@@ -33,9 +33,6 @@ class Registration(StatesGroup):
 
 
 def register_registration_handlers(dp: Dispatcher):
-    dp.register_message_handler(cmd_cancel, commands=['cancel'], state='*')
-    dp.register_message_handler(cmd_cancel, Text(equals="отмена", ignore_case=True), state='*')
-    dp.register_callback_query_handler(cmd_cancel, cansel_event_call.filter(), state='*')
     dp.register_callback_query_handler(start, user_reg_call.filter(), state='*', chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(get_f_name, state=Registration.get_f_name)
     dp.register_message_handler(get_l_name, state=Registration.get_l_name)
@@ -48,18 +45,6 @@ def register_registration_handlers(dp: Dispatcher):
                                        state=Registration.get_notifications_time)
     dp.register_callback_query_handler(personal_data_agreement, personal_data_agreement_call.filter(), TimeAccess(1),
                                        state=Registration.personal_data_agreement)
-
-
-async def cmd_cancel(message: types.Message | types.CallbackQuery, state: FSMContext):
-    await state.finish()
-    match message:
-        case types.Message():
-            await message.answer("Действие отменено")
-            await message.delete()
-        case types.CallbackQuery():
-            await message.answer()
-            await message.message.answer('Действие отменено')
-            await message.message.delete()
 
 
 async def start(callback: types.CallbackQuery):

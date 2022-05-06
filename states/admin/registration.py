@@ -5,7 +5,7 @@ from aiogram.utils.callback_data import CallbackData
 
 from keyboards.keyboards import time_keyboard, callbacks_keyboard, time_call
 from utils.db.add import add_admin
-from utils.google_sheets.create import create_file
+from utils.google_sheets.create import create_file, user_files_update
 
 ru_abc = {'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф',
           'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', ' '}
@@ -71,7 +71,7 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
 async def get_email(message: types.Message | types.CallbackQuery, state: FSMContext):
     match message:
         case types.Message():
-            email = await message.text
+            email = message.text
         case types.CallbackQuery:
             email = ''
             message = message.message
@@ -83,6 +83,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
     await message.answer("Вы зарегистрированы как Администратор. Можете вызвать /menu")
     await state.finish()
     create_admins_files(user_id)
+    user_files_update(user_id)
 
 
 def create_admins_files(user_id):

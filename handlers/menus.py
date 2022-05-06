@@ -40,6 +40,7 @@ async def choose_role(callback: types.CallbackQuery):
     texts = ['Ученик', 'Классный руководитель', 'Администратор']
     callbacks = [user_reg_call.new(), class_manager_reg_call.new()]
     admins = await bot.get_chat_administrators(config.ADMIN_GROUP_ID)
+    admins = set([admin['user']['id'] for admin in admins if not admin['user']['is_bot']])
     if callback.from_user.id in admins:
         callbacks.append(admin_reg_call.new())
     else:

@@ -9,7 +9,7 @@ from keyboards.keyboards import callbacks_keyboard, grad_keyboard, literal_keybo
     cansel_keyboard
 from utils.db.add import add_class_manager, change_files, class_manager_migrate
 from utils.db.get import get_user, get_access, get_admin
-from utils.google_sheets.create import create_file
+from utils.google_sheets.create import create_file, user_files_update
 
 ru_abc = {'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф',
           'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', ' '}
@@ -86,7 +86,7 @@ async def clear_registration(callback: types.CallbackQuery):
 
 async def start(message: types.Message):
     if message.text == config.CLASS_MANAGERS_PASSWORD:
-        await message.answer("Введите имя (только имя)")
+        await message.answer("Введите имя и отчество (через пробел)")
         await RegistrationClassManager.get_f_name.set()
     else:
         await message.answer('Неверный пароль.')
@@ -118,6 +118,7 @@ async def get_l_name(message: types.Message, state: FSMContext):
     await message.answer("Введите номер класса. ", reply_markup=keyword)
     await state.update_data(l_name=message.text)
     await state.update_data(grades=[])
+    await state.update_data(literals=[])
     await RegistrationClassManager.get_grade.set()
 
 
@@ -125,11 +126,10 @@ async def get_grade(message: types.Message, state: FSMContext):
     if int(message.text) in [x for x in range(3, 12)]:
         data = await state.get_data()
         grades = data.get('grades')
-        grades.append(message.text)
+        grades.append(int(message.text))
         await state.update_data(grades=grades)
         await RegistrationClassManager.get_literal.set()
         reply_markup = literal_keyboard()
-        await state.update_data(literals=[])
         await message.answer("Введите литеру своего класса.", reply_markup=reply_markup)
     else:
         await message.answer('Введите корректный номер класса')
@@ -142,7 +142,7 @@ async def get_literal(message: types.Message, state: FSMContext):
         literals = data.get('literals')
         grades = data.get('grades')
         literals.append(message.text)
-        await state.update_data(literal=literals)
+        await state.update_data(literals=literals)
         markup = callbacks_keyboard(texts=['Еще один класс', 'Дальше'],
                                     callbacks=[add_extra_grade_call.new(), confirm_grades_call.new()])
         if len(literals) == 1:
@@ -181,7 +181,7 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
 async def get_email(message: types.Message | types.CallbackQuery, state: FSMContext):
     match message:
         case types.Message():
-            email = await message.text
+            email = message.text
         case types.CallbackQuery:
             email = ''
             message = message.message
@@ -196,6 +196,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
                          .format(', '.join([str(grades[i]) + literals[i] for i in range(len(literals))])))
     await state.finish()
     create_class_managers_files(user_id)
+    user_files_update(user_id)
     change_files(['cm_file', 'users_file'])
 
 
@@ -208,6 +209,7 @@ async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
                                   .format(str(user['grade'][0]) + user['literal'][0]))
     await state.finish()
     create_class_managers_files(user_id)
+    user_files_update(user_id)
     change_files(['cm_file', 'users_file'])
 
 

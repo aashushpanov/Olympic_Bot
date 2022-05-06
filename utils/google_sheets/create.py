@@ -5,10 +5,11 @@ from utils.db.add import add_google_doc_row, add_google_doc_url
 from utils.db.get import get_user, get_user_files, get_admin
 from utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
     make_class_managers_file, make_answers_file
+from utils.files.templates import make_subjects_file
 
-file_alias = {'user_list': 'Список учеников', 'status_file': 'Статус олимпиад',
-              'subject_file': 'Список предметов', 'olympiads_file': 'Список олимпиад',
-              'class_manager_file': 'Список классных руководителей', 'answers_file': 'Список вопросов'}
+file_alias = {'users_file': 'Список учеников', 'status_file': 'Статус олимпиад',
+              'subjects_file': 'Список предметов', 'olympiads_file': 'Список олимпиад',
+              'class_managers_file': 'Список классных руководителей', 'answers_file': 'Список вопросов'}
 
 
 def create_file(user_id, file_type):
@@ -25,16 +26,22 @@ def create_file(user_id, file_type):
     file_format(work_sheet, file_type)
 
 
+def user_files_update(user_id):
+    files = get_user_files(user_id)
+    for _, file in files.iterrows():
+        update_file(user_id, file)
+
+
 def update_file(user_id, user_file):
     admin = get_admin(user_id)
     grades = admin['grades']
     literals = admin['literals']
-    if grades.empty or literals.empty:
+    if grades == [] or literals == []:
         grades = None
         literals = None
     name = file_alias.get(user_file['file_type'], 'Файл')
     match user_file['file_type']:
-        case 'user_list':
+        case 'users_file':
             _, data = make_users_file(grades, literals)
         case 'status_file':
             _, data = make_olympiads_status_file(grades, literals)
@@ -44,6 +51,8 @@ def update_file(user_id, user_file):
             _, data = make_class_managers_file()
         case 'answers_file':
             _, data = make_answers_file()
+        case 'subjects_file':
+            _, data = make_subjects_file()
         case _:
             data = pd.DataFrame()
     title = '{} {}'.format(name, user_file['no'])
@@ -52,6 +61,7 @@ def update_file(user_id, user_file):
     work_sheet = spread_sheet.sheet1
     work_sheet.clear()
     work_sheet.set_dataframe(data, (1, 1))
+    file_format(work_sheet, user_file['file_type'])
 
 
 def file_format(work_sheet, file_type):
@@ -66,15 +76,26 @@ def file_format(work_sheet, file_type):
     match file_type:
         case 'users_file':
             pygsheets.datarange.DataRange('A1', 'D1', worksheet=work_sheet).apply_format(cell)
+            work_sheet.adjust_column_width(start=3, end=4, pixel_size=130)
         case 'status_file':
             pygsheets.datarange.DataRange('A1', 'G1', worksheet=work_sheet).apply_format(cell)
-            work_sheet.adjust_column_width(start=7, pixel_size=250)
+            work_sheet.adjust_column_width(start=2, pixel_size=120)
+            work_sheet.adjust_column_width(start=3, pixel_size=100)
+            work_sheet.adjust_column_width(start=4, pixel_size=230)
+            work_sheet.adjust_column_width(start=6, pixel_size=250)
+            work_sheet.adjust_column_width(start=7, pixel_size=120)
         case 'olympiads_file':
-            pygsheets.datarange.DataRange('A1', 'K1', worksheet=work_sheet).apply_format(cell)
+            pygsheets.datarange.DataRange('A1', 'L1', worksheet=work_sheet).apply_format(cell)
+            work_sheet.adjust_column_width(start=1, pixel_size=230)
+            work_sheet.adjust_column_width(start=4, end=5, pixel_size=150)
         case 'class_managers_file':
             pygsheets.datarange.DataRange('A1', 'C1', worksheet=work_sheet).apply_format(cell)
+            work_sheet.adjust_column_width(start=1, pixel_size=130)
+            work_sheet.adjust_column_width(start=2, end=3, pixel_size=230)
+
         case 'answers_file':
             pygsheets.datarange.DataRange('A1', 'D1', worksheet=work_sheet).apply_format(cell)
+            work_sheet.adjust_column_width(start=1, pixel_size=120)
 
 
 def bind_email(user_id):

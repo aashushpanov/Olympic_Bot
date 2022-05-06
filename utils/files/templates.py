@@ -9,7 +9,7 @@ def make_subjects_file():
     columns_rename = {'code': 'Код предмета', 'subject_name': 'Предмет', 'section': 'Раздел'}
     subjects.rename(columns=columns_rename, inplace=True)
     subjects.to_excel(file_path, index=False)
-    return file_path
+    return file_path, subjects
 
 
 def make_olympiads_dates_template():
