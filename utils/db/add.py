@@ -29,25 +29,64 @@ def add_notify_time(time, user_id):
         conn.commit()
 
 
-def add_class_manager(user_id, f_name, l_name, grade, literal, time):
+def add_admin(user_id, f_name, l_name, time, email):
     with database() as (cur, conn):
-        sql = "UPDATE users SET first_name=%s, last_name=%s, grade=%s, literal=%s, notify_time=%s, interest='{}'," \
-              "is_admin=1 WHERE id = %s"
-        cur.execute(sql, [f_name, l_name, grade, literal, time, user_id])
+        sql = "DELETE FROM users WHERE id = %s"
+        cur.execute(sql, [user_id])
+        sql = "INSERT INTO admins SET (id, first_name, last_name, access, notify_time, email)" \
+              " VALUES (%s, %s, %s, 1, %s, %s)"
+        cur.execute(sql, [user_id, f_name, l_name, time, email])
         conn.commit()
 
 
-def set_admin_access(user_ids):
+def admin_migrate(user_ids):
     with database() as (cur, conn):
-        sql = "UPDATE users SET is_admin = 2 WHERE id = ANY(%s)"
+        sql = "DELETE FROM users WHERE id = ANY(%s) RETURNING id, first_name, last_name, notify_time, email"
         cur.execute(sql, [user_ids])
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['id', 'f_name', 'l_name', 'n_time', 'email'])
+        for _, row in data.iterrows():
+            sql = "INSERT INTO admins (id, first_name, last_name, email, access, notify_time)" \
+                  " VALUES (%s, %s, %s, %s, 2, %s)"
+            cur.execute(sql, [row['id'], row['f_name'], row['l_name'], row['email'], row['n_time']])
         conn.commit()
 
 
 def remove_admin_access(user_ids):
     with database() as (cur, conn):
-        sql = "UPDATE users SET is_admin = 0 WHERE id = ANY(%s)"
+        sql = "DELETE FROM admins WHERE id = ANY(%s)"
         cur.execute(sql, [user_ids])
+        conn.commit()
+
+
+def add_class_manager(user_id, f_name, l_name, grades, literals, time, email):
+    with database() as (cur, conn):
+        sql = "DELETE FROM users WHERE id = %s"
+        cur.execute(sql, [user_id])
+        sql = "INSERT INTO admins SET (id, first_name, last_name, grades, literals, access, notify_time, email)" \
+              " VALUES (%s, %s, %s, %s, %s, 1, %s, %s)"
+        cur.execute(sql, [user_id, f_name, l_name, grades, literals, time, email])
+        conn.commit()
+
+
+def class_manager_migrate(user_id):
+    with database() as (cur, conn):
+        sql = "DELETE FROM users WHERE id = %s RETURNING id, first_name, last_name, grade, literal, notify_time, email"
+        cur.execute(sql, [user_id])
+        res = cur.fetchall()
+        row = pd.Series(res, index=['id', 'f_name', 'l_name', 'grade', 'literal', 'n_time', 'email'])
+        literals = list(row['literals'])
+        grades = [row['grade'] for _ in literals]
+        sql = "INSERT INTO admins (id, first_name, last_name, grades, lietrals, email, access, notify_time)" \
+              " VALUES (%s, %s, %s, %s, %s, %s, 2, %s)"
+        cur.execute(sql, [row['id'], row['f_name'], row['l_name'], grades, literals, row['email'], row['n_time']])
+        conn.commit()
+
+
+def add_email(user_id, email):
+    with database() as (cur, conn):
+        sql = "UPDATE admins SET email = %s WHERE id = %s"
+        cur.execute(sql, [email, user_id])
         conn.commit()
 
 

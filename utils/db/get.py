@@ -5,7 +5,7 @@ import pandas as pd
 
 def get_access(user_id: int) -> object:
     with database() as (cur, conn):
-        sql = "SELECT is_admin FROM users WHERE id = %s"
+        sql = "SELECT access FROM admins WHERE id = %s"
         cur.execute(sql, [user_id])
         result = cur.fetchone()
     return result[0] if result else 0
@@ -104,7 +104,7 @@ def get_users(grades=None):
 
 def get_admins():
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name FROM users WHERE is_admin = 2"
+        sql = "SELECT id, first_name, last_name FROM admins WHERE access = 2"
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['admin_id', 'first_name', 'last_name'])
@@ -113,19 +113,19 @@ def get_admins():
 
 def get_class_managers():
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name, grades, literals FROM class_managers"
+        sql = "SELECT id, first_name, last_name, grades, literals FROM admins WHERE access = 1"
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['admin_id', 'first_name', 'last_name', 'grades', 'literals'])
     return data
 
 
-def get_class_manager(user_id):
+def get_admin(user_id):
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name, grades, literals FROM class_managers WHERE id = %s"
+        sql = "SELECT id, first_name, last_name, grades, literals, email, access FROM admins WHERE id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchone()
-        data = pd.Series(res, index=['admin_id', 'first_name', 'last_name', 'grades', 'literals'])
+        data = pd.Series(res, index=['admin_id', 'first_name', 'last_name', 'grades', 'literals', 'email', 'access'])
     return data
 
 

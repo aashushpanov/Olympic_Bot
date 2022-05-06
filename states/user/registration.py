@@ -18,7 +18,7 @@ from utils.menu.menu_structure import list_menu, interest_menu
 ru_abc = {'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф',
           'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я'}
 
-reg_callback = CallbackData('reg')
+user_reg_call = CallbackData('user_reg')
 personal_data_agreement_call = CallbackData('personal_data_agreement')
 
 
@@ -36,7 +36,7 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(cmd_cancel, commands=['cancel'], state='*')
     dp.register_message_handler(cmd_cancel, Text(equals="отмена", ignore_case=True), state='*')
     dp.register_callback_query_handler(cmd_cancel, cansel_event_call.filter(), state='*')
-    dp.register_callback_query_handler(start, reg_callback.filter(), state='*', chat_type=types.ChatType.PRIVATE)
+    dp.register_callback_query_handler(start, user_reg_call.filter(), state='*', chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(get_f_name, state=Registration.get_f_name)
     dp.register_message_handler(get_l_name, state=Registration.get_l_name)
     dp.register_message_handler(get_grade, state=Registration.get_grade)

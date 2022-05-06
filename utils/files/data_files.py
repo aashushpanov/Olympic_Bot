@@ -1,6 +1,7 @@
 import pandas as pd
 
-from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers
+from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers, \
+    get_class_managers
 
 
 def make_users_file(grades: list = None, literals: list = None):
@@ -19,6 +20,21 @@ def make_users_file(grades: list = None, literals: list = None):
     users_file.columns = columns
     users_file.to_excel(file_path, index=False)
     return file_path, users_file
+
+
+def make_class_managers_file():
+    file_path = 'data/files/to_send/class_managers.xlsx'
+    class_managers = get_class_managers()
+    columns = ['Фамилия', 'Имя', 'Классы']
+    class_managers_file = pd.DataFrame(columns=columns)
+    for _, row in class_managers.iterrows():
+        grades = row['grades']
+        literals = row['literals']
+        grade_list = [str(grades[i]) + literals[i] for i in range(len(grades))]
+        class_manager = pd.DataFrame([[row['last_name'], row['first_name'], ', '.join(grade_list)]], columns=columns)
+        class_managers_file = pd.concat([class_managers_file, class_manager], axis=0)
+    class_managers_file.to_excel(file_path, index=False)
+    return file_path, class_managers_file
 
 
 def make_olympiads_with_dates_file():
@@ -48,7 +64,7 @@ def make_olympiads_with_dates_file():
         olympiads_file = pd.concat([olympiads_file, olympiad], axis=0)
         # olympiads_file.to_csv(file_path, index=False, sep=';')
     olympiads_file.to_excel(file_path, index=False)
-    return file_path
+    return file_path, olympiads_file
 
 
 def make_olympiads_status_file(grades: list = None, literals: list = None):
@@ -109,4 +125,4 @@ def make_answers_file():
         answer_row = pd.DataFrame([[question_no, question, answer, from_admin]], columns=columns)
         answers_file = pd.concat([answers_file, answer_row], axis=0)
     answers_file.to_excel(file_path, index=False)
-    return file_path
+    return file_path, answers_file
