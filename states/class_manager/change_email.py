@@ -1,8 +1,8 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import state
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
+from keyboards.keyboards import cansel_keyboard
 from utils.db.add import add_email
 from utils.google_sheets.create import bind_email
 from utils.menu.class_manager_menu import change_email_call
@@ -20,7 +20,8 @@ def register_change_email_handlers(dp: Dispatcher):
 
 async def start(callback: types.CallbackQuery):
     await callback.answer()
-    await callback.message.answer('Введите почту для привязки Google таблиц')
+    markup = cansel_keyboard()
+    await callback.message.answer('Введите почту для привязки Google таблиц', reply_markup=markup)
     await ChangeEmail.get_email.set()
 
 

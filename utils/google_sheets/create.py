@@ -7,7 +7,7 @@ from utils.files.data_files import make_users_file, make_olympiads_status_file, 
     make_class_managers_file, make_answers_file
 from utils.files.templates import make_subjects_file
 
-file_alias = {'users_file': 'Список учеников', 'status_file': 'Статус олимпиад',
+file_alias = {'users_file': 'Список учеников', 'status_file': 'Статус прохождения олимпиад',
               'subjects_file': 'Список предметов', 'olympiads_file': 'Список олимпиад',
               'class_managers_file': 'Список классных руководителей', 'answers_file': 'Список вопросов'}
 
@@ -15,7 +15,7 @@ file_alias = {'users_file': 'Список учеников', 'status_file': 'С�
 def create_file(user_id, file_type):
     no = add_google_doc_row(user_id, file_type)
     name = file_alias.get(file_type, 'Файл')
-    title = '{} {}'.format(name, no)
+    title = '{} #{}'.format(name, no)
     client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     spread_sheet = client.create(title)
     add_google_doc_url(no, spread_sheet.url)
@@ -55,9 +55,12 @@ def update_file(user_id, user_file):
             _, data = make_subjects_file()
         case _:
             data = pd.DataFrame()
-    title = '{} {}'.format(name, user_file['no'])
+    title = '{} #{}'.format(name, user_file['no'])
     client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
-    spread_sheet = client.open(title)
+    try:
+        spread_sheet = client.open(title)
+    except pygsheets.exceptions.SpreadsheetNotFound:
+        spread_sheet = client.create(title)
     work_sheet = spread_sheet.sheet1
     work_sheet.clear()
     work_sheet.set_dataframe(data, (1, 1))
@@ -107,7 +110,7 @@ def bind_email(user_id):
         file_type = file['file_type']
         no = add_google_doc_row(user_id, file_type)
         name = file_alias.get(file_type, 'Файл')
-        title = '{} {}'.format(name, no)
+        title = '{} #{}'.format(name, no)
         spread_sheet = client.open(title)
         to_remove_permissions = []
         for user in spread_sheet.permissions:

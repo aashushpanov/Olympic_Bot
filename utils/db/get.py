@@ -126,10 +126,12 @@ def get_class_managers():
 
 def get_admin(user_id):
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name, grades, literals, email, access FROM admins WHERE id = %s"
+        sql = "SELECT id, first_name, last_name, grades, literals, email, access, to_google_sheets FROM" \
+              " admins WHERE id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchone()
-        data = pd.Series(res, index=['admin_id', 'first_name', 'last_name', 'grades', 'literals', 'email', 'access'])
+        data = pd.Series(res, index=['admin_id', 'first_name', 'last_name', 'grades',
+                                     'literals', 'email', 'access', 'to_google_sheets'])
     return data
 
 
@@ -255,3 +257,12 @@ def get_user_files(user_id):
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['no', 'file_type', 'url', 'is_changed'])
     return data
+
+
+def get_user_file(user_id, file_type):
+    with database() as (cur, conn):
+        sql = "SELECT no, file_type, url, is_changed FROM google_sheets WHERE user_id = %s AND file_type = %s"
+        cur.execute(sql, [user_id, file_type])
+        res = cur.fetchone()
+        data = pd.Series(res, index=['no','file_type', 'url', 'is_changed'])
+        return data

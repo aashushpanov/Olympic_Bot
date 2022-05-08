@@ -1,84 +1,17 @@
 from aiogram.utils.callback_data import CallbackData
 
-from utils.menu.MenuNode import MenuNode, move, NodeGenerator
-from utils.db.get import get_olympiads_by_status, get_subjects, get_user, get_olympiads, get_olympiad, \
-    get_olympiad_status, get_tracked_olympiads
+from utils.menu.MenuNode import MenuNode, NodeGenerator
+from utils.db.get import get_subjects
+from utils.menu.generator_functions import get_interests, get_my_olympiads, register_olympiads_options
 
-call = CallbackData('2', 'data')
+
 add_interest_call = CallbackData('add_olympiad', 'data')
 add_new_interests_call = CallbackData('add_new_interest')
 confirm = CallbackData('confirm')
-del_interest_call = CallbackData('del_subj', 'data')
-get_key_call = CallbackData('get_key', 'data')
-get_dates_call = CallbackData('get_time', 'data')
 add_new_olympiad_call = CallbackData('add_new_olympiad')
-confirm_registration_question_call = CallbackData('confirm_registration_qw', 'data')
-confirm_execution_question_call = CallbackData('confirm_execution_qw', 'data')
 question_to_admin_call = CallbackData('question_to_admin')
 change_notify_time_call = CallbackData('change_notify_time')
 get_nearest_olympiads_call = CallbackData('get_nearest_olympiads')
-
-
-async def get_olympiad_registrations(node, **kwargs):
-    user_id = kwargs.get('callback').message.chat.id
-    user_olympiads = list(get_olympiads_by_status(user_id=user_id, status='reg')['olympiad_code'].values)
-    olympiads = get_olympiads()
-    olympiads = olympiads[olympiads['code'].isin(user_olympiads)]
-    for olympiad in olympiads.iterrows():
-        next_node = node.blind_node.id
-        yield MenuNode(text=olympiad['name'], callback=move.new(action='d', node=next_node, data=olympiad['code']))
-
-
-async def get_interests(_, **kwargs):
-    user_id = kwargs.get('callback').message.chat.id
-    subjects = get_subjects()
-    user_interests = list(get_user(user_id)['interest'])
-    interests_df = subjects[subjects['code'].isin(user_interests)]
-    for _, interest in interests_df.iterrows():
-        yield MenuNode(text=interest['subject_name'], callback=del_interest_call.new(data=interest['code']))
-
-
-async def get_my_olympiads(node, **kwargs):
-    user_id = kwargs.get('callback').message.chat.id
-    my_olympiads_codes = get_tracked_olympiads(user_id)['olympiad_code'].values
-    user_grade = get_user(user_id)['grade']
-    olympiads = get_olympiads()
-    olympiads = olympiads[olympiads['code'].isin(my_olympiads_codes)]
-    for _, olympiad in olympiads.iterrows():
-        next_node = node.blind_node.id
-        olympiad_grade = olympiad['grade']
-        text = olympiad['name']
-        if user_grade != olympiad_grade:
-            text += ' (за {} класс)'.format(olympiad_grade)
-        if olympiad['active'] == 0:
-            text += ' (прошла)'
-        yield MenuNode(text=text, callback=move.new(action='d', node=next_node, data=olympiad['code'], width=1))
-
-
-async def register_olympiads_options(_, **kwargs):
-    callback = kwargs.get('callback')
-    olympiad_code = kwargs.get('data')
-    olympiad = get_olympiad(olympiad_code)
-    stage = olympiad['stage']
-    olympiad_status = get_olympiad_status(callback.from_user.id, olympiad_code, stage)
-    reg_url = olympiad['urls'].get('reg_url')
-    site_url = olympiad['urls'].get('site_url')
-    nodes = []
-    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle' and reg_url and olympiad['active']:
-        nodes.append(MenuNode(text='Зарегистрироваться', callback=reg_url))
-    if site_url:
-        nodes.append(MenuNode(text='Сайт олимпиады', callback=site_url))
-    if olympiad['key_needed'] and olympiad['keys_count'] and olympiad['active']:
-        nodes.append(MenuNode(text='Получить ключ', callback=get_key_call.new(data=olympiad_code)))
-    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle' and olympiad['active']:
-        nodes.append(MenuNode(text='Подтвердить регистрацию',
-                              callback=confirm_registration_question_call.new(data=olympiad_code)))
-    if olympiad_status['status'] == 'reg' and olympiad['active']:
-        nodes.append(MenuNode(text='Подтвердить участие',
-                              callback=confirm_execution_question_call.new(data=olympiad_code)))
-    nodes.append(MenuNode(text='Узнать даты проведения', callback=get_dates_call.new(data=olympiad_code)))
-    for node in nodes:
-        yield node
 
 
 def set_user_menu(main_node=None, root_id='0.1'):

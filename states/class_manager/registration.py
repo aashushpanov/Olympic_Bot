@@ -7,7 +7,7 @@ from data import config
 from filters import IsExist
 from keyboards.keyboards import callbacks_keyboard, grad_keyboard, literal_keyboard, time_keyboard, time_call, \
     cansel_keyboard
-from utils.db.add import add_class_manager, change_files, class_manager_migrate
+from utils.db.add import add_class_manager, change_files, class_manager_migrate, set_user_file_format
 from utils.db.get import get_user, get_access, get_admin
 from utils.google_sheets.create import create_file, user_files_update
 
@@ -192,6 +192,8 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
     grades = user.get('grades')
     user_id = message.from_user.id
     add_class_manager(user_id, user['f_name'], user['l_name'], grades, literals, user['time'], email)
+    if email != '':
+        set_user_file_format(user_id)
     await message.answer("Вы зарегистрированы как классный руководитель {}. Можете вызвать /menu"
                          .format(', '.join([str(grades[i]) + literals[i] for i in range(len(literals))])))
     await state.finish()

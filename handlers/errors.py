@@ -11,21 +11,22 @@ def register_errors_handlers(dp: Dispatcher):
     dp.register_errors_handler(message_cant_delete_for_everyone, exception=MessageCantBeDeleted)
 
 
-async def message_not_modified():
+async def message_not_modified(*args):
     return True
 
 
-async def message_to_delete():
+async def message_to_delete(*args):
     return True
 
 
-async def message_not_found():
+async def message_not_found(*args):
     return True
 
 
-async def invalid_query_id():
+async def invalid_query_id(*args):
     return True
 
 
-async def message_cant_delete_for_everyone():
+async def message_cant_delete_for_everyone(*args):
     pass
+

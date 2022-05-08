@@ -7,8 +7,9 @@ from filters import TimeAccess
 from keyboards.keyboards import yes_no_keyboard
 from utils.db.add import set_registration, set_execution
 from utils.db.get import get_olympiad, get_key_from_db, get_olympiad_status, get_user, get_olympiads
-from utils.menu.user_menu import get_dates_call, get_key_call, confirm_execution_question_call, \
-    confirm_registration_question_call, get_nearest_olympiads_call
+from utils.menu.generator_functions import get_dates_call, get_key_call, confirm_execution_question_call, \
+    confirm_registration_question_call
+from utils.menu.user_menu import get_nearest_olympiads_call
 
 confirm_registration_call = CallbackData('confirm_registration', 'data', 'stage')
 confirm_execution_call = CallbackData('confirm_execution', 'data', 'stage')

@@ -20,7 +20,7 @@ def make_olympiads_dates_template():
                'этап', 'предварительная регистрация', 'ключ']
     olympiads_file = pd.DataFrame([[x, '', '', '', '', '', '', ''] for x in olympiads_list], columns=columns)
     olympiads_file.to_excel(file_path, index=False)
-    return file_path
+    return file_path, olympiads_file
 
 
 def make_subjects_template(subjects=None):
@@ -30,7 +30,7 @@ def make_subjects_template(subjects=None):
     columns = ['Предмет', 'Код предмета', 'Раздел']
     subjects_template = pd.DataFrame([[x, '', ''] for x in subjects], columns=columns)
     subjects_template.to_excel(file_path, index=False)
-    return file_path
+    return file_path, subjects_template
 
 
 def make_olympiads_template(olympiads=None):
@@ -45,7 +45,7 @@ def make_olympiads_template(olympiads=None):
     olympiads_template = pd.DataFrame([['', ol, '', '', '', '', '', subj] for ol, subj in ol_subj_list],
                                       columns=columns)
     olympiads_template.to_excel(file_path, index=False)
-    return file_path
+    return file_path, olympiads_template
 
 
 def merge_lists(list1, list2):

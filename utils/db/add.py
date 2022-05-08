@@ -90,6 +90,13 @@ def add_email(user_id, email):
         conn.commit()
 
 
+def set_user_file_format(user_id, flag):
+    with database() as (cur, conn):
+        sql = "UPDATE admins SET to_google_sheets = %s WHERE id = %s"
+        cur.execute(sql, [flag, user_id])
+        conn.commit()
+
+
 def add_olympiads(olympiads: DataFrame):
     with database() as (cur, conn):
         for _, olympiad in olympiads.iterrows():
@@ -280,5 +287,19 @@ def add_google_doc_url(no, url):
     with database() as (cur, conn):
         sql = "UPDATE google_sheets SET url = %s WHERE no = %s"
         cur.execute(sql, [url, no])
+        conn.commit()
+
+
+def set_change_google_docs(file_types):
+    with database() as (cur, conn):
+        sql = "UPDATE google_sheets SET is_changed = 1 WHERE file_type = ANY(%s)"
+        cur.execute(sql, [file_types])
+        conn.commit()
+
+
+def set_updated_google_doc(user_id, file_type):
+    with database() as (cur, conn):
+        sql = "UPDATE google_sheets SET is_changed = 0 WHERE user_id = %s AND file_type = %s"
+        cur.execute(sql, [user_id, file_type])
         conn.commit()
 

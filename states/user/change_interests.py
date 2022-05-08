@@ -6,7 +6,8 @@ from filters import TimeAccess
 from utils.db.add import add_interests, add_olympiads_to_track
 from utils.db.get import get_user, get_subjects, get_olympiads, get_tracked_olympiads
 from utils.menu.menu_structure import list_menu, interest_menu
-from utils.menu.user_menu import add_new_interests_call, add_interest_call, confirm, del_interest_call
+from utils.menu.user_menu import add_new_interests_call, add_interest_call, confirm
+from utils.menu.generator_functions import del_interest_call
 
 
 class AddNewInterests(StatesGroup):

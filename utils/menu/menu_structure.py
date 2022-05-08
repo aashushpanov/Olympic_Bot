@@ -1,5 +1,7 @@
 from aiogram import types
+from aiogram.utils.callback_data import CallbackData
 
+from utils.db.get import get_admin, get_user_files
 from utils.menu.MenuNode import MenuNode
 from keyboards.keyboards import tree_menu_keyboard
 from utils.menu.admin_menu import set_admin_menu, set_group_admin_menu
@@ -45,6 +47,7 @@ async def list_menu(callback: types.CallbackQuery | types.Message, callback_data
             markup = await tree_menu_keyboard(menu)
             await callback.answer(title, reply_markup=markup)
         case types.CallbackQuery():
+            await callback.answer()
             if callback_data.get('action') == "d":
                 next_node = menu_childs.get(callback_data.get('node'))
             elif callback_data.get('action') == 'u':
@@ -54,3 +57,6 @@ async def list_menu(callback: types.CallbackQuery | types.Message, callback_data
             data = callback_data.get('data')
             markup = await tree_menu_keyboard(next_node, callback, data)
             await callback.message.edit_reply_markup(markup)
+
+
+
