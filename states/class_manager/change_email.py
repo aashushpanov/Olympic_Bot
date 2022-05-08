@@ -20,6 +20,7 @@ def register_change_email_handlers(dp: Dispatcher):
 
 async def start(callback: types.CallbackQuery):
     await callback.answer()
+    await callback.message.delete()
     markup = cansel_keyboard()
     await callback.message.answer('Введите почту для привязки Google таблиц', reply_markup=markup)
     await ChangeEmail.get_email.set()

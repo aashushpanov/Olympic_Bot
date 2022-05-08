@@ -69,21 +69,22 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
 
 
 async def get_email(message: types.Message | types.CallbackQuery, state: FSMContext):
+    user_id = message.from_user.id
     match message:
         case types.Message():
             email = message.text
-        case types.CallbackQuery:
+        case types.CallbackQuery():
             email = ''
             message = message.message
         case _:
             email = ''
     user = await state.get_data()
-    user_id = message.from_user.id
     add_admin(user_id, user['f_name'], user['l_name'], user['time'], email)
-    await message.answer("Вы зарегистрированы как Администратор. Можете вызвать /menu")
+    await message.answer("Вы зарегистрированы как Администратор. Подождите буквально одну минуту пока создаются файлы.")
     await state.finish()
     create_admins_files(user_id)
     user_files_update(user_id)
+    await message.answer("Все готово. Можете вызвать /menu.")
 
 
 def create_admins_files(user_id):

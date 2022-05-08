@@ -7,8 +7,13 @@ def get_access(user_id: int) -> object:
     with database() as (cur, conn):
         sql = "SELECT access FROM admins WHERE id = %s"
         cur.execute(sql, [user_id])
-        result = cur.fetchone()
-    return result[0] if result else 0
+        result1 = cur.fetchone()
+        result1 = result1 if result1 else [0]
+        sql = "SELECT is_admin FROM users WHERE id = %s"
+        cur.execute(sql, [user_id])
+        result2 = cur.fetchone()
+        result2 = result2 if result2 else [0]
+    return result1[0] or result2[0] if result1 or result2 else 0
 
 
 async def is_exist(user_id):
@@ -264,5 +269,5 @@ def get_user_file(user_id, file_type):
         sql = "SELECT no, file_type, url, is_changed FROM google_sheets WHERE user_id = %s AND file_type = %s"
         cur.execute(sql, [user_id, file_type])
         res = cur.fetchone()
-        data = pd.Series(res, index=['no','file_type', 'url', 'is_changed'])
+        data = pd.Series(res, index=['no', 'file_type', 'url', 'is_changed'])
         return data

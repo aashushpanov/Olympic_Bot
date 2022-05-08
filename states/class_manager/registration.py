@@ -183,10 +183,10 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
         case types.Message():
             email = message.text
         case types.CallbackQuery:
-            email = ''
+            email = None
             message = message.message
         case _:
-            email = ''
+            email = None
     user = await state.get_data()
     literals = user.get('literals')
     grades = user.get('grades')
@@ -194,11 +194,13 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
     add_class_manager(user_id, user['f_name'], user['l_name'], grades, literals, user['time'], email)
     if email != '':
         set_user_file_format(user_id)
-    await message.answer("Вы зарегистрированы как классный руководитель {}. Можете вызвать /menu"
+    await message.answer("Вы зарегистрированы как классный руководитель {}."
+                         " Подождите буквально одну минуту пока создаются файлы."
                          .format(', '.join([str(grades[i]) + literals[i] for i in range(len(literals))])))
     await state.finish()
     create_class_managers_files(user_id)
     user_files_update(user_id)
+    await message.answer("Все готово, можете вызвать /menu.")
     change_files(['cm_file', 'users_file'])
 
 
@@ -207,11 +209,13 @@ async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     class_manager_migrate(user_id)
     user = get_admin(user_id)
-    await callback.message.answer("Вы зарегистрированы как классный руководитель {}. Можете вызвать /menu"
+    await callback.message.answer("Вы зарегистрированы как классный руководитель {}."
+                                  " Подождите буквально одну минуту пока создаются файлы."
                                   .format(str(user['grade'][0]) + user['literal'][0]))
     await state.finish()
     create_class_managers_files(user_id)
     user_files_update(user_id)
+    await callback.message.answer("Все готово. Можете вызвать /menu.")
     change_files(['cm_file', 'users_file'])
 
 

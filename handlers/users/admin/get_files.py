@@ -1,20 +1,18 @@
 from aiogram import Dispatcher, types
 from aiogram.types import InputFile
 
-from states.admin.set_olympiad import get_dates_template_file_call, SetOlympiads, get_olympiads_template_file_call, \
-    get_subjects_template_file_call, make_subjects_template, make_olympiads_template
+from filters.filters import IsAdmin
+from states.admin.set_olympiad import  SetOlympiads, make_subjects_template, make_olympiads_template
 from utils.db.add import set_file_ids
 from utils.db.get import get_file
 from utils.files.data_files import make_olympiads_status_file, make_olympiads_with_dates_file, make_answers_file, \
     make_users_file, make_class_managers_file
 from utils.files.templates import make_olympiads_dates_template, make_subjects_file
-from utils.menu.admin_menu import get_olympiads_file_call, get_subjects_file_call, get_status_file_call, \
-    get_answer_file_call, get_users_file_call, get_cm_file_call
 from utils.menu.generator_functions import get_file_call
 
 
 def register_get_files_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(send_file, get_file_call.filter(), state='*')
+    dp.register_callback_query_handler(send_file, get_file_call.filter(), IsAdmin(), state='*')
 
 
 async def send_file(callback: types.CallbackQuery, callback_data: dict):

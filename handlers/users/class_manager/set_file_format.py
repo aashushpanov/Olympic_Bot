@@ -16,7 +16,7 @@ def register_set_file_format(dp: Dispatcher):
 async def set_excel_format(callback: types.CallbackQuery):
     await callback.answer()
     set_user_file_format(callback.from_user.id, 0)
-    await callback.answer('В качестве формата выгружаемых файлов выбран EXCEL.')
+    await callback.message.answer('В качестве формата выгружаемых файлов выбран EXCEL.')
 
 
 async def set_google_doc_format(callback: types.CallbackQuery):
@@ -25,5 +25,7 @@ async def set_google_doc_format(callback: types.CallbackQuery):
         markup = callbacks_keyboard(texts=['Установить'], callbacks=[change_email_call.new()])
         await callback.message.answer('Не выбрана почта для привязки таблиц. Сначала установите ее.',
                                       reply_markup=markup)
+        return
+    await callback.message.answer('В качестве формата выгружаемых файлов выбраны Google таблицы.')
     set_user_file_format(callback.from_user.id, 1)
 

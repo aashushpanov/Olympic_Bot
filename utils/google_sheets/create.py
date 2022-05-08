@@ -108,7 +108,7 @@ def bind_email(user_id):
     client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     for _, file in files.iterrows():
         file_type = file['file_type']
-        no = add_google_doc_row(user_id, file_type)
+        no = file['no']
         name = file_alias.get(file_type, 'Файл')
         title = '{} #{}'.format(name, no)
         spread_sheet = client.open(title)

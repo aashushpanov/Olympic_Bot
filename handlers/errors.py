@@ -24,7 +24,7 @@ async def message_not_found(*args):
 
 
 async def invalid_query_id(*args):
-    return True
+    return print(args)
 
 
 async def message_cant_delete_for_everyone(*args):

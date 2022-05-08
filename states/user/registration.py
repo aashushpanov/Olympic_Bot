@@ -121,7 +121,9 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
     await callback.message.delete()
     await state.update_data(time=time)
     markup = yes_no_keyboard(callback=personal_data_agreement_call.new())
-    await callback.message.answer('Вы согласны на обработку персональных данных?', reply_markup=markup)
+    url = "https://docs.google.com/document/d/1EgF13-M14QiQZYCjp0U2Eq4Q4B-401YbT9X-n0WJ_iw/edit?usp=sharing"
+    await callback.message.answer('''Вы согласны на <a href="{}">обработку персональных данных.</a>?'''.format(url),
+                                  reply_markup=markup, parse_mode='HTML')
     await Registration.personal_data_agreement.set()
 
 
@@ -130,10 +132,11 @@ async def personal_data_agreement(callback: types.CallbackQuery, state: FSMConte
     await callback.message.delete()
     user = await state.get_data()
     try:
-        await add_user(callback.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'),
-                       user.get('literal'), user.get('interest'), user.get('time'))
+        add_user(callback.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'),
+                 user.get('literal'), user.get('interest'), user.get('time'))
     except KeyError:
         await callback.message.answer('Что-то пошло не так')
+        return
     olympiads_to_add = add_olympiads(user.get('interest'), callback.from_user.id, user.get('grade'))
     if not olympiads_to_add.empty:
         await callback.message.answer('Следующие олимпиады за ваш класс добавлены в отслеживаемые:\n{}'

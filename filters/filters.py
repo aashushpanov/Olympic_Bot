@@ -32,8 +32,13 @@ class TimeAccess(Filter):
             case _:
                 raise TypeError
         delta = abs(dt.datetime.now() - message.date)
-        access = 15 * self.minutes - delta.seconds
-        return 0 if access < 0 else 1
+        access = self.minutes - delta.seconds//60
+        if access < 0:
+            await message.answer('Действие уже недоступно', show_alert=True)
+            await message.delete()
+            return 0
+        else:
+            return 1
 
 
 class IsExist(Filter):

@@ -7,7 +7,7 @@ from .connect import database
 from .get import get_olympiads
 
 
-async def add_user(user_id, f_name, l_name, grade=None, literal=None, interest: set = None, time=16):
+def add_user(user_id, f_name, l_name, grade=None, literal=None, interest: set = None, time=16):
     with database() as (cur, conn):
         sql = "INSERT INTO users (id, first_name, last_name, grade, literal, is_admin, interest, notify_time)" \
               " VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
@@ -73,12 +73,12 @@ def class_manager_migrate(user_id):
     with database() as (cur, conn):
         sql = "DELETE FROM users WHERE id = %s RETURNING id, first_name, last_name, grade, literal, notify_time, email"
         cur.execute(sql, [user_id])
-        res = cur.fetchall()
-        row = pd.Series(res, index=['id', 'f_name', 'l_name', 'grade', 'literal', 'n_time', 'email'])
+        res = cur.fetchone()
+        row = pd.Series(res, index=['id', 'f_name', 'l_name', 'grade', 'literals', 'n_time', 'email'])
         literals = list(row['literals'])
         grades = [row['grade'] for _ in literals]
-        sql = "INSERT INTO admins (id, first_name, last_name, grades, lietrals, email, access, notify_time)" \
-              " VALUES (%s, %s, %s, %s, %s, %s, 2, %s)"
+        sql = "INSERT INTO admins (id, first_name, last_name, grades, literals, email, access, notify_time)" \
+              " VALUES (%s, %s, %s, %s, %s, %s, 1, %s)"
         cur.execute(sql, [row['id'], row['f_name'], row['l_name'], grades, literals, row['email'], row['n_time']])
         conn.commit()
 
