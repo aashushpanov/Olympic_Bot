@@ -158,3 +158,4 @@ async def send_notifications(notifications):
             except Exception as error:
                 print(error)
         await asyncio.sleep(0.04)
+

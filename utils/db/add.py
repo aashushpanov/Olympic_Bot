@@ -290,7 +290,7 @@ def add_google_doc_url(no, url):
         conn.commit()
 
 
-def set_change_google_docs(file_types):
+def change_google_docs(file_types):
     with database() as (cur, conn):
         sql = "UPDATE google_sheets SET is_changed = 1 WHERE file_type = ANY(%s)"
         cur.execute(sql, [file_types])

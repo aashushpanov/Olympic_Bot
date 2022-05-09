@@ -2,7 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.types import InputFile
 
 from filters.filters import IsAdmin
-from states.admin.set_olympiad import  SetOlympiads, make_subjects_template, make_olympiads_template
+from states.admin.set_olympiad import SetOlympiads, make_subjects_template, make_olympiads_template
 from utils.db.add import set_file_ids
 from utils.db.get import get_file
 from utils.files.data_files import make_olympiads_status_file, make_olympiads_with_dates_file, make_answers_file, \

@@ -21,7 +21,7 @@ async def set_excel_format(callback: types.CallbackQuery):
 
 async def set_google_doc_format(callback: types.CallbackQuery):
     await callback.answer()
-    if get_admin(callback.from_user.id)['email'] == '':
+    if get_admin(callback.from_user.id)['email'] is None:
         markup = callbacks_keyboard(texts=['Установить'], callbacks=[change_email_call.new()])
         await callback.message.answer('Не выбрана почта для привязки таблиц. Сначала установите ее.',
                                       reply_markup=markup)

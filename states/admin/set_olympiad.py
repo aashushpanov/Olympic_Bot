@@ -17,7 +17,8 @@ from utils.files.reader import read_file
 from utils.files.templates import make_olympiads_template, make_subjects_template
 from utils.menu.admin_menu import set_olympiads_call, set_subjects_call, set_olympiads_dates_call
 from utils.menu.menu_structure import reset_interest_menu
-from utils.db.add import add_olympiads, add_subjects, add_dates, change_files, update_olympiads, update_subjects
+from utils.db.add import add_olympiads, add_subjects, add_dates, change_files, update_olympiads, update_subjects, \
+    change_google_docs
 
 # stages = {'школьный': 1, 'муниципальный': 2, 'региональный': 3, 'заключительный': 4, 'пригласительный': 0,
 #           'отборочный': 1, ''}
@@ -135,6 +136,7 @@ async def load_ol_file(message: types.Message, state: FSMContext):
                 await message.answer('Следующие олимпиады успешно добавлены:\n{}'
                                      .format('\n'.join(olympiads_to_str(olympiads_new))))
                 change_files(['olympiads_file', 'dates_template'])
+                change_google_docs(['olympiads_file'])
             else:
                 await message.answer('Ничего не добавлено')
             os.remove(file_path)
@@ -164,6 +166,7 @@ async def load_subj_file(message: types.Message, state: FSMContext):
                                  .format(', '.join(list(subjects_new['name']))))
             reset_interest_menu()
             change_files(['subjects_file', 'olympiads_template'])
+            change_google_docs(['subjects_file'])
         else:
             await message.answer('Ничего не добавлено')
         os.remove(file_path)
@@ -202,6 +205,7 @@ async def load_dates_file(message: types.Message, state: FSMContext):
                 await message.answer('Даты по следующим предметы успешно добавлены:\n{}'
                                      .format('\n'.join(olympiads_to_str(dates_new))))
                 change_files(['olympiads_file'])
+                change_google_docs(['olympiads_file'])
             else:
                 await message.answer('Ничего не добавлено')
             os.remove(file_path)
@@ -241,6 +245,7 @@ async def confirm_load_files(callback: types.CallbackQuery, state: FSMContext, c
                 await callback.message.answer('Даты по следующим предметы успешно добавлены:\n{}'
                                               .format('\n'.join(olympiads_to_str(dates_new))))
                 change_files(['olympiads_file'])
+                change_google_docs(['olympiads_file'])
             else:
                 await callback.message.answer('Ничего не добавлено')
             await state.finish()
@@ -251,6 +256,7 @@ async def confirm_load_files(callback: types.CallbackQuery, state: FSMContext, c
                 await callback.message.answer('Следующие олимпиады успешно добавлены:\n{}'.
                                               format('\n'.join(olympiads_to_str(olympiads_new))))
                 change_files(['olympiads_file', 'dates_template'])
+                change_google_docs(['olympiads_file'])
             else:
                 await callback.message.answer('Ничего не добавлено')
             await state.finish()
@@ -287,6 +293,7 @@ async def update_data(callback: types.CallbackQuery, state: FSMContext):
         await callback.message.answer('Следующие данные успешно обновлены:\n{}'
                                       .format('\n'.join(text_data)))
         change_files(['olympiads_file', 'dates_template', 'subjects_file'])
+        change_google_docs(['olympiads_file', 'dates_template', 'subjects_file'])
     else:
         await callback.message.answer('Ничего не добавлено')
 

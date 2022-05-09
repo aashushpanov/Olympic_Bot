@@ -2,7 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.types import InputFile
 
 from filters.filters import IsClassManager
-from utils.db.get import get_user, get_admin
+from utils.db.get import get_admin
 from utils.files.data_files import make_users_file, make_olympiads_status_file
 from utils.menu.generator_functions import get_file_call
 

@@ -6,6 +6,7 @@ from fone_tasks.updates import greeting, update_olympiads_to_track, update_olymp
 from handlers.users.admin.set_admin import update_admins
 from utils.db.add import clean_notifications
 from utils.db.get import get_notifications, get_users_by_notification_time
+from utils.google_sheets.create import update_all_files
 
 
 async def manager():
@@ -19,6 +20,7 @@ async def manager():
         clean_notifications()
         create_notifications()
         create_question_notifications()
+        update_all_files()
 
     users = get_users_by_notification_time(hour)
     notifications = get_notifications(users)

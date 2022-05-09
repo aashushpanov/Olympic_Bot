@@ -14,11 +14,11 @@ update_file_call = CallbackData('update_file', 'type')
 
 
 files_alias = {'users_file': 'Список учеников', 'status_file': 'Статус прохождения олимпиад',
-              'subjects_file': 'Список предметов', 'olympiads_file': 'Список олимпиад',
-              'class_managers_file': 'Список классных руководителей', 'answers_file': 'Список вопросов'}
+               'subjects_file': 'Список предметов', 'olympiads_file': 'Список олимпиад',
+               'class_managers_file': 'Список классных руководителей', 'answers_file': 'Список вопросов'}
 
 
-async def get_download_options(node, **kwargs):
+async def get_download_options(_, **kwargs):
     user_id = kwargs.get('callback').message.chat.id
     admin = get_admin(user_id)
     files = get_user_files(user_id)

@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from keyboards.keyboards import olympiads_keyboard, olympiad_call, available_grades_keyboard, grade_call
-from utils.db.add import add_olympiads_to_track
+from utils.db.add import add_olympiads_to_track, change_files, change_google_docs
 from utils.db.get import get_olympiads, get_user, get_tracked_olympiads
 from utils.menu.menu_structure import list_menu, interest_menu
 from utils.menu.user_menu import add_new_olympiad_call, add_interest_call, confirm
@@ -83,6 +83,8 @@ async def add_new_olympiad(callback: types.CallbackQuery, state: FSMContext, cal
         add_olympiads_to_track(olympiads, user_id)
         await callback.message.answer('Добавлена в отслеживаемые\n{} за {} класс'.format(olympiads.iloc[0]['name'],
                                                                                          olympiads.iloc[0]['grade']))
+        change_files(['status_file'])
+        change_google_docs(['status_file'])
     else:
         await callback.message.answer('Ничего добавить не удалось, возможно она уже есть')
     await state.finish()

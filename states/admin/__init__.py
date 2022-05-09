@@ -1,4 +1,4 @@
-from .announceements import register_announcement_handlers
+from .announcements import register_announcement_handlers
 from .delete_data import delete_data_handlers
 from .registration import register_registration_handlers
 from .set_keys import set_key_handlers

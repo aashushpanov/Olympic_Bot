@@ -2,16 +2,14 @@ import pandas as pd
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.utils.callback_data import CallbackData
 
 from filters import TimeAccess
 from utils.menu.MenuNode import move
-from keyboards.keyboards import grad_keyboard, cansel_event_call, time_call, time_keyboard, literal_keyboard, \
-    yes_no_keyboard
+from keyboards.keyboards import grad_keyboard, time_call, time_keyboard, literal_keyboard, yes_no_keyboard
 from utils.menu.user_menu import add_interest_call, confirm
-from utils.db.add import add_user, add_olympiads_to_track, change_files
+from utils.db.add import add_user, add_olympiads_to_track, change_files, change_google_docs
 from utils.db.get import is_exist, get_olympiads
 from utils.menu.menu_structure import list_menu, interest_menu
 
@@ -122,7 +120,7 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
     await state.update_data(time=time)
     markup = yes_no_keyboard(callback=personal_data_agreement_call.new())
     url = "https://docs.google.com/document/d/1EgF13-M14QiQZYCjp0U2Eq4Q4B-401YbT9X-n0WJ_iw/edit?usp=sharing"
-    await callback.message.answer('''Вы согласны на <a href="{}">обработку персональных данных.</a>?'''.format(url),
+    await callback.message.answer('''Вы согласны на <a href="{}">обработку персональных данных</a>?'''.format(url),
                                   reply_markup=markup, parse_mode='HTML')
     await Registration.personal_data_agreement.set()
 
@@ -142,8 +140,9 @@ async def personal_data_agreement(callback: types.CallbackQuery, state: FSMConte
         await callback.message.answer('Следующие олимпиады за ваш класс добавлены в отслеживаемые:\n{}'
                                       .format('\n'.join(list(olympiads_to_add['name']))))
     else:
-        await callback.message.answer('К сожалению ничего добавить не удалось')
+        await callback.message.answer('К сожалению, олимпиады добавить не удалось')
     change_files(['users_file'])
+    change_google_docs(['users_file'])
     await callback.message.answer('Регистрация завершена, можете вызвать /menu.')
     await state.finish()
 
