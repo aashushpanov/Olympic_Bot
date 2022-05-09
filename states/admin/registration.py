@@ -89,5 +89,4 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
 
 def create_admins_files(user_id):
     file_types = ['users_file', 'status_file', 'subjects_file', 'olympiads_file', 'class_managers_file', 'answers_file']
-    for file_type in file_types:
-        create_file(user_id, file_type)
+    create_file(user_id, file_types)

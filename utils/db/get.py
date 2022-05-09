@@ -271,3 +271,11 @@ def get_user_file(user_id, file_type):
         res = cur.fetchone()
         data = pd.Series(res, index=['no', 'file_type', 'url', 'is_changed'])
         return data
+
+
+def get_changed_files():
+    with database() as (cur, conn):
+        sql = "SELECT user_id, file_type FROM google_sheets WHERE is_changed = 1"
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['user_id', 'file_type'])

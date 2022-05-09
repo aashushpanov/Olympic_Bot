@@ -2,7 +2,7 @@ import pandas as pd
 import pygsheets
 
 from utils.db.add import add_google_doc_row, add_google_doc_url
-from utils.db.get import get_user, get_user_files, get_admin
+from utils.db.get import get_user, get_user_files, get_admin, get_changed_files, get_admins
 from utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
     make_class_managers_file, make_answers_file
 from utils.files.templates import make_subjects_file
@@ -12,33 +12,39 @@ file_alias = {'users_file': 'Список учеников', 'status_file': 'С�
               'class_managers_file': 'Список классных руководителей', 'answers_file': 'Список вопросов'}
 
 
-def create_file(user_id, file_type):
-    no = add_google_doc_row(user_id, file_type)
-    name = file_alias.get(file_type, 'Файл')
-    title = '{} #{}'.format(name, no)
+def create_file(user_id, file_types: list):
     client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
-    spread_sheet = client.create(title)
-    add_google_doc_url(no, spread_sheet.url)
-    user = get_admin(user_id)
-    if user['email']:
-        spread_sheet.share(user['email'])
-    work_sheet = spread_sheet.sheet1
-    file_format(work_sheet, file_type)
+    for file_type in file_types:
+        no = add_google_doc_row(user_id, file_type)
+        name = file_alias.get(file_type, 'Файл')
+        title = '{} #{}'.format(name, no)
+        spread_sheet = client.create(title)
+        add_google_doc_url(no, spread_sheet.url)
+        user = get_admin(user_id)
+        if user['email']:
+            spread_sheet.share(user['email'])
+        work_sheet = spread_sheet.sheet1
+        file_format(work_sheet, file_type)
 
 
 def user_files_update(user_id):
+    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     files = get_user_files(user_id)
+    user = get_admin(user_id)
     for _, file in files.iterrows():
-        update_file(user_id, file)
+        update_file(client, file, user['grades'], user['literals'])
 
 
-def update_file(user_id, user_file):
-    admin = get_admin(user_id)
-    grades = admin['grades']
-    literals = admin['literals']
-    if grades == [] or literals == []:
-        grades = None
-        literals = None
+def update_all_files():
+    changed_files = get_changed_files()
+    admins = get_admins()
+    changed_files = changed_files.join(admins.set_index('id'), on='user_id')
+    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
+    for file in changed_files.iterrows():
+        update_file(client, file, file['grades'], file['literals'])
+
+
+def update_file(client, user_file, grades=None, literals=None):
     name = file_alias.get(user_file['file_type'], 'Файл')
     match user_file['file_type']:
         case 'users_file':
@@ -56,7 +62,6 @@ def update_file(user_id, user_file):
         case _:
             data = pd.DataFrame()
     title = '{} #{}'.format(name, user_file['no'])
-    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     try:
         spread_sheet = client.open(title)
     except pygsheets.exceptions.SpreadsheetNotFound:

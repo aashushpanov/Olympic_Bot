@@ -83,6 +83,8 @@ async def add_new_olympiad(callback: types.CallbackQuery, state: FSMContext, cal
         add_olympiads_to_track(olympiads, user_id)
         await callback.message.answer('Добавлена в отслеживаемые\n{} за {} класс'.format(olympiads.iloc[0]['name'],
                                                                                          olympiads.iloc[0]['grade']))
+        change_files(['status_file'])
+        change_google_docs(['status_file'])
     else:
         await callback.message.answer('Ничего добавить не удалось, возможно она уже есть')
     await state.finish()

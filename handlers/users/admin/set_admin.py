@@ -4,7 +4,7 @@ from aiogram import types
 from data import config
 from filters import IsExist
 from loader import bot
-from utils.db.add import admin_migrate, remove_admin_access
+from utils.db.add import admin_migrate, remove_admin_access, change_google_docs, change_files
 from utils.db.get import get_admins
 from utils.google_sheets.create import file_alias, create_file
 from utils.menu.admin_menu import set_admins_call
@@ -34,9 +34,10 @@ async def update_admins():
     admins_to_add = new_admins - current_admins
     if admins_to_add:
         admin_migrate(list(admins_to_add))
+        change_files(['users_file'])
+        change_google_docs(['users_file'])
         for admin_id in admins_to_add:
-            for file_type in file_alias.keys():
-                create_file(admin_id, file_type)
+            create_file(admin_id, file_alias.keys())
     if admins_to_delete:
         remove_admin_access(list(admins_to_delete))
 

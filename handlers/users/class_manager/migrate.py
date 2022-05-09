@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher import Dispatcher
 
 from states.class_manager.registration import create_class_managers_files
-from utils.db.add import class_manager_migrate
+from utils.db.add import class_manager_migrate, change_files, change_google_docs
 from utils.db.get import get_admin
 from utils.google_sheets.create import user_files_update
 from utils.menu.class_manager_menu import migrate_call
@@ -23,6 +23,8 @@ async def migration(callback: types.CallbackQuery):
         user_files_update(user_id)
         await callback.message.answer('Обновление прошло. Теперь в меню Личные данные можно выбрать формат выгружаемых'
                                       ' файлов и привязать почту')
+        change_files(['users_file', 'cm_file'])
+        change_google_docs(['users_file', 'cm_file'])
     else:
         await callback.message.answer('Вы уже перешли на новую версию')
 

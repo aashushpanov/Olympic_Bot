@@ -7,7 +7,8 @@ from data import config
 from filters import IsExist
 from keyboards.keyboards import callbacks_keyboard, grad_keyboard, literal_keyboard, time_keyboard, time_call, \
     cansel_keyboard
-from utils.db.add import add_class_manager, change_files, class_manager_migrate, set_user_file_format
+from utils.db.add import add_class_manager, change_files, class_manager_migrate, set_user_file_format, \
+    change_google_docs
 from utils.db.get import get_user, get_access, get_admin
 from utils.google_sheets.create import create_file, user_files_update
 
@@ -53,7 +54,7 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(get_email, state=RegistrationClassManager.get_email)
     dp.register_callback_query_handler(get_email, skip_email.filter(), state=RegistrationClassManager.get_email)
     dp.register_callback_query_handler(quick_registration, skip_registration_call.filter(),
-                                       state=RegistrationClassManager.start)
+                                       state=RegistrationClassManager.check_data)
 
 
 async def password_check(message: types.Message):
@@ -202,6 +203,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
     user_files_update(user_id)
     await message.answer("Все готово, можете вызвать /menu.")
     change_files(['cm_file', 'users_file'])
+    change_google_docs(['cm_file', 'users_file'])
 
 
 async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
@@ -211,15 +213,15 @@ async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
     user = get_admin(user_id)
     await callback.message.answer("Вы зарегистрированы как классный руководитель {}."
                                   " Подождите буквально одну минуту пока создаются файлы."
-                                  .format(str(user['grade'][0]) + user['literal'][0]))
+                                  .format(str(user['grades'][0]) + user['literals'][0]))
     await state.finish()
     create_class_managers_files(user_id)
     user_files_update(user_id)
     await callback.message.answer("Все готово. Можете вызвать /menu.")
     change_files(['cm_file', 'users_file'])
+    change_google_docs(['cm_file', 'users_file'])
 
 
 def create_class_managers_files(user_id):
     file_types = ['users_file', 'status_file']
-    for file_type in file_types:
-        create_file(user_id, file_type)
+    create_file(user_id, file_types)

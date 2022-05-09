@@ -5,7 +5,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from filters import TimeAccess, IsAdmin
 from keyboards.keyboards import callbacks_keyboard
-from utils.db.add import remove_subjects, remove_olympiads
+from utils.db.add import remove_subjects, remove_olympiads, change_files, change_google_docs
 from utils.db.get import get_file, get_olympiads, get_subjects
 from utils.files.reader import read_file
 from utils.menu.admin_menu import get_subjects_file_call, get_olympiads_file_call, delete_subjects_call, \
@@ -57,6 +57,8 @@ async def delete_subjects(message: types.Message, state: FSMContext):
         deleted_subjects = remove_subjects(subjects_codes)['name'].values
         if deleted_subjects:
             await message.answer('Удалены следующие предметы:\n{}'.format('\n'.join(deleted_subjects)))
+            change_files(['olympiads_file', 'dates_template', 'subjects_file'])
+            change_google_docs(['olympiads_file', 'dates_template', 'subjects_file'])
         else:
             await message.answer('Ничего не удалено.')
     await state.finish()
@@ -79,6 +81,8 @@ async def delete_olympiads(message: types.Message, state: FSMContext):
             olympiads_names.append(name[0] + ' (' + name[1] + ')' + ' ' + str(group['grade'].to_list()))
         if not deleted_olympiads.empty:
             await message.answer('Удалены следующие олимпиады:\n{}'.format('\n'.join(olympiads_names)))
+            change_files(['olympiads_file', 'dates_template'])
+            change_google_docs(['olympiads_file', 'dates_template'])
         else:
             await message.answer('Ничего не удалено.')
     await state.finish()

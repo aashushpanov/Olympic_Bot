@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from filters import TimeAccess
-from utils.db.add import add_interests, add_olympiads_to_track
+from utils.db.add import add_interests, add_olympiads_to_track, change_files, change_google_docs
 from utils.db.get import get_user, get_subjects, get_olympiads, get_tracked_olympiads
 from utils.menu.menu_structure import list_menu, interest_menu
 from utils.menu.user_menu import add_new_interests_call, add_interest_call, confirm
@@ -51,6 +51,10 @@ async def parsing_interests(callback: types.CallbackQuery, state: FSMContext):
     if not new_olympiads.empty:
         await callback.message.answer('Следующие олимпиады за ваш класс добавлены в отслеживаемые:\n{}'
                                       .format('\n'.join(list(new_olympiads['name']))))
+        change_files(['status_file'])
+        change_google_docs(['status_file'])
+    else:
+        await callback.message.answer('К сожалению, новых олимпиад по этим предметам нет.')
     await state.finish()
 
 
