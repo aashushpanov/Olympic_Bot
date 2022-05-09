@@ -43,7 +43,6 @@ def update_all_files():
     for file in changed_files.iterrows():
         update_file(client, file, file['grades'], file['literals'])
 
-
 def update_file(client, user_file, grades=None, literals=None):
     name = file_alias.get(user_file['file_type'], 'Файл')
     match user_file['file_type']:
