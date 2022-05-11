@@ -22,6 +22,7 @@ announcement_call = CallbackData('announcement')
 grade_announcement_call = CallbackData('grade_announcement')
 olympiad_announcement_call = CallbackData('olympiad_announcement')
 subject_announcement_call = CallbackData('subject_announcement')
+cm_announcement_call = CallbackData('cm_announcement')
 set_excel_format_call = CallbackData('set_excel_format')
 set_google_doc_format_call = CallbackData('set_google_doc_format')
 change_email_call = CallbackData('change_email')
@@ -73,7 +74,7 @@ def set_admin_menu(main_node):
         MenuNode('По классу', callback=grade_announcement_call.new()),
         MenuNode('По олимпиаде', callback=olympiad_announcement_call.new()),
         MenuNode('По предмету', callback=subject_announcement_call.new()),
-        MenuNode('Классным руководителям')
+        MenuNode('Классным руководителям', callback=cm_announcement_call.new())
     ])
 
     # all_childs = admin_menu.all_childs()

@@ -193,10 +193,10 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
     grades = user.get('grades')
     user_id = message.from_user.id
     add_class_manager(user_id, user['f_name'], user['l_name'], grades, literals, user['time'], email)
-    if email != '':
+    if email is not None:
         set_user_file_format(user_id, 1)
     await message.answer("Вы зарегистрированы как классный руководитель {}."
-                         " Подождите буквально одну минуту пока создаются файлы."
+                         " Подождите буквально одну минуту пока создаются файлы. Вам придет оповещение."
                          .format(', '.join([str(grades[i]) + literals[i] for i in range(len(literals))])))
     await state.finish()
     create_class_managers_files(user_id)
@@ -212,7 +212,7 @@ async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
     class_manager_migrate(user_id)
     user = get_admin(user_id)
     await callback.message.answer("Вы зарегистрированы как классный руководитель {}."
-                                  " Подождите буквально одну минуту пока создаются файлы."
+                                  " Подождите буквально одну минуту пока создаются файлы. Вам придет оповещение."
                                   .format(str(user['grades'][0]) + user['literals'][0]))
     await state.finish()
     create_class_managers_files(user_id)

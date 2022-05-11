@@ -34,7 +34,8 @@ class TimeAccess(Filter):
         delta = abs(dt.datetime.now() - message.date)
         access = self.minutes - delta.seconds//60
         if access < 0:
-            await message.answer('Действие уже недоступно', show_alert=True)
+            if type(callback) == types.CallbackQuery:
+                await callback.answer('Действие уже недоступно', show_alert=True)
             await message.delete()
             return 0
         else:

@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.utils.callback_data import CallbackData
 
 from keyboards.keyboards import time_keyboard, callbacks_keyboard, time_call
-from utils.db.add import add_admin
+from utils.db.add import add_admin, set_user_file_format
 from utils.google_sheets.create import create_file, user_files_update
 
 ru_abc = {'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф',
@@ -77,7 +77,9 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
             email = ''
             message = message.message
         case _:
-            email = ''
+            email = None
+    if email is not None:
+        set_user_file_format(user_id, 1)
     user = await state.get_data()
     add_admin(user_id, user['f_name'], user['l_name'], user['time'], email)
     await message.answer("Вы зарегистрированы как Администратор. Подождите буквально одну минуту пока создаются файлы.")

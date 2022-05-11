@@ -18,7 +18,7 @@ async def migration(callback: types.CallbackQuery):
     admin = get_admin(user_id)
     if admin.dropna().empty:
         class_manager_migrate(user_id)
-        await callback.message.answer('Создание файлов. Подождите немного.')
+        await callback.message.answer('Создание файлов. Подождите немного. Вам придет оповещение.')
         create_class_managers_files(user_id)
         user_files_update(user_id)
         await callback.message.answer('Обновление прошло. Теперь в меню Личные данные можно выбрать формат выгружаемых'

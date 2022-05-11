@@ -30,5 +30,6 @@ async def get_email(message: types.Message, state: FSMContext):
     email = message.text
     add_email(message.from_user.id, email)
     bind_email(message.from_user.id)
-    await message.answer('Ваша новая почта {}'.format(email))
+    await message.answer('Ваша новая почта {}. Что бы ее поменять, зайдите в Меню>Личные данные>Изменить почту.'
+                         .format(email))
     await state.finish()

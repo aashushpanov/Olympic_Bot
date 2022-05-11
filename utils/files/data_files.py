@@ -14,8 +14,9 @@ def make_users_file(grades: list = None, literals: list = None):
     else:
         grade_list = None
     users = get_users(grade_list)
-    columns = ['Фамилия', 'Имя', 'Номер класса', 'Буква класса']
-    users_file = users[['last_name', 'first_name', 'grade', 'literal', 'is_admin']]
+    columns = ['Фамилия', 'Имя', 'Класс']
+    users['grade_label'] = users['grade'].astype(str) + users['literal']
+    users_file = users[['last_name', 'first_name', 'grade_label', 'is_admin']]
     users_file = users_file[users_file['is_admin'] == 0]
     users_file.drop(columns=['is_admin'], inplace=True)
     users_file.columns = columns

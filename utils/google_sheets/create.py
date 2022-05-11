@@ -1,7 +1,7 @@
 import pandas as pd
 import pygsheets
 
-from utils.db.add import add_google_doc_row, add_google_doc_url
+from utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc
 from utils.db.get import get_user_files, get_admin, get_changed_files, get_admins
 from utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
     make_class_managers_file, make_answers_file
@@ -13,7 +13,7 @@ file_alias = {'users_file': 'Список учеников', 'status_file': 'С�
 
 
 def create_file(user_id, file_types: list):
-    client = pygsheets.authorize(service_file='././polymorphic1210-c81dc6c184cb.json')
+    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     for file_type in file_types:
         no = add_google_doc_row(user_id, file_type)
         name = file_alias.get(file_type, 'Файл')
@@ -28,22 +28,23 @@ def create_file(user_id, file_types: list):
 
 
 def user_files_update(user_id):
-    client = pygsheets.authorize(service_file='././polymorphic1210-c81dc6c184cb.json')
+    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     files = get_user_files(user_id)
     user = get_admin(user_id)
     for _, file in files.iterrows():
-        update_file(client, file, user['grades'], user['literals'])
+        update_file(client, file, user_id, user['grades'], user['literals'])
 
 
 def update_all_files():
     changed_files = get_changed_files()
     admins = get_admins()
     changed_files = changed_files.join(admins.set_index('id'), on='user_id')
-    client = pygsheets.authorize(service_file='././polymorphic1210-c81dc6c184cb.json')
+    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     for file in changed_files.iterrows():
-        update_file(client, file, file['grades'], file['literals'])
+        update_file(client, file, file['user_id'], file['grades'], file['literals'])
 
-def update_file(client, user_file, grades=None, literals=None):
+
+def update_file(client, user_file, user_id, grades=None, literals=None):
     name = file_alias.get(user_file['file_type'], 'Файл')
     match user_file['file_type']:
         case 'users_file':
@@ -69,6 +70,7 @@ def update_file(client, user_file, grades=None, literals=None):
     work_sheet.clear()
     work_sheet.set_dataframe(data, (1, 1))
     file_format(work_sheet, user_file['file_type'])
+    set_updated_google_doc(user_id, user_file['file_type'])
 
 
 def file_format(work_sheet, file_type):
@@ -82,8 +84,8 @@ def file_format(work_sheet, file_type):
     work_sheet.adjust_column_width(start=1, end=12)
     match file_type:
         case 'users_file':
-            pygsheets.datarange.DataRange('A1', 'D1', worksheet=work_sheet).apply_format(cell)
-            work_sheet.adjust_column_width(start=3, end=4, pixel_size=130)
+            pygsheets.datarange.DataRange('A1', 'C1', worksheet=work_sheet).apply_format(cell)
+            work_sheet.adjust_column_width(start=3, pixel_size=60)
         case 'status_file':
             pygsheets.datarange.DataRange('A1', 'G1', worksheet=work_sheet).apply_format(cell)
             work_sheet.adjust_column_width(start=2, pixel_size=120)
@@ -103,13 +105,15 @@ def file_format(work_sheet, file_type):
         case 'answers_file':
             pygsheets.datarange.DataRange('A1', 'D1', worksheet=work_sheet).apply_format(cell)
             work_sheet.adjust_column_width(start=1, pixel_size=120)
+        case 'subjects_file':
+            pygsheets.datarange.DataRange('A1', 'C1', worksheet=work_sheet).apply_format(cell)
 
 
 def bind_email(user_id):
     admin = get_admin(user_id)
     email = admin['email']
     files = get_user_files(user_id)
-    client = pygsheets.authorize(service_file='././polymorphic1210-c81dc6c184cb.json')
+    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     for _, file in files.iterrows():
         file_type = file['file_type']
         no = file['no']

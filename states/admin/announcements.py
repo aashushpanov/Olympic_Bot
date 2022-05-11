@@ -8,9 +8,9 @@ from aiogram.utils.callback_data import CallbackData
 from filters import IsAdmin
 from keyboards.keyboards import cansel_keyboard, callbacks_keyboard
 from loader import bot
-from utils.db.get import get_file, get_users, get_olympiads, get_all_olympiads_status
+from utils.db.get import get_file, get_users, get_olympiads, get_all_olympiads_status, get_class_managers
 from utils.menu.admin_menu import announcement_call, grade_announcement_call, subject_announcement_call, \
-    olympiad_announcement_call
+    olympiad_announcement_call, cm_announcement_call
 
 send_announcement_call = CallbackData('send_announcement')
 fix_announcement_call = CallbackData('fix_announcement', 'data')
@@ -21,6 +21,7 @@ class Announcement(StatesGroup):
     by_grade = State()
     by_olympiad = State()
     by_subject = State()
+    by_cm = State()
     confirm = State()
 
 
@@ -29,6 +30,7 @@ def register_announcement_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(by_grade_start, grade_announcement_call.filter())
     dp.register_callback_query_handler(by_olympiad_start, olympiad_announcement_call.filter())
     dp.register_callback_query_handler(by_subject_start, subject_announcement_call.filter())
+    dp.register_callback_query_handler(by_cm_start, cm_announcement_call.filter())
     dp.register_message_handler(receive_announcement, IsAdmin(), state=Announcement.all_states)
     dp.register_callback_query_handler(sending_confirm, send_announcement_call.filter(), state=Announcement.confirm)
     dp.register_callback_query_handler(fix_announcement, fix_announcement_call.filter(), state=Announcement.confirm)
@@ -69,6 +71,13 @@ async def by_subject_start(callback: types.CallbackQuery):
     await Announcement.by_subject.set()
 
 
+async def by_cm_start(callback: types.CallbackQuery):
+    await callback.answer()
+    await callback.message.answer('Введите объявление для всех классных руководителей \U00002B07.',
+                                  reply_markup=cansel_keyboard())
+    await Announcement.by_cm.set()
+
+
 async def receive_announcement(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     announcement = {}
@@ -106,6 +115,11 @@ async def receive_announcement(message: types.Message, state: FSMContext):
                 user_list = tuple(users[subject in users['interest']])
                 announcement[user_list] = text
             current_state = 'AnnouncementBySubject'
+        case 'Announcement:by_cm':
+            user_list = tuple(get_class_managers()['admin_id'].to_list())
+            announcement = {user_list: message.text}
+            messages = {'Классным руководителям': message.text}
+            current_state = 'AnnouncementByCm'
         case _:
             pass
     await state.update_data(announcement=announcement)
@@ -128,6 +142,7 @@ async def sending_confirm(callback: types.CallbackQuery, state: FSMContext):
 
 async def fix_announcement(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
     await callback.answer()
+    await callback.message.delete_reply_markup()
     prev_state = callback_data.get('data')
     match prev_state:
         case 'AnnouncementEverybody':
@@ -142,6 +157,9 @@ async def fix_announcement(callback: types.CallbackQuery, state: FSMContext, cal
         case 'AnnouncementBySubject':
             await Announcement.by_subject.set()
             file_name = 'subject_announcement_example'
+        case 'AnnouncementByCm':
+            await Announcement.by_cm.set()
+            file_name = ''
         case _:
             await state.finish()
             file_name = ''
