@@ -1,3 +1,4 @@
+import pygsheets as pygsheets
 from aiogram import Dispatcher
 from aiogram import types
 from aiogram.utils.callback_data import CallbackData
@@ -12,7 +13,7 @@ from utils.google_sheets.create import update_file
 from utils.menu.MenuNode import move
 from keyboards.keyboards import yes_no_keyboard, callbacks_keyboard
 from states.user.registration import user_reg_call
-from utils.db.get import get_access, get_user_file
+from utils.db.get import get_access, get_user_file, get_admin
 from utils.menu.generator_functions import update_file_call
 from utils.menu.menu_structure import list_menu, main_menu, user_menu, admin_group_menu, class_manager_menu
 
@@ -81,8 +82,10 @@ async def update_google_doc(callback: types.CallbackQuery, callback_data: dict):
     await callback.answer('Данные обновляются. Дождитесь маленькой стрелки в углу кнопки.', show_alert=True)
     file_type = callback_data.get('type')
     user_id = callback.from_user.id
+    admin = get_admin(user_id)
     user_file = get_user_file(user_id, file_type)
-    update_file(user_id, user_file)
+    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
+    update_file(client, user_file, user_id, admin['grades'], admin['literals'])
     set_updated_google_doc(user_id, file_type)
     markup = callback.message.reply_markup
     for button in markup.inline_keyboard:

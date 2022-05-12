@@ -15,6 +15,13 @@ def add_user(user_id, f_name, l_name, grade=None, literal=None, interest: set = 
         conn.commit()
 
 
+def change_name(user_id, f_name, l_name):
+    with database() as (cur, conn):
+        sql = "UPDATE users SET first_name = %s, last_name = %s WHERE id = %s"
+        cur.execute(sql, [f_name, l_name, user_id])
+        conn.commit()
+
+
 def add_interests(user_id, interests):
     with database() as (cur, conn):
         sql = "UPDATE users SET interest = %s WHERE id = %s"

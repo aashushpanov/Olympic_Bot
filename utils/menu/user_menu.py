@@ -12,6 +12,8 @@ add_new_olympiad_call = CallbackData('add_new_olympiad')
 question_to_admin_call = CallbackData('question_to_admin')
 change_notify_time_call = CallbackData('change_notify_time')
 get_nearest_olympiads_call = CallbackData('get_nearest_olympiads')
+show_personal_data_call = CallbackData('show_personal_data')
+change_name_call = CallbackData('change_personal_data')
 
 
 def set_user_menu(main_node=None, root_id='0.1'):
@@ -28,6 +30,8 @@ def set_user_menu(main_node=None, root_id='0.1'):
     ])
 
     user_menu.child(text='Личные данные').set_childs([
+        MenuNode('Личные данные', callback=show_personal_data_call.new()),
+        MenuNode('Изменить данные', callback=change_name_call.new()),
         MenuNode('Добавить предметы', callback=add_new_interests_call.new()),
         NodeGenerator('Удалить предметы', func=get_interests),
         MenuNode('Изменить время уведомлений', callback=change_notify_time_call.new())

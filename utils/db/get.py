@@ -129,6 +129,16 @@ def get_class_managers():
     return data
 
 
+def get_class_manager_by_grade(grade, literal):
+    with database() as (cur, conn):
+        sql = "SELECT id, first_name, last_name FROM admins" \
+              " WHERE array_positions(grades, %s) && array_positions(literals, %s)"
+        cur.execute(sql, [grade, literal])
+    res = cur.fetchone()
+    data = pd.Series(res, index=['admin_id', 'first_name', 'last_name'])
+    return data
+
+
 def get_admin(user_id):
     with database() as (cur, conn):
         sql = "SELECT id, first_name, last_name, grades, literals, email, access, to_google_sheets FROM" \

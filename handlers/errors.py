@@ -12,15 +12,15 @@ def register_errors_handlers(dp: Dispatcher):
 
 
 async def message_not_modified(*args):
-    return True
+    return print(args)
 
 
 async def message_to_delete(*args):
-    return True
+    return print(args)
 
 
 async def message_not_found(*args):
-    return True
+    return print(args)
 
 
 async def invalid_query_id(*args):
@@ -28,5 +28,5 @@ async def invalid_query_id(*args):
 
 
 async def message_cant_delete_for_everyone(*args):
-    pass
+    return print(args)
 
