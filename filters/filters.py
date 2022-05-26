@@ -1,9 +1,8 @@
 import datetime as dt
+
 from aiogram import types
 from aiogram.dispatcher.filters import Filter
-from aiogram.utils.exceptions import MessageCantBeDeleted
 
-from loader import bot
 from utils.db.get import get_access, is_exist
 
 
@@ -34,14 +33,12 @@ class TimeAccess(Filter):
             case _:
                 raise TypeError
         delta = abs(dt.datetime.now() - message.date)
-        access = self.minutes - delta.seconds//60
+        access = self.minutes - delta.seconds//60 - delta.days*34*60
         if access < 0:
             if type(callback) == types.CallbackQuery:
                 await callback.answer('Действие уже недоступно', show_alert=True)
-            try:
-                await message.delete()
-            except MessageCantBeDeleted:
-                await message.delete_reply_markup()
+                await delete_message(message)
+                print(1)
             return 0
         else:
             return 1
@@ -61,3 +58,12 @@ class IsExist(Filter):
             case types.Message():
                 result = await is_exist(data.from_user.id)
         return result == self.target
+
+
+async def delete_message(message: types.Message):
+    delta = abs(dt.datetime.now() - message.date)
+    access = 2 - delta.seconds/(3600*24) - delta.days
+    if access > 0:
+        await message.delete()
+    else:
+        await message.edit_text('Удалено')

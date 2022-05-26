@@ -84,7 +84,8 @@ def get_user(user_id):
         sql = "SELECT first_name, last_name, grade, literal, interest, notify_time, email FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchone()
-        data = pd.Series(res, index=['first_name', 'last_name', 'grade', 'literal', 'interest', 'notify_time', 'email'])
+        data = pd.Series(res, index=['first_name', 'last_name', 'grade', 'literal', 'interest', 'notify_time', 'email'],
+                         dtype='object')
     return data
 
 
@@ -113,10 +114,10 @@ def get_users(grades=None):
 
 def get_admins():
     with database() as (cur, conn):
-        sql = "SELECT id, first_name, last_name FROM admins WHERE access = 2"
+        sql = "SELECT id, first_name, last_name, grades, literals FROM admins WHERE access = 2"
         cur.execute(sql)
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['admin_id', 'first_name', 'last_name'])
+        data = pd.DataFrame(res, columns=['admin_id', 'first_name', 'last_name', 'grades', 'literals'])
     return data
 
 
@@ -134,7 +135,7 @@ def get_class_manager_by_grade(grade, literal):
         sql = "SELECT id, first_name, last_name FROM admins" \
               " WHERE array_positions(grades, %s) && array_positions(literals, %s)"
         cur.execute(sql, [grade, literal])
-    res = cur.fetchone()
+        res = cur.fetchone()
     data = pd.Series(res, index=['admin_id', 'first_name', 'last_name'])
     return data
 

@@ -12,7 +12,6 @@ del_interest_call = CallbackData('del_subj', 'data')
 get_file_call = CallbackData('get_file', 'type')
 update_file_call = CallbackData('update_file', 'type')
 
-
 files_alias = {'users_file': 'Список учеников', 'status_file': 'Статус прохождения олимпиад',
                'subjects_file': 'Список предметов', 'olympiads_file': 'Список олимпиад',
                'class_managers_file': 'Список классных руководителей', 'answers_file': 'Список вопросов'}
@@ -67,15 +66,16 @@ async def get_my_olympiads(node, **kwargs):
     user_grade = get_user(user_id)['grade']
     olympiads = get_olympiads()
     olympiads = olympiads[olympiads['code'].isin(my_olympiads_codes)]
-    for _, olympiad in olympiads.iterrows():
-        next_node = node.blind_node.id
-        olympiad_grade = olympiad['grade']
-        text = olympiad['name']
-        if user_grade != olympiad_grade:
-            text += ' (за {} класс)'.format(olympiad_grade)
-        if olympiad['active'] == 0:
-            text += ' (прошла)'
-        yield MenuNode(text=text, callback=move.new(action='d', node=next_node, data=olympiad['code'], width=1))
+    if not olympiads.empty:
+        for _, olympiad in olympiads.iterrows():
+            next_node = node.blind_node.id
+            olympiad_grade = olympiad['grade']
+            text = olympiad['name']
+            if user_grade != olympiad_grade:
+                text += ' (за {} класс)'.format(olympiad_grade)
+            if olympiad['active'] == 0:
+                text += ' (прошла)'
+            yield MenuNode(text=text, callback=move.new(action='d', node=next_node, data=olympiad['code'], width=1))
 
 
 async def register_olympiads_options(_, **kwargs):

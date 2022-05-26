@@ -52,11 +52,12 @@ def admin_migrate(user_ids):
         cur.execute(sql, [user_ids])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['id', 'f_name', 'l_name', 'n_time', 'email'])
-        for _, row in data.iterrows():
-            sql = "INSERT INTO admins (id, first_name, last_name, email, access, notify_time, grades, literals)" \
-                  " VALUES (%s, %s, %s, %s, 2, %s, '{}', '{}')"
-            cur.execute(sql, [row['id'], row['f_name'], row['l_name'], row['email'], row['n_time']])
-        conn.commit()
+        if not data.empty:
+            for _, row in data.iterrows():
+                sql = "INSERT INTO admins (id, first_name, last_name, email, access, notify_time, grades, literals)" \
+                      " VALUES (%s, %s, %s, %s, 2, %s, '{}', '{}')"
+                cur.execute(sql, [row['id'], row['f_name'], row['l_name'], row['email'], row['n_time']])
+            conn.commit()
 
 
 def remove_admin_access(user_ids):
@@ -297,10 +298,14 @@ def add_google_doc_url(no, url):
         conn.commit()
 
 
-def change_google_docs(file_types):
+def change_google_docs(file_types, grade=None, literal=None):
     with database() as (cur, conn):
-        sql = "UPDATE google_sheets SET is_changed = 1 WHERE file_type = ANY(%s)"
-        cur.execute(sql, [file_types])
+        grade = grade if grade else 0
+        literal = literal if literal else ""
+        sql = "UPDATE google_sheets SET is_changed = 1 WHERE file_type = ANY(%s) AND user_id = ANY(" \
+              "SELECT id FROM admins WHERE array_positions(grades, %s) && array_positions(literals, %s)" \
+              " UNION SELECT id FROM admins WHERE grades = '{}' AND literals = '{}')"
+        cur.execute(sql, [file_types, grade, literal])
         conn.commit()
 
 
@@ -309,4 +314,3 @@ def set_updated_google_doc(user_id, file_type):
         sql = "UPDATE google_sheets SET is_changed = 0 WHERE user_id = %s AND file_type = %s"
         cur.execute(sql, [user_id, file_type])
         conn.commit()
-

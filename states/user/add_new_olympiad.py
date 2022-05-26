@@ -71,6 +71,7 @@ async def get_grade(callback: types.CallbackQuery, state: FSMContext, callback_d
 
 async def add_new_olympiad(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
     user_id = callback.from_user.id
+    user = get_user(user_id)
     user_tracked = get_tracked_olympiads(user_id)['olympiad_code'].values
     await callback.message.delete()
     grade = int(callback_data.get('data'))
@@ -84,7 +85,7 @@ async def add_new_olympiad(callback: types.CallbackQuery, state: FSMContext, cal
         await callback.message.answer('Добавлена в отслеживаемые\n{} за {} класс'.format(olympiads.iloc[0]['name'],
                                                                                          olympiads.iloc[0]['grade']))
         change_files(['status_file'])
-        change_google_docs(['status_file'])
+        change_google_docs(['status_file'], user['grade'], user['literal'])
     else:
         await callback.message.answer('Ничего добавить не удалось, возможно она уже есть')
     await state.finish()

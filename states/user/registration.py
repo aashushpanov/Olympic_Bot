@@ -142,7 +142,7 @@ async def personal_data_agreement(callback: types.CallbackQuery, state: FSMConte
     else:
         await callback.message.answer('К сожалению, олимпиады добавить не удалось')
     change_files(['users_file'])
-    change_google_docs(['users_file'])
+    change_google_docs(['users_file'], user.get('grade'), user.get('literal'))
     await callback.message.answer('Регистрация завершена, можете вызвать /menu.')
     await state.finish()
 

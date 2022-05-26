@@ -2,7 +2,9 @@ from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ReplyKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
+from aiogram.utils.exceptions import MessageCantBeDeleted
 
+from filters.filters import delete_message
 from utils.db.get import get_olympiads, get_admins
 from utils.menu.MenuNode import MenuNode, move
 
@@ -21,8 +23,7 @@ def keyboard_handlers(dp: Dispatcher):
 async def delete_keyboard(callback: CallbackQuery, state: FSMContext = None):
     if state:
         await state.finish()
-    await callback.message.delete_reply_markup()
-    await callback.message.delete()
+    await delete_message(callback.message)
 
 
 async def tree_menu_keyboard(menu_node: MenuNode, callback: CallbackQuery = None, data=None):

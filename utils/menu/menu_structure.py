@@ -1,3 +1,5 @@
+import datetime as dt
+
 from aiogram import types
 
 from utils.menu.MenuNode import MenuNode
@@ -7,7 +9,7 @@ from utils.menu.class_manager_menu import set_class_manager_menu
 from utils.menu.user_menu import set_user_menu, set_interest_menu
 
 
-main_menu = MenuNode()
+main_menu = MenuNode(text='Меню')
 
 set_user_menu(main_menu)
 set_admin_menu(main_menu)
@@ -54,7 +56,6 @@ async def list_menu(callback: types.CallbackQuery | types.Message, callback_data
                 raise KeyError
             data = callback_data.get('data')
             markup = await tree_menu_keyboard(next_node, callback, data)
-            await callback.message.edit_reply_markup(markup)
-
-
+            text = next_node.text
+            await callback.message.edit_text(text=text, reply_markup=markup)
 

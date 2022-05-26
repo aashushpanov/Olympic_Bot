@@ -1,7 +1,7 @@
 import pandas as pd
 
 from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers, \
-    get_class_managers
+    get_class_managers, get_admins
 
 
 def make_users_file(grades: list = None, literals: list = None):
@@ -116,8 +116,8 @@ def make_olympiads_status_file(grades: list = None, literals: list = None):
 def make_answers_file():
     file_path = 'data/files/to_send/answers_file.xlsx'
     answers = get_answers()
-    users = get_users()
-    answers = answers.join(users.set_index('user_id'), on='to_admin')
+    admins = get_admins()
+    answers = answers.join(admins.set_index('admin_id'), on='to_admin')
     columns = ['Номер вопроса', 'Вопрос', 'Ответ', 'Дал ответ']
     answers_file = pd.DataFrame(columns=columns)
     for _, row in answers.iterrows():

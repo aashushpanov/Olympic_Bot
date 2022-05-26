@@ -72,10 +72,10 @@ def create_notifications():
                 status['finish_date'] >= dt.date.today() >= status['start_date']):
             user_id = status['user_id']
             olympiad_code = status['olympiad_code']
-            if 2 >= (status['start_date'] - dt.date.today()).days >= 0:
+            if 2 >= (status['start_date'] - dt.date.today()).days > 0:
                 message_prefix = 'Скоро начнется '
             elif status['finish_date'] >= dt.date.today() >= status['start_date']:
-                message_prefix = 'Скоро закончиться '
+                message_prefix = 'Скоро закончится '
             else:
                 message_prefix = ''
             message = message_prefix + status['name'] + ", а вы еще не зарегистрировались. Если уже сделали это, " \
@@ -87,7 +87,7 @@ def create_notifications():
         user_id = status['user_id']
         olympiad_code = status['olympiad_code']
         if status['finish_date'] >= dt.date.today() >= status['start_date']:
-            message = "Скоро закончиться {}, а вы еще не прошли ее. Если уже сделали это, нажмите 'Пройдена'".\
+            message = "Скоро закончится {}, а вы еще не прошли ее. Если уже сделали это, нажмите 'Пройдена'".\
                 format(status['name'])
             notify_type = 'done_notify'
             notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)

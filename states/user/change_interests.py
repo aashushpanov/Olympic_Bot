@@ -42,7 +42,8 @@ async def parsing_interests(callback: types.CallbackQuery, state: FSMContext):
     interests_exist = set(get_user(user_id)['interest'])
     interests_add = interests_new.union(interests_exist)
     add_interests(user_id, list(interests_add))
-    current_interests = get_user(user_id)['interest']
+    user = get_user(user_id)
+    current_interests = user['interest']
     subjects = get_subjects()
     interests_name = list(subjects[subjects['code'].isin(current_interests)]['subject_name'].values)
     await callback.message.delete()
@@ -52,7 +53,7 @@ async def parsing_interests(callback: types.CallbackQuery, state: FSMContext):
         await callback.message.answer('Следующие олимпиады за ваш класс добавлены в отслеживаемые:\n{}'
                                       .format('\n'.join(list(new_olympiads['name']))))
         change_files(['status_file'])
-        change_google_docs(['status_file'])
+        change_google_docs(['status_file'], user['grade'], user['literal'])
     else:
         await callback.message.answer('К сожалению, новых олимпиад по этим предметам нет.')
     await state.finish()

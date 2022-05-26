@@ -2,6 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 
+from filters.filters import delete_message
 from keyboards.keyboards import cansel_event_call
 
 
@@ -14,11 +15,9 @@ def register_cancel_handlers(dp: Dispatcher):
 async def cmd_cancel(message: types.Message | types.CallbackQuery, state: FSMContext):
     await state.finish()
     match message:
-        case types.Message():
-            await message.answer("Действие отменено")
-            await message.delete()
         case types.CallbackQuery():
             await message.answer()
-            await message.message.answer('Действие отменено')
-            await message.message.delete()
-            
+            message = message.message
+    await message.answer('Действие отменено')
+    await delete_message(message)
+

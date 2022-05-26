@@ -38,9 +38,9 @@ def user_files_update(user_id):
 def update_all_files():
     changed_files = get_changed_files()
     admins = get_admins()
-    changed_files = changed_files.join(admins.set_index('id'), on='user_id')
+    changed_files = changed_files.join(admins.set_index('admin_id'), on='user_id')
     client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
-    for file in changed_files.iterrows():
+    for _, file in changed_files.iterrows():
         update_file(client, file, file['user_id'], file['grades'], file['literals'])
 
 

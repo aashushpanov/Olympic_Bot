@@ -2,6 +2,8 @@ from aiogram import Dispatcher
 from aiogram.utils.exceptions import MessageNotModified, MessageToDeleteNotFound, MessageToEditNotFound, InvalidQueryID, \
     MessageCantBeDeleted
 
+from loader import bot
+
 
 def register_errors_handlers(dp: Dispatcher):
     dp.register_errors_handler(message_not_modified, exception=MessageNotModified)
@@ -12,21 +14,23 @@ def register_errors_handlers(dp: Dispatcher):
 
 
 async def message_not_modified(*args):
-    return print(args)
+    return args
 
 
 async def message_to_delete(*args):
-    return print(args)
+    return args
 
 
 async def message_not_found(*args):
-    return print(args)
+    return args
 
 
 async def invalid_query_id(*args):
-    return print(args)
+    return args
 
 
-async def message_cant_delete_for_everyone(*args):
-    return print(args)
+async def message_cant_delete_for_everyone(update, exception):
+    print(update)
+    print(exception)
+
 

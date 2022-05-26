@@ -6,7 +6,7 @@ from filters import IsAdmin
 from fone_tasks.updates import show_admin_question_call
 from loader import bot
 from utils.db.add import set_message_id_to_questions, add_question_answer, change_files, change_google_docs
-from utils.db.get import get_new_questions, get_question, get_user
+from utils.db.get import get_new_questions, get_question, get_user, get_admin
 
 question_answer_call = CallbackData('q_a', 'no', 'id')
 
@@ -48,7 +48,7 @@ async def question_answer(message: types.Message):
                                         chat_id=config.ADMIN_GROUP_ID)
             await bot.delete_message(message_id=message.message_id, chat_id=config.ADMIN_GROUP_ID)
             user_id = question['from_user']
-            admin = get_user(admin_id)
+            admin = get_admin(admin_id)
             text = 'Ответ на ваш вопрос номер {} от {} {}:\n\n{}'.format(question_no, admin['last_name'],
                                                                          admin['first_name'], answer)
             await bot.send_message(chat_id=user_id, text=text)

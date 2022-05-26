@@ -7,7 +7,7 @@ from data import config
 from keyboards.keyboards import cansel_keyboard
 from loader import bot
 from utils.db.add import add_question, change_files, change_google_docs
-from utils.db.get import get_user
+from utils.db.get import get_user, get_admin
 from utils.menu.user_menu import question_to_admin_call
 
 
@@ -30,8 +30,10 @@ async def start(callback: types.CallbackQuery):
 async def receive_question(message: types.Message, state: FSMContext):
     question_text = message.text
     user = get_user(message.from_user.id)
+    grade = user['grade']
+    literal = user['literal']
     question_from = '{} {} из {} спрашивает:\n\n'.format(user['last_name'], user['first_name'],
-                                                         str(user['grade']) + user['literal'])
+                                                         grade + literal)
     index = ['user_id', 'message']
     question = pd.Series([message.from_user.id, question_from + question_text], index=index)
     question_no = add_question(question)
