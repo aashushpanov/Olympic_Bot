@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  sch1210_bot:
+    build: bot/
+    env_file:
+      - env_vars/sch1210.env
+    image: aashushpanov/my_repo:olympic_bot
+    container_name: olympic_bot_sch1210
+
+  schpk_bot:
+    build: bot/
+    env_file:
+      - env_vars/schpk.env
+    image: aashushpanov/my_repo:olympic_bot
+    container_name: olympic_bot_schpk
+
