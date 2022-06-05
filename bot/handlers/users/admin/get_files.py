@@ -16,6 +16,14 @@ def register_get_files_handlers(dp: Dispatcher):
 
 
 async def send_file(callback: types.CallbackQuery, callback_data: dict):
+    """
+    It sends a file to the user
+
+    :param callback: types.CallbackQuery - the callback query object
+    :type callback: types.CallbackQuery
+    :param callback_data: dict = {'type': 'users_file'}
+    :type callback_data: dict
+    """
     file_type = callback_data.get('type')
     file_status = get_file(file_type)
     if file_status['changed']:
