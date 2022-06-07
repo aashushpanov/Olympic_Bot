@@ -10,14 +10,14 @@ class IsAdmin(Filter):
 
     async def check(self, message: types.Message):
         access = get_access(message.from_user.id)
-        return 1 if access == 2 else 0
+        return 1 if access == 3 else 0
 
 
 class IsClassManager(Filter):
 
     async def check(self, message: types.Message):
         access = get_access(message.from_user.id)
-        return 1 if access == 1 else 0
+        return 1 if access == 2 else 0
 
 
 class TimeAccess(Filter):

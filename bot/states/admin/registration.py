@@ -79,10 +79,18 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
         case _:
             email = None
     if email is not None:
-        set_user_file_format(user_id, 1)
+        status = set_user_file_format(user_id, 1)
+        if status == 0:
+            await message.answer('Что-то пошло не так.')
     user = await state.get_data()
-    add_admin(user_id, user['f_name'], user['l_name'], user['time'], email)
-    await message.answer("Вы зарегистрированы как Администратор. Подождите буквально одну минуту пока создаются файлы.")
+    status = add_admin(user_id, user['f_name'], user['l_name'], user['time'], email)
+    if status:
+        await message.answer("Вы зарегистрированы как Администратор."
+                             " Подождите буквально одну минуту пока создаются файлы.")
+    else:
+        await message.answer('Что-то пошло не так.')
+        await state.finish()
+        return
     await state.finish()
     create_admins_files(user_id)
     user_files_update(user_id)

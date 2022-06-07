@@ -15,8 +15,11 @@ def register_set_file_format(dp: Dispatcher):
 
 async def set_excel_format(callback: types.CallbackQuery):
     await callback.answer()
-    set_user_file_format(callback.from_user.id, 0)
-    await callback.message.answer('В качестве формата выгружаемых файлов выбран EXCEL.')
+    status = set_user_file_format(callback.from_user.id, 0)
+    if status:
+        await callback.message.answer('В качестве формата выгружаемых файлов выбран EXCEL.')
+    else:
+        await callback.message.answer('Что-то пошло не так.')
 
 
 async def set_google_doc_format(callback: types.CallbackQuery):
@@ -26,6 +29,9 @@ async def set_google_doc_format(callback: types.CallbackQuery):
         await callback.message.answer('Не выбрана почта для привязки таблиц. Сначала установите ее.',
                                       reply_markup=markup)
         return
-    await callback.message.answer('В качестве формата выгружаемых файлов выбраны Google таблицы.')
-    set_user_file_format(callback.from_user.id, 1)
+    status = set_user_file_format(callback.from_user.id, 1)
+    if status:
+        await callback.message.answer('В качестве формата выгружаемых файлов выбраны Google таблицы.')
+    else:
+        await callback.message.answer('Что-то пошло не так.')
 

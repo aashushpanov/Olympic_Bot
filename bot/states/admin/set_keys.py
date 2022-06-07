@@ -76,11 +76,14 @@ async def load_keys_file(callback: types.CallbackQuery, state: FSMContext):
     keys = data.get('keys')
     keys_count = data.get('keys_count')
     await callback.message.answer('Начинаю загрузку')
-    set_keys(keys, keys_count)
-    await callback.message.answer('Загрузка завершена')
-    markup = yes_no_keyboard(callback=set_keys_call.new())
+    status = set_keys(keys, keys_count)
+    if status:
+        await callback.message.answer('Загрузка завершена')
+        markup = yes_no_keyboard(callback=set_keys_call.new())
+        await callback.message.answer('Продолжить загрузку?', reply_markup=markup)
+    else:
+        await callback.message.answer('Что-то пошло не так.')
     await state.finish()
-    await callback.message.answer('Продолжить загрузку?', reply_markup=markup)
 
 
 def parce_keys(keys_file, grade):

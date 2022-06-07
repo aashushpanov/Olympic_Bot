@@ -1,8 +1,8 @@
 from aiogram.utils.callback_data import CallbackData
 
-from utils.menu.MenuNode import MenuNode, NodeGenerator
-from utils.db.get import get_subjects
-from utils.menu.generator_functions import get_interests, get_my_olympiads, register_olympiads_options
+from ...utils.menu.MenuNode import MenuNode, NodeGenerator
+from ...utils.db.get import get_subjects
+from ...utils.menu.generator_functions import get_interests, get_my_olympiads, register_olympiads_options
 
 
 add_interest_call = CallbackData('add_olympiad', 'data')

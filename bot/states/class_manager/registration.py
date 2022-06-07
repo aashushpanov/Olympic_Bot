@@ -58,7 +58,7 @@ def register_registration_handlers(dp: Dispatcher):
 
 
 async def password_check(message: types.Message):
-    if get_access(message.from_user.id) == 1:
+    if get_access(message.from_user.id) == 2:
         await message.answer('Вы уже классный руководитель')
         return
     await message.answer('Введите пароль для доступа к функциям классного руководителя')
@@ -192,9 +192,15 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
     literals = user.get('literals')
     grades = user.get('grades')
     user_id = message.from_user.id
-    add_class_manager(user_id, user['f_name'], user['l_name'], grades, literals, user['time'], email)
+    status = add_class_manager(user_id, user['f_name'], user['l_name'], grades, literals, user['time'], email)
+    if status == 0:
+        await message.answer('Что-то пошло не так.')
+        await state.finish()
+        return
     if email is not None:
-        set_user_file_format(user_id, 1)
+        status = set_user_file_format(user_id, 1)
+        if status == 0:
+            await message.answer('Что-то пошло не так.')
     await message.answer("Вы зарегистрированы как классный руководитель {}."
                          " Подождите буквально одну минуту пока создаются файлы. Вам придет оповещение."
                          .format(', '.join([str(grades[i]) + literals[i] for i in range(len(literals))])))
@@ -209,7 +215,11 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
 async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_id = callback.from_user.id
-    class_manager_migrate(user_id)
+    status = class_manager_migrate(user_id)
+    if status == 0:
+        await callback.message.answer('Что-то пошло не так.')
+        await state.finish()
+        return
     user = get_admin(user_id)
     await callback.message.answer("Вы зарегистрированы как классный руководитель {}."
                                   " Подождите буквально одну минуту пока создаются файлы. Вам придет оповещение."

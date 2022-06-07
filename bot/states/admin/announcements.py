@@ -102,8 +102,8 @@ async def receive_announcement(message: types.Message, state: FSMContext):
             olympiads = get_olympiads()
             olympiads_status = get_all_olympiads_status()
             for olympiad_name, text in messages.items():
-                olympiad_codes = olympiads[olympiads['name'] == olympiad_name]['code'].to_list()
-                user_list = tuple(olympiads_status[olympiads_status['olympiad_code'].isin(olympiad_codes)]
+                olympiad_ids = olympiads[olympiads['name'] == olympiad_name]['id'].to_list()
+                user_list = tuple(olympiads_status[olympiads_status['olympiad_id'].isin(olympiad_ids)]
                                   ['user_id'].to_list())
                 announcement[user_list] = text
             current_state = 'AnnouncementByOlympiad'

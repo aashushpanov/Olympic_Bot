@@ -1,6 +1,6 @@
 import pandas as pd
 
-from utils.db.get import get_subjects, get_olympiads
+from ...utils.db.get import get_subjects, get_olympiads
 
 
 def make_subjects_file():
@@ -8,6 +8,7 @@ def make_subjects_file():
     subjects = get_subjects()
     columns_rename = {'code': 'Код предмета', 'subject_name': 'Предмет', 'section': 'Раздел'}
     subjects.rename(columns=columns_rename, inplace=True)
+    subjects.drop(columns=['id'], inplace=True)
     subjects.to_excel(file_path, index=False)
     return file_path, subjects
 

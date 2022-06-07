@@ -35,25 +35,28 @@ async def show_questions(callback: types.CallbackQuery):
 async def question_answer(message: types.Message):
     if message.reply_to_message:
         message_to_reply = message.reply_to_message
-        question_no = message_to_reply.text.split('\n')[0].split(' ')[-1]
-        question = get_question(question_no)
+        question_id = message_to_reply.text.split('\n')[0].split(' ')[-1]
+        question = get_question(question_id)
         if question.empty:
             return
         if question['answer'] == '':
             answer = message.text
             admin_id = message.from_user.id
-            add_question_answer(question_no, answer, admin_id)
-            new_text = '{}\n\nОтвет: {}'.format(message_to_reply.text, answer)
-            await bot.edit_message_text(text=new_text, message_id=message_to_reply.message_id,
-                                        chat_id=config.ADMIN_GROUP_ID)
-            await bot.delete_message(message_id=message.message_id, chat_id=config.ADMIN_GROUP_ID)
-            user_id = question['from_user']
-            admin = get_admin(admin_id)
-            text = 'Ответ на ваш вопрос номер {} от {} {}:\n\n{}'.format(question_no, admin['last_name'],
-                                                                         admin['first_name'], answer)
-            await bot.send_message(chat_id=user_id, text=text)
-            change_files(['answers_file'])
-            change_google_docs(['answers_file'])
+            status = add_question_answer(question_id, answer, admin_id)
+            if status:
+                new_text = '{}\n\nОтвет: {}'.format(message_to_reply.text, answer)
+                await bot.edit_message_text(text=new_text, message_id=message_to_reply.message_id,
+                                            chat_id=config.ADMIN_GROUP_ID)
+                await bot.delete_message(message_id=message.message_id, chat_id=config.ADMIN_GROUP_ID)
+                user_id = question['from_user']
+                admin = get_admin(admin_id)
+                text = 'Ответ на ваш вопрос номер {} от {} {}:\n\n{}'.format(question_id, admin['last_name'],
+                                                                             admin['first_name'], answer)
+                await bot.send_message(chat_id=user_id, text=text)
+                change_files(['answers_file'])
+                change_google_docs(['answers_file'])
+            else:
+                await message.answer('Что-то пошло не так.')
         else:
             await message.answer('На этот вопрос уже ответили')
             await message.delete()

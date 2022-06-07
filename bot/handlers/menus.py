@@ -69,9 +69,9 @@ async def show_main_menu(message: types.Message, state=None):
         await state.finish()
         await message.answer('Действие отменено')
     match get_access(user_id=message.from_user.id):
-        case 2:
+        case 3:
             menu = main_menu
-        case 1:
+        case 2:
             menu = class_manager_menu
         case _:
             menu = user_menu
@@ -86,7 +86,9 @@ async def update_google_doc(callback: types.CallbackQuery, callback_data: dict):
     user_file = get_user_file(user_id, file_type)
     client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     update_file(client, user_file, user_id, admin['grades'], admin['literals'])
-    set_updated_google_doc(user_id, file_type)
+    status = set_updated_google_doc(user_id, file_type)
+    if status == 0:
+        await callback.message.answer('Что-то пошло не так.')
     markup = callback.message.reply_markup
     for button in markup.inline_keyboard:
         button_cd = button[0].callback_data

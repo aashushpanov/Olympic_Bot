@@ -28,8 +28,11 @@ async def start(callback: types.CallbackQuery):
 
 async def get_email(message: types.Message, state: FSMContext):
     email = message.text
-    add_email(message.from_user.id, email)
-    bind_email(message.from_user.id)
-    await message.answer('Ваша новая почта {}. Что бы ее поменять, зайдите в Меню>Личные данные>Изменить почту.'
-                         .format(email))
+    status = add_email(message.from_user.id, email)
+    if status:
+        bind_email(message.from_user.id)
+        await message.answer('Ваша новая почта {}. Что бы ее поменять, зайдите в Меню>Личные данные>Изменить почту.'
+                             .format(email))
+    else:
+        await message.answer('Что-то пошло не так.')
     await state.finish()

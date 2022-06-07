@@ -31,7 +31,7 @@ def update_olympiads_activity():
             olympiad = pd.DataFrame([olympiad])
             inactive_olympiads = pd.concat([inactive_olympiads, olympiad], ignore_index=True)
     if not inactive_olympiads.empty:
-        set_inactive(inactive_olympiads)
+        _ = set_inactive(inactive_olympiads)
 
 
 def update_olympiads_to_track():
@@ -42,7 +42,7 @@ def update_olympiads_to_track():
         new_olympiads = olympiads[(olympiads['subject_code'].isin(user['interest'])) &
                                   (olympiads['grade'] == int(user['grade'])) &
                                   (olympiads['active'] == 1) & (~olympiads['code'].isin(tracked))]
-        add_olympiads_to_track(new_olympiads, user['user_id'])
+        _ = add_olympiads_to_track(new_olympiads, user['user_id'])
 
 
 def update_missed_olympiads():
@@ -58,7 +58,7 @@ def update_missed_olympiads():
         olympiad = pd.DataFrame([name], columns=columns)
         missed_olympiads_to_update = pd.concat([missed_olympiads_to_update, olympiad])
     if not missed_olympiads_to_update.empty:
-        set_missed(missed_olympiads_to_update)
+        _, = set_missed(missed_olympiads_to_update)
 
 
 def create_notifications():
@@ -98,7 +98,7 @@ def create_notifications():
             notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)
             notifications = pd.concat([notifications, notification], axis=0)
     if not notifications.empty:
-        add_notifications(notifications)
+        _, = add_notifications(notifications)
 
 
 def create_question_notifications():
@@ -117,7 +117,7 @@ def create_question_notifications():
             notification = pd.DataFrame([[admin['admin_id'], olympiad_code, message, notify_type]], columns=columns)
             notifications = pd.concat([notifications, notification], axis=0)
         if not notifications.empty:
-            add_notifications(notifications)
+            _, = add_notifications(notifications)
 
 
 async def send_notifications(notifications):

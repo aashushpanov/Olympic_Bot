@@ -130,17 +130,23 @@ async def personal_data_agreement(callback: types.CallbackQuery, state: FSMConte
     await callback.message.delete()
     user = await state.get_data()
     try:
-        add_user(callback.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'),
-                 user.get('literal'), user.get('interest'), user.get('time'))
+        status = add_user(callback.from_user.id, user.get('f_name'), user.get('l_name'), user.get('grade'),
+                          user.get('literal'), user.get('interest'), user.get('time'))
     except KeyError:
         await callback.message.answer('Что-то пошло не так')
         return
-    olympiads_to_add = add_olympiads(user.get('interest'), callback.from_user.id, user.get('grade'))
-    if not olympiads_to_add.empty:
-        await callback.message.answer('Следующие олимпиады за ваш класс добавлены в отслеживаемые:\n{}'
-                                      .format('\n'.join(list(olympiads_to_add['name']))))
+    if status == 0:
+        await callback.message.answer('Что-то пошло не так')
+        return
+    olympiads_to_add, status = add_olympiads(user.get('interest'), callback.from_user.id, user.get('grade'))
+    if status:
+        if not olympiads_to_add.empty:
+            await callback.message.answer('Следующие олимпиады за ваш класс добавлены в отслеживаемые:\n{}'
+                                          .format('\n'.join(list(olympiads_to_add['name']))))
+        else:
+            await callback.message.answer('К сожалению, олимпиады добавить не удалось')
     else:
-        await callback.message.answer('К сожалению, олимпиады добавить не удалось')
+        await callback.message.answer('При добавлении олимпиад произошла ошибка.')
     change_files(['users_file'])
     change_google_docs(['users_file'], user.get('grade'), user.get('literal'))
     await callback.message.answer('Регистрация завершена, можете вызвать /menu.')
@@ -152,5 +158,5 @@ def add_olympiads(interests, user_id, grade):
     olympiads_to_add = pd.DataFrame(olympiads[(olympiads['subject_code'].isin(interests)) &
                                               (olympiads['grade'] == int(grade)) & (olympiads['active'])],
                                     columns=olympiads.columns)
-    add_olympiads_to_track(olympiads_to_add, user_id)
-    return olympiads_to_add
+    status = add_olympiads_to_track(olympiads_to_add, user_id)
+    return olympiads_to_add, status

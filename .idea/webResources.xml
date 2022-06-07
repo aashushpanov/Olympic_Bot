@@ -6,6 +6,7 @@
         <entryData>
           <resourceRoots>
             <path value="file://$PROJECT_DIR$/databases" />
+            <path value="file://$PROJECT_DIR$/env_vars" />
           </resourceRoots>
         </entryData>
       </entry>

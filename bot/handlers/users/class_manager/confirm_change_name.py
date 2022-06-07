@@ -12,7 +12,10 @@ async def confirm(callback: types.CallbackQuery, callback_data: dict):
     user_id = callback_data.get('u_i')
     first_name = callback_data.get('f_n')
     last_name = callback_data.get('l_n')
-    change_name(user_id, first_name, last_name)
-    await callback.message.answer('Данные изменены')
-    change_files(['users_file'])
-    change_google_docs(['users_file'])
+    status = change_name(user_id, first_name, last_name)
+    if status:
+        await callback.message.answer('Данные изменены')
+        change_files(['users_file'])
+        change_google_docs(['users_file'])
+    else:
+        await callback.message.answer('Что-то пошло не так.')

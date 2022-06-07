@@ -46,8 +46,11 @@ async def change_notify_time(callback: types.CallbackQuery, state: FSMContext, c
     await callback.message.delete()
     time = int(callback_data.get('data'))
     user_id = callback.from_user.id
-    add_notify_time(time, user_id)
-    await callback.message.answer('Установлено время уведомлений с {}:00 по {}:00'.format(str(time), str(time + 1)))
+    status = add_notify_time(time, user_id)
+    if status:
+        await callback.message.answer('Установлено время уведомлений с {}:00 по {}:00'.format(str(time), str(time + 1)))
+    else:
+        await callback.message.answer('Что-то пошло не так.')
     await state.finish()
 
 
@@ -68,8 +71,8 @@ async def get_first_name(message: types.Message, state: FSMContext):
             return
     user = get_user(message.from_user.id)
     class_manager = get_class_manager_by_grade(user['grade'], user['literal'])
-    await state.update_data(prev_first_name=user['first_name'])
-    await state.update_data(prev_last_name=user['last_name'])
+    await state.update_data(prev_first_name=user['f_name'])
+    await state.update_data(prev_last_name=user['l_name'])
     await state.update_data(first_name=message.text)
     await state.update_data(cm_id=class_manager['admin_id'])
     await message.answer('Введите фамилию.')

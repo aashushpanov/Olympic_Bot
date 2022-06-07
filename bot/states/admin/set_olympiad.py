@@ -132,11 +132,14 @@ async def load_ol_file(message: types.Message, state: FSMContext):
                                                 add_not_existing_subjects_call.new(data='no')]))
         else:
             if not olympiads_new.empty:
-                add_olympiads(olympiads=olympiads_new)
-                await message.answer('Следующие олимпиады успешно добавлены:\n{}'
-                                     .format('\n'.join(olympiads_to_str(olympiads_new))))
-                change_files(['olympiads_file', 'dates_template'])
-                change_google_docs(['olympiads_file'])
+                status = add_olympiads(olympiads=olympiads_new)
+                if status:
+                    await message.answer('Следующие олимпиады успешно добавлены:\n{}'
+                                         .format('\n'.join(olympiads_to_str(olympiads_new))))
+                    change_files(['olympiads_file', 'dates_template'])
+                    change_google_docs(['olympiads_file'])
+                else:
+                    await message.answer('Что-то пошло не так.')
             else:
                 await message.answer('Ничего не добавлено')
             os.remove(file_path)
@@ -161,12 +164,15 @@ async def load_subj_file(message: types.Message, state: FSMContext):
             await message.answer('Предметы с этими кодами уже существуют:\n{}\n\nОбновить данные по ним?'
                                  .format(', '.join(list(subjects_exists['name']))), reply_markup=reply_markup)
         if not subjects_new.empty:
-            add_subjects(subjects=subjects_new)
-            await message.answer('Следующие предметы успешно добавлены:\n{}'
-                                 .format(', '.join(list(subjects_new['name']))))
-            reset_interest_menu()
-            change_files(['subjects_file', 'olympiads_template'])
-            change_google_docs(['subjects_file'])
+            status = add_subjects(subjects=subjects_new)
+            if status:
+                await message.answer('Следующие предметы успешно добавлены:\n{}'
+                                     .format(', '.join(list(subjects_new['name']))))
+                reset_interest_menu()
+                change_files(['subjects_file', 'olympiads_template'])
+                change_google_docs(['subjects_file'])
+            else:
+                await message.answer('Что-то пошло не так.')
         else:
             await message.answer('Ничего не добавлено')
         os.remove(file_path)
@@ -201,11 +207,14 @@ async def load_dates_file(message: types.Message, state: FSMContext):
                                                            add_not_existing_olympiads_call.new(data='no')]))
         else:
             if not dates_new.empty:
-                add_dates(dates_new)
-                await message.answer('Даты по следующим предметы успешно добавлены:\n{}'
-                                     .format('\n'.join(olympiads_to_str(dates_new))))
-                change_files(['olympiads_file'])
-                change_google_docs(['olympiads_file'])
+                status = add_dates(dates_new)
+                if status:
+                    await message.answer('Даты по следующим предметы успешно добавлены:\n{}'
+                                         .format('\n'.join(olympiads_to_str(dates_new))))
+                    change_files(['olympiads_file'])
+                    change_google_docs(['olympiads_file'])
+                else:
+                    await message.answer('Что-то пошло не так.')
             else:
                 await message.answer('Ничего не добавлено')
             os.remove(file_path)
@@ -240,14 +249,17 @@ async def confirm_load_files(callback: types.CallbackQuery, state: FSMContext, c
     if callback_data.get('data') == 'no':
         if callback_data.get('@') == 'add_not_existing_olympiads':
             dates_new = data.get('dates_new')
-            add_dates(dates_new)
-            if not dates_new.empty:
-                await callback.message.answer('Даты по следующим предметы успешно добавлены:\n{}'
-                                              .format('\n'.join(olympiads_to_str(dates_new))))
-                change_files(['olympiads_file'])
-                change_google_docs(['olympiads_file'])
+            status = add_dates(dates_new)
+            if status:
+                if not dates_new.empty:
+                    await callback.message.answer('Даты по следующим предметы успешно добавлены:\n{}'
+                                                  .format('\n'.join(olympiads_to_str(dates_new))))
+                    change_files(['olympiads_file'])
+                    change_google_docs(['olympiads_file'])
+                else:
+                    await callback.message.answer('Ничего не добавлено')
             else:
-                await callback.message.answer('Ничего не добавлено')
+                await callback.message.answer('Что-то пошло не так.')
             await state.finish()
         elif callback_data.get('@') == 'add_not_existing_subjects':
             olympiads_new = data.get('olympiads_new')
@@ -275,25 +287,29 @@ async def update_data(callback: types.CallbackQuery, state: FSMContext):
     else:
         data_to_update = pd.DataFrame()
         KeyError('incorrect callback')
+    status = 0
     if not data_to_update.empty:
         if callback.data == 'update_dates':
-            add_dates(data_to_update)
+            status = add_dates(data_to_update)
             text_data = olympiads_to_str(data_to_update)
         elif callback.data == 'update_olympiads':
             text_data = olympiads_to_str(data_to_update)
-            update_olympiads(data_to_update)
+            status = update_olympiads(data_to_update)
         elif callback.data == 'update_subjects':
             text_data = data_to_update['name'].to_list()
-            update_subjects(data_to_update)
+            status = update_subjects(data_to_update)
             reset_interest_menu()
             await state.finish()
         else:
             text_data = []
             KeyError('incorrect callback')
-        await callback.message.answer('Следующие данные успешно обновлены:\n{}'
-                                      .format('\n'.join(text_data)))
-        change_files(['olympiads_file', 'dates_template', 'subjects_file'])
-        change_google_docs(['olympiads_file', 'dates_template', 'subjects_file'])
+        if status:
+            await callback.message.answer('Следующие данные успешно обновлены:\n{}'
+                                          .format('\n'.join(text_data)))
+            change_files(['olympiads_file', 'dates_template', 'subjects_file'])
+            change_google_docs(['olympiads_file', 'dates_template', 'subjects_file'])
+        else:
+            await callback.message.answer('Что-то пошло не так.')
     else:
         await callback.message.answer('Ничего не добавлено')
 
@@ -325,16 +341,26 @@ def parsing_subjects(subjects):
 
 
 def parsing_new_olympiads(olympiads_to_add: pd.DataFrame):
+    """
+    Берет датафрейм с олимпиадами для добавления, проверяет правильность файла,
+    и возвращает датафрейм с новыми олимпиадами, датафрейм с уже существующими олимпиадами, список предметов, которых нет в
+    базе,
+    и статус
+
+    :param olympiads_to_add: DataFrame со следующими столбцами:
+    :type olympiads_to_add: pd.DataFrame
+    """
     olympiads_to_add.dropna(axis=0, how='all', inplace=True)
-    columns = ['code', 'name', 'subject_code', 'grade', 'urls']
-    expected_columns = ['Префикс', 'Название', 'Предмет', 'мл. класс', 'ст. класс',
-                        'ссылка на регистрацию', 'ссылка на сайт олимпиады']
+    columns = ['name', 'code', 'subject_id', 'grade', 'urls']
+    expected_columns = ['Название', 'Тип', 'Предмет', 'мл. класс', 'ст. класс',
+                        'ссылка на регистрацию', 'ссылка на сайт олимпиады', 'ссылка на прохождение олимпиады']
     if olympiads_to_add.columns.to_list() != expected_columns:
         return 0, 0, 0, 'wrong_file'
-    if olympiads_to_add.loc[:, ['Префикс', 'Название', 'Предмет', 'мл. класс', 'ст. класс']].isnull().values.any():
+    if olympiads_to_add.loc[:, ['Название', 'Тип', 'Предмет', 'мл. класс', 'ст. класс']].isnull().values.any():
         return 0, 0, 0, 'wrong_file'
-    columns_types = {'Префикс': 'object', 'Название': 'object', 'Предмет': 'object', 'мл. класс': 'int32',
-                     'ст. класс': 'int32', 'ссылка на регистрацию': 'object', 'ссылка на сайт олимпиады': 'object'}
+    columns_types = {'Название': 'object', 'Предмет': 'object', 'мл. класс': 'int32', 'ст. класс': 'int32',
+                     'ссылка на регистрацию': 'object', 'ссылка на сайт олимпиады': 'object',
+                     'ссылка на прохождение олимпиады': 'object'}
     try:
         olympiads_to_add = olympiads_to_add.astype(columns_types)
     except ValueError:
@@ -348,14 +374,14 @@ def parsing_new_olympiads(olympiads_to_add: pd.DataFrame):
         l_grade = int(row['мл. класс'])
         h_grade = int(row['ст. класс'])
         subject_name = row['Предмет']
-        if subject_name in subjects['subject_name'].values:
-            subject_code = subjects[subjects['subject_name'] == subject_name]['code'].item()
+        if subject_name in subjects['name'].values:
+            subject_id = subjects[subjects['name'] == subject_name]['id'].item()
             urls = {'reg_url': row['ссылка на регистрацию'] if isinstance(row['ссылка на регистрацию'], str) else '',
-                    'site_url': row['ссылка на сайт олимпиады'] if isinstance(row['ссылка на сайт олимпиады'],
-                                                                              str) else ''}
+                    'site_url': row['ссылка на сайт олимпиады'] if isinstance(row['ссылка на сайт олимпиады'], str) else '',
+                    'ol_url': row['ссылка на прохождение олимпиады'] if isinstance(row['ссылка на сайт олимпиады'], str) else ''}
             for grade in range(l_grade, h_grade + 1):
-                code = row['Префикс'] + '_' + subject_code + '_' + str(grade)
-                olympiad = pd.DataFrame([[code, row['Название'], subject_code, grade, urls]], columns=columns)
+                code = row['Тип'] + '_' + subject_id + '_' + str(grade)
+                olympiad = pd.DataFrame([[row['Название'], code, subject_id, grade, urls]], columns=columns)
                 if code in olympiad_codes.values:
                     olympiads_exists = pd.concat([olympiads_exists, olympiad], axis=0)
                 else:
@@ -382,7 +408,7 @@ def parsing_dates(dates_load: pd.DataFrame):
         dates_load = dates_load.astype(columns_types)
     except ValueError:
         return 0, 0, 0, 0, 'wrong_file'
-    columns = ['code', 'name', 'grade', 'start_date', 'finish_date', 'stage', 'active', 'key', 'pre_registration']
+    columns = ['id', 'name', 'grade', 'start_date', 'end_date', 'stage', 'is_active', 'key', 'pre_registration']
     olympiads_not_exist = pd.DataFrame(columns=['name', 'grade'])
     dates = pd.DataFrame(columns=columns)
     dates_new = pd.DataFrame(columns=columns)
@@ -392,24 +418,24 @@ def parsing_dates(dates_load: pd.DataFrame):
         l_grade = row['мл. класс']
         h_grade = row['ст. класс']
         for grade in range(l_grade, h_grade + 1):
-            code = olympiads[(olympiads['name'] == row['Название']) & (olympiads['grade'] == grade)]['code']
-            if code.empty:
+            olympiad_id = olympiads[(olympiads['name'] == row['Название']) & (olympiads['grade'] == grade)]['id']
+            if olympiad_id.empty:
                 olympiads_not_exist = pd.concat([olympiads_not_exist, pd.DataFrame([[row['Название'], grade]],
                                                                                    columns=['name', 'grade'])])
                 continue
             else:
-                code = code.item()
+                olympiad_id = olympiad_id.item()
             start_date = str_to_date(row['дата начала'])
             finish_date = str_to_date(row['дата окончания'])
             active = 1 if dt.date.today() <= finish_date else 0
             key = 1 if row['ключ'].lower() == 'да' else 0
             pre_registration = 1 if row['предварительная регистрация'].lower() == 'да' else 0
-            date = pd.DataFrame([[code, row['Название'], grade, start_date, finish_date, row['этап'],
+            date = pd.DataFrame([[olympiad_id, row['Название'], grade, start_date, finish_date, row['этап'],
                                   active, key, pre_registration]], columns=columns)
             dates = pd.concat([dates, date], axis=0)
-    for code, group in dates.groupby('code'):
+    for olympiad_id, group in dates.groupby('id'):
         if group.shape[0] == 1:
-            if olympiads[olympiads['code'] == code]['active'].item():
+            if olympiads[olympiads['id'] == olympiad_id]['is_active'].item():
                 dates_exists = pd.concat([dates_exists, group])
             else:
                 dates_new = pd.concat([dates_new, group])

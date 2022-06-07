@@ -2,11 +2,11 @@ import datetime as dt
 
 from aiogram import types
 
-from utils.menu.MenuNode import MenuNode
-from keyboards.keyboards import tree_menu_keyboard
-from utils.menu.admin_menu import set_admin_menu, set_group_admin_menu
-from utils.menu.class_manager_menu import set_class_manager_menu
-from utils.menu.user_menu import set_user_menu, set_interest_menu
+from ...utils.menu.MenuNode import MenuNode
+from ...keyboards.keyboards import tree_menu_keyboard
+from ...utils.menu.admin_menu import set_admin_menu, set_group_admin_menu
+from ...utils.menu.class_manager_menu import set_class_manager_menu
+from ...utils.menu.user_menu import set_user_menu, set_interest_menu
 
 
 main_menu = MenuNode(text='Меню')

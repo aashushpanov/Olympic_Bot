@@ -54,7 +54,11 @@ async def delete_subjects(message: types.Message, state: FSMContext):
         if status == 'wrong_file':
             await message.answer('Неверный формат файла. Внимательно изучите шаблон и загрузите еще раз')
             return
-        deleted_subjects = remove_subjects(subjects_codes)['name'].values
+        deleted_subjects, status = remove_subjects(subjects_codes)['name'].values
+        if status == 0:
+            await message.answer('Что-то пошло не так.')
+            await state.finish()
+            return
         if deleted_subjects:
             await message.answer('Удалены следующие предметы:\n{}'.format('\n'.join(deleted_subjects)))
             change_files(['olympiads_file', 'dates_template', 'subjects_file'])
@@ -68,11 +72,15 @@ async def delete_olympiads(message: types.Message, state: FSMContext):
     if document := message.document:
         file_path = 'data/files/from_admin/olympiads_to_delete.csv'
         olympiads_to_delete = await read_file(file_path, document)
-        olympiads_codes, status = parsing_olympiads_to_delete(olympiads_to_delete)
+        olympiads_ids, status = parsing_olympiads_to_delete(olympiads_to_delete)
         if status == 'wrong_file':
             await message.answer('Неверный формат файла. Внимательно изучите шаблон и загрузите еще раз')
             return
-        deleted_olympiads = remove_olympiads(olympiads_codes)
+        deleted_olympiads, status = remove_olympiads(olympiads_ids)
+        if status == 0:
+            await message.answer('Что-то пошло не так.')
+            await state.finish()
+            return
         subjects = get_subjects()
         deleted_olympiads = deleted_olympiads.join(subjects.set_index('code'), on='subject_code')
         olympiads_names = []
@@ -108,11 +116,11 @@ def parsing_olympiads_to_delete(olympiads_to_delete):
     olympiads_codes = []
     olympiads = get_olympiads()
     subjects = get_subjects()
-    olympiads = olympiads.join(subjects.set_index('code'), on='subject_code')
+    olympiads = olympiads.join(subjects.set_index('id'), on='subject_id')
     for _, row in olympiads_to_delete.iterrows():
-        codes = olympiads[(olympiads['name'] == row['Название']) &
-                          (olympiads['subject_name'] == row['Предмет'])]['code'].values
-        for code in codes:
-            olympiads_codes.append(code)
+        ids = olympiads[(olympiads['name'] == row['Название']) &
+                          (olympiads['subject_name'] == row['Предмет'])]['id'].values
+        for olympiad_id in ids:
+            olympiads_codes.append(olympiad_id)
     status = 'ok'
-    return olympiads_codes, status
+    return olympiads_ids, status

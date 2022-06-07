@@ -1,19 +1,12 @@
 import pandas as pd
 
-from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers, \
+from ...utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers, \
     get_class_managers, get_admins
 
 
-def make_users_file(grades: list = None, literals: list = None):
+def make_users_file(user_id):
     file_path = 'data/files/to_send/users.xlsx'
-    if grades and literals:
-        if len(grades) != len(literals):
-            raise IndexError('Не совпадает количество классов и букв.')
-        else:
-            grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
-    else:
-        grade_list = None
-    users = get_users(grade_list)
+    users = get_users(user_id)
     columns = ['Фамилия', 'Имя', 'Класс']
     users['grade_label'] = users['grade'].astype(str) + users['literal']
     users_file = users[['last_name', 'first_name', 'grade_label', 'is_admin']]
@@ -30,10 +23,8 @@ def make_class_managers_file():
     columns = ['Фамилия', 'Имя', 'Классы']
     class_managers_file = pd.DataFrame(columns=columns)
     for _, row in class_managers.iterrows():
-        grades = row['grades']
-        literals = row['literals']
-        grade_list = [str(grades[i]) + literals[i] for i in range(len(grades))]
-        class_manager = pd.DataFrame([[row['last_name'], row['first_name'], ', '.join(grade_list)]], columns=columns)
+        grade_list = row['grades'].replace(' ', '')
+        class_manager = pd.DataFrame([[row['l_name'], row['f_name'], ', '.join(grade_list)]], columns=columns)
         class_managers_file = pd.concat([class_managers_file, class_manager], axis=0)
     class_managers_file.to_excel(file_path, index=False)
     return file_path, class_managers_file
@@ -43,8 +34,8 @@ def make_olympiads_with_dates_file():
     file_path = 'data/files/to_send/all_olympiads.xlsx'
     olympiads = get_olympiads()
     subjects = get_subjects()
-    olympiads = olympiads.join(subjects.set_index('code'), on='subject_code')
-    olympiads_groups = olympiads.groupby(['name', 'start_date', 'finish_date'])
+    olympiads = olympiads.join(subjects.set_index('id'), on='subject_id')
+    olympiads_groups = olympiads.groupby(['name', 'start_date', 'end_date'])
     columns = ['Название', 'Предмет', 'Этап', 'Дата начала', 'Дата окончания', 'мл. класс', 'ст. класс',
                'Активна', 'Ключ', 'Предварительная регистрация', 'Ссылка на сайт олимпиады', 'Ссылка на регистрацию']
     olympiads_file = pd.DataFrame(columns=columns)
@@ -55,7 +46,7 @@ def make_olympiads_with_dates_file():
         site_url = urls.get('site_url')
         reg_url = urls.get('reg_url')
         subject_name = group['subject_name'].iloc[0]
-        active = 'Да' if group['active'].iloc[0] else 'Нет'
+        active = 'Да' if group['is_active'].iloc[0] else 'Нет'
         key_needed = 'Да' if group['key_needed'].iloc[0] else 'Нет'
         pre_registration = 'Да' if group['pre_registration'].iloc[0] else 'Нет'
         stage = group['stage'].iloc[0]
@@ -69,21 +60,14 @@ def make_olympiads_with_dates_file():
     return file_path, olympiads_file
 
 
-def make_olympiads_status_file(grades: list = None, literals: list = None):
+def make_olympiads_status_file(user_id):
     file_path = 'data/files/to_send/status_file.xlsx'
-    if grades and literals:
-        if len(grades) != len(literals):
-            raise IndexError('Не совпадает количество классов и букв.')
-        else:
-            grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
-    else:
-        grade_list = None
     users = get_users()
     olympiads = get_olympiads()
     subjects = get_subjects()
-    olympiads_status = get_all_olympiads_status(grade_list)
-    olympiads_status = olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='real')
-    olympiads_status = olympiads_status.join(subjects.set_index('code'), on='subject_code')
+    olympiads_status = get_all_olympiads_status(user_id)
+    olympiads_status = olympiads_status.join(olympiads.set_index('id'), on='olympiad_id', rsuffix='real')
+    olympiads_status = olympiads_status.join(subjects.set_index('id'), on='subject_id')
     olympiads_status = olympiads_status.join(users.set_index('user_id'), on='user_id', rsuffix='user')
     columns = ['Имя', 'Фамилия', 'Класс', 'Олимпиада', 'Предмет', 'Ключ', 'Статус']
     status_file = pd.DataFrame(columns=columns)
@@ -94,15 +78,15 @@ def make_olympiads_status_file(grades: list = None, literals: list = None):
         grade = str(olympiad_status['grade']) + literal
         olympiad_name = olympiad_status['name']
         subject = olympiad_status['subject_name']
-        key = olympiad_status['taken_key']
-        match olympiad_status['status']:
-            case 'idle':
+        key = olympiad_status['key']
+        match olympiad_status['status_code']:
+            case 0:
                 status = 'Добавлена'
-            case 'reg':
+            case 1:
                 status = 'Зарегистрирован'
-            case 'done':
+            case 2:
                 status = 'Пройдена'
-            case 'missed':
+            case -1:
                 status = 'Пропущена'
             case _:
                 status = 'Не определен'

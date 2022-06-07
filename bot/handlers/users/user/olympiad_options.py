@@ -8,7 +8,7 @@ from filters import TimeAccess
 from filters.filters import delete_message
 from keyboards.keyboards import yes_no_keyboard
 from utils.db.add import set_registration, set_execution, change_google_docs, change_files
-from utils.db.get import get_olympiad, get_key_from_db, get_olympiad_status, get_user, get_olympiads
+from utils.db.get import get_olympiad, get_key_from_db, get_olympiad_status, get_user, get_olympiads, get_key_by_id
 from utils.menu.generator_functions import get_dates_call, get_key_call, confirm_execution_question_call, \
     confirm_registration_question_call
 from utils.menu.user_menu import get_nearest_olympiads_call
@@ -41,13 +41,15 @@ async def get_dates(callback: types.CallbackQuery, callback_data: dict):
 
 async def get_key(callback: types.CallbackQuery, callback_data: dict):
     user_id = callback.from_user.id
-    olympiad_code = callback_data.get('data')
-    stage = get_olympiad(olympiad_code)['stage']
-    key = get_olympiad_status(user_id, olympiad_code, stage)['taken_key']
-    if key == '':
-        key = get_key_from_db(user_id, olympiad_code, stage)
+    olympiad_id = callback_data.get('data')
+    stage = get_olympiad(olympiad_id)['stage']
+    key_id = get_olympiad_status(user_id, olympiad_id, stage)['key_id']
+    if key_id:
+        key = get_key_from_db(user_id, olympiad_id, stage)
         change_files(['status_file'])
         change_google_docs(['status_file'])
+    else:
+        key = get_key_by_id(key_id)
     if key:
         await callback.answer()
         await callback.message.answer(key)
@@ -58,13 +60,13 @@ async def get_key(callback: types.CallbackQuery, callback_data: dict):
 
 
 async def confirm_registration_question(callback: types.CallbackQuery, callback_data: dict):
-    olympiad_code = callback_data.get('data')
-    stage = get_olympiad(olympiad_code)['stage']
-    status = get_olympiad_status(callback.from_user.id, olympiad_code, stage)['status']
+    olympiad_id = callback_data.get('data')
+    stage = get_olympiad(olympiad_id)['stage']
+    status = get_olympiad_status(callback.from_user.id, olympiad_id, stage)['status']
     if status == 'idle':
         await callback.answer()
         await callback.message.answer('Удалось зарегистрироваться?',
-                                      reply_markup=yes_no_keyboard(confirm_registration_call.new(data=olympiad_code,
+                                      reply_markup=yes_no_keyboard(confirm_registration_call.new(data=olympiad_id,
                                                                                                  stage=stage)))
     else:
         await callback.answer('Вы уже заявили о регистрации на эту олимпиаду', show_alert=True)
@@ -76,20 +78,23 @@ async def confirm_registration(callback: types.CallbackQuery, callback_data: dic
     user = get_user(user_id)
     olympiad_code = callback_data.get('data')
     stage = callback_data.get('stage')
-    set_registration(olympiad_code, user_id, stage)
-    await callback.answer('Регистрация подтверждена', show_alert=True)
-    change_files(['status_file'])
-    change_google_docs(['status_file'], user['grade'], user['literal'])
+    status = set_registration(olympiad_code, user_id, stage)
+    if status:
+        await callback.answer('Регистрация подтверждена', show_alert=True)
+        change_files(['status_file'])
+        change_google_docs(['status_file'], user['grade'], user['literal'])
+    else:
+        await callback.message.answer('Что-то пошло не так.')
 
 
 async def confirm_execution_question(callback: types.CallbackQuery, callback_data: dict):
-    olympiad_code = callback_data.get('data')
-    stage = get_olympiad(olympiad_code)['stage']
-    status = get_olympiad_status(callback.from_user.id, olympiad_code, stage)['status']
+    olympiad_id = callback_data.get('data')
+    stage = get_olympiad(olympiad_id)['stage']
+    status = get_olympiad_status(callback.from_user.id, olympiad_id, stage)['status']
     if status == 'reg':
         await callback.answer()
         await callback.message.answer('Удалось пройти олимпиаду?',
-                                      reply_markup=yes_no_keyboard(confirm_execution_call.new(data=olympiad_code,
+                                      reply_markup=yes_no_keyboard(confirm_execution_call.new(data=olympiad_id,
                                                                                               stage=stage)))
     elif status == 'done':
         try:
@@ -105,10 +110,13 @@ async def confirm_execution(callback: types.CallbackQuery, callback_data: dict):
     user = get_user(user_id)
     olympiad_code = callback_data.get('data')
     stage = int(callback_data.get('stage').split('.')[0])
-    set_execution(olympiad_code, user_id, stage)
-    await callback.answer('Выполнение подтверждено', show_alert=True)
-    change_files(['status_file'])
-    change_google_docs(['status_file'], user['grade'], user['literal'])
+    status = set_execution(olympiad_code, user_id, stage)
+    if status:
+        await callback.answer('Выполнение подтверждено', show_alert=True)
+        change_files(['status_file'])
+        change_google_docs(['status_file'], user['grade'], user['literal'])
+    else:
+        await callback.message.answer('Что-то пошло не так.')
 
 
 async def get_nearest_olympiads(callback: types.CallbackQuery):

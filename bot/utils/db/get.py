@@ -46,7 +46,7 @@ def get_tracked_olympiads(user_id):
     """
     with database() as (cur, conn, status):
         sql = "SELECT olympiad_id, status_code, result_code, stage, key_id, action_timestamp" \
-              " FROM olympiads_status WHERE user_id = %s"
+              " FROM olympiads_status WHERE user_id = %s AND is_active = 1"
         cur.execute(sql, [user_id])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['olympiad_id', 'status_code', 'result_code',
@@ -90,7 +90,21 @@ def get_olympiad_status(user_id, olympiad_id, stage):
     return data
 
 
-def get_all_olympiads_status(user_id):
+def get_key_by_id(key_id):
+    """
+    Он получает ключ из базы данных
+
+    :param key_id: ID ключа, который вы хотите получить
+    :return: Ключ возвращается.
+    """
+    with database() as (cur, conn, status):
+        sql = "SELECT key FROM keys WHERE id = %s"
+        cur.execute(sql, [key_id])
+        key = cur.fetchone()[0]
+    return key
+
+
+def get_all_olympiads_status(user_id=None):
     """
     Он возвращает кадр данных всех статусов олимпиад всех пользователей в том же классе, что и user_id, переданный в
     функцию.
@@ -98,18 +112,16 @@ def get_all_olympiads_status(user_id):
     :param user_id: Идентификатор пользователя, который запрашивает данные
     :return: Датафрейм со всеми статусами олимпиад
     """
-    columns = ['olympiad_id', 'user_id', 'stage', 'key_id', 'result_code', 'status_code', 'action_timestamp']
+    columns = ['olympiad_id', 'user_id', 'stage', 'key', 'result_code', 'status_code', 'action_timestamp']
     with database() as (cur, conn, status):
-        sql = "SELECT is_admin FROM users WHERE id = %s"
-        cur.execute(sql, [user_id])
-        access = cur.fetchone()[0]
-        if access == 3:
-            sql = "SELECT olympiad_id, user_id, stage, key_id, result_code, status_code, action_timestamp" \
-                  " FROM olympiads_status"
+        if user_id is None:
+            sql = "SELECT olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
+                  " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id"
             cur.execute(sql)
         else:
-            sql = "SELECT olympiad_id, user_id, stage, key_id, result_code, status_code, action_timestamp" \
-                  " FROM olympiads_status WHERE user_id = ANY(SELECT user_id FROM user_refer_grade" \
+            sql = "SELECT olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
+                  " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id" \
+                  " WHERE user_id = ANY(SELECT user_id FROM user_refer_grade" \
                   " WHERE grade_id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s))" \
                   " AND user_id = ANY(SELECT user_id FROM users WHERE is_admin = 0) "
             cur.execute(sql, [user_id])
@@ -139,11 +151,11 @@ def get_user(user_id):
         sql = "SELECT subject_id FROM interests WHERE user_id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchall()
-        data['interests'] = res[0]
+        data['interest'] = res[0]
     return data
 
 
-def get_users(user_id):
+def get_users(user_id=None):
     """
     Он возвращает кадр данных всех пользователей в базе данных,
     кроме админов
@@ -151,23 +163,25 @@ def get_users(user_id):
     :param user_id: Идентификатор пользователя, который запрашивает данные
     :return: Фрейм данных с информацией о пользователях
     """
-    columns = ['f_name', 'l_name', 'reg_date', 'grade', 'is_active', 'last_active_date', 'grade', 'literal']
+    columns = ['user_id', 'f_name', 'l_name', 'reg_date', 'grade', 'is_active', 'last_active_date',
+               'grade', 'literal', 'interest']
     with database() as (cur, conn, status):
-        sql = "SELECT is_admin FROM users WHERE id = %s"
-        cur.execute(sql, [user_id])
-        access = cur.fetchone()[0]
-        if access == 3:
-            sql = "SELECT f_name, l_name, reg_date, is_active, last_active_date, grade_num, grade_literal" \
-                  " FROM users LEFT JOIN user_refer_grade on user_id LEFT JOIN grades on grade_id WHERE is_admin = 0"
+        if user_id is None:
+            sql = "SELECT users.id, f_name, l_name, reg_date, is_active, last_active_date, grade_num, grade_literal," \
+                  " array_agg(interests.subject_id) as interest" \
+                  " FROM users LEFT JOIN user_refer_grade on user_id LEFT JOIN grades on grade_id" \
+                  " RIGHT JOIN interests on users.id = interests.user_id WHERE is_admin = 0 group by users.id"
             cur.execute(sql)
             res = cur.fetchall()
         else:
-            sql = "SELECT f_name, l_name, reg_date, is_active, last_active_date, grade_num, grade_literal" \
+            sql = "SELECT users.id f_name, l_name, reg_date, is_active, last_active_date, grade_num, grade_literal," \
+                  " array_agg(interests.subject_id) as interest" \
                   " FROM users LEFT JOIN user_refer_grade on users.id = user_refer_grade.user_id" \
                   " LEFT JOIN grades on grades.id = user_refer_grade.grade_id" \
+                  " RIGHT JOIN interests on users.id = interests.user_id" \
                   " WHERE users.id = ANY(SELECT user_id FROM user_refer_grade" \
                   " WHERE grade_id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s))" \
-                  " AND users.id = ANY(SELECT id FROM users WHERE is_admin = 0) "
+                  " AND users.id = ANY(SELECT id FROM users WHERE is_admin = 0) group by users.id"
             cur.execute(sql, [user_id])
             res = cur.fetchall()
         data = pd.DataFrame(res, columns=columns)
@@ -274,11 +288,11 @@ def get_olympiads():
     :return: Датафрейм со всеми олимпиадами в базе данных.
     """
     with database() as (cur, conn, status):
-        sql = "SELECT id, name, subject_id, stage, start_date, end_date, is_active, grade, key_needed," \
+        sql = "SELECT id, name, code, subject_id, stage, start_date, end_date, is_active, grade, key_needed," \
               " pre_registration, urls, keys_count FROM olympiads"
         cur.execute(sql)
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['id', 'name', 'subject_id', 'stage', 'start_date', 'end_date',
+        data = pd.DataFrame(res, columns=['id', 'name', 'code', 'subject_id', 'stage', 'start_date', 'end_date',
                                           'is_active', 'grade', 'key_needed', 'pre_registration', 'urls', 'keys_count'])
         data['stage'] = data['stage'].fillna(-1)
         data[['key_needed', 'pre_registration']] = data[['key_needed', 'pre_registration']].fillna(0)

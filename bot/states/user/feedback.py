@@ -32,16 +32,19 @@ async def receive_question(message: types.Message, state: FSMContext):
     user = get_user(message.from_user.id)
     grade = user['grade']
     literal = user['literal']
-    question_from = '{} {} из {} спрашивает:\n\n'.format(user['last_name'], user['first_name'],
+    question_from = '{} {} из {} спрашивает:\n\n'.format(user['l_name'], user['f_name'],
                                                          grade + literal)
     index = ['user_id', 'message']
     question = pd.Series([message.from_user.id, question_from + question_text], index=index)
-    question_no = add_question(question)
+    question_no, status = add_question(question)
+    if status:
+        await message.answer('Вопрос зарегистрирован по номером {}, подождите пока администратор на него ответит.'.
+                             format(question_no))
+        text = 'Задан вопрос: {}\n\n{}'.format(question_no, question['message'])
+        await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text)
+        change_files(['answers_file'])
+        change_google_docs(['answers_file'])
+    else:
+        await message.answer('Что-то пошло не так.')
     await state.finish()
-    await message.answer('Вопрос зарегистрирован по номером {}, подождите пока администратор на него ответит.'.
-                         format(question_no))
-    text = 'Задан вопрос: {}\n\n{}'.format(question_no, question['message'])
-    await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text)
-    change_files(['answers_file'])
-    change_google_docs(['answers_file'])
 

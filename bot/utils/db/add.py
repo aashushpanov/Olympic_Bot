@@ -72,6 +72,8 @@ def add_interests(user_id, interests):
     :return: The status of the database connection.
     """
     with database() as (cur, conn, status):
+        sql = "DELETE FROM interests WHERE user_id = %s"
+        cur.execute(sql, [user_id])
         for interest in interests:
             sql = "INSERT INTO interests (user_id, subject_id) VALUES (%s, %s)"
             cur.execute(sql, [user_id, interest])
@@ -235,9 +237,9 @@ def add_olympiads(olympiads: DataFrame):
     """
     with database() as (cur, conn, status):
         for _, olympiad in olympiads.iterrows():
-            sql = "INSERT INTO olympiads (name, subject_id, grade, is_active, urls, key_needed, pre_registration)" \
+            sql = "INSERT INTO olympiads (name, code, subject_id, grade, is_active, urls, key_needed, pre_registration)" \
                   " VALUES (%s, %s, %s, 0, %s, 0, 0)"
-            cur.execute(sql, [olympiad['name'], olympiad['subject_id'], olympiad['grade'],
+            cur.execute(sql, [olympiad['name'], olympiad['code'], olympiad['subject_id'], olympiad['grade'],
                               Json(olympiad['urls'])])
         conn.commit()
     return status.status
@@ -337,7 +339,7 @@ def add_dates(dates: DataFrame):
         for _, date in dates.iterrows():
             sql = "UPDATE olympiads SET stage = %s, start_date = %s, end_date = %s, is_active = %s, key_needed = %s," \
                   " pre_registration = %s WHERE id = %s"
-            cur.execute(sql, [date['stage'], date['start_date'], date['finish_date'], date['is_active'],
+            cur.execute(sql, [date['stage'], date['start_date'], date['end_date'], date['is_active'],
                               date['key'], date['pre_registration'], date['id']])
         conn.commit()
     return status.status
@@ -356,10 +358,17 @@ def add_olympiads_to_track(olympiads: DataFrame, user_id):
     with database() as (cur, conn, status):
         for _, olympiad in olympiads.iterrows():
             timestamp = dt.datetime.timestamp(dt.datetime.now())
-            sql = "INSERT INTO olympiads_status (user_id, olympiad_id, status_code, stage, action_timestamp)" \
-                  "VALUES (%s, %s, %s, %s, %s)"
-            status = 0 if current_olympiads[current_olympiads['id'] == olympiad['id']]['pre_registration'].item() else 1
-            cur.execute(sql, [user_id, olympiad['id'], status, olympiad['stage'], timestamp])
+            sql = "SELECT id FROM  olympiads_status WHERE id = %s AND is_active = 0"
+            cur.execute(sql, [olympiad['olympiad_id']])
+            if cur.fetchone():
+                sql = "UPDATE olympiads_status SET is_active = 1 WHERE id = %s"
+                cur.execute(sql, [olympiad['olympiad_id']])
+            else:
+                sql = "INSERT INTO olympiads_status (user_id, olympiad_id, status_code, stage, action_timestamp)" \
+                      "VALUES (%s, %s, %s, %s, %s)"
+                status = 0 if current_olympiads[current_olympiads['id'] == olympiad['id']]['pre_registration'].item()\
+                    else 1
+                cur.execute(sql, [user_id, olympiad['id'], status, olympiad['stage'], timestamp])
         conn.commit()
     return status.status
 
@@ -529,24 +538,24 @@ def add_google_doc_row(user_id, file_type):
     :return: The status of the database connection.
     """
     with database() as (cur, conn, status):
-        sql = "INSERT INTO google_docs (user_id, file_type) VALUES (%s, %s)"
+        sql = "INSERT INTO google_docs (user_id, file_type) VALUES (%s, %s) RETURNING id"
         cur.execute(sql, [user_id, file_type])
+        res = cur.fetchone()
         conn.commit()
-    return status.status
+    return res, status.status
 
 
-def add_google_doc_url(user_id, file_type, url):
+def add_google_doc_url(doc_id, url):
     """
-    This function updates the url of a google doc for a user
+    Эта функция обновляет URL-адрес документа Google для пользователя.
 
-    :param user_id: The user's id
-    :param file_type: 'resume', 'cover_letter', 'transcript', 'other'
-    :param url: the url of the google doc
-    :return: The status of the database connection.
+    :param doc_id: Идентификатор документа Google
+    :param url: URL документа Google
+    :return: Статус подключения к базе данных.
     """
     with database() as (cur, conn, status):
-        sql = "UPDATE google_docs SET url = %s WHERE user_id = %s AND file_type = %s"
-        cur.execute(sql, [url, user_id, file_type])
+        sql = "UPDATE google_docs SET url = %s WHERE id = %s"
+        cur.execute(sql, [url, doc_id])
         conn.commit()
     return status.status
 

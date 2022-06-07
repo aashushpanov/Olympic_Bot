@@ -1,11 +1,11 @@
 import pandas as pd
 import pygsheets
 
-from utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc
-from utils.db.get import get_user_files, get_admin, get_changed_files, get_admins
-from utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
+from ...utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc
+from ...utils.db.get import get_user_files, get_admin, get_changed_files, get_admins
+from ...utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
     make_class_managers_file, make_answers_file
-from utils.files.templates import make_subjects_file
+from ...utils.files.templates import make_subjects_file
 
 file_alias = {'users_file': 'Список учеников', 'status_file': 'Статус прохождения олимпиад',
               'subjects_file': 'Список предметов', 'olympiads_file': 'Список олимпиад',
@@ -13,18 +13,27 @@ file_alias = {'users_file': 'Список учеников', 'status_file': 'С�
 
 
 def create_file(user_id, file_types: list):
+    """
+    Он создает электронную таблицу Google Docs, добавляет строку в базу данных, а затем форматирует электронную таблицу.
+
+    :param user_id: идентификатор пользователя
+    :param file_types: list - список типов файлов, которые вы хотите создать
+    :type file_types: list
+    """
     client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
     for file_type in file_types:
-        no = add_google_doc_row(user_id, file_type)
-        name = file_alias.get(file_type, 'Файл')
-        title = '{} #{}'.format(name, no)
-        spread_sheet = client.create(title)
-        add_google_doc_url(no, spread_sheet.url)
-        user = get_admin(user_id)
-        if user['email']:
-            spread_sheet.share(user['email'])
-        work_sheet = spread_sheet.sheet1
-        file_format(work_sheet, file_type)
+        doc_id, status = add_google_doc_row(user_id, file_type)
+        if status:
+            name = file_alias.get(file_type, 'Файл')
+            title = '{} #{}'.format(name, user_id)
+            spread_sheet = client.create(title)
+            status = add_google_doc_url(doc_id, spread_sheet.url)
+            if status:
+                user = get_admin(user_id)
+                if user['email']:
+                    spread_sheet.share(user['email'])
+                work_sheet = spread_sheet.sheet1
+                file_format(work_sheet, file_type)
 
 
 def user_files_update(user_id):
@@ -70,7 +79,7 @@ def update_file(client, user_file, user_id, grades=None, literals=None):
     work_sheet.clear()
     work_sheet.set_dataframe(data, (1, 1))
     file_format(work_sheet, user_file['file_type'])
-    set_updated_google_doc(user_id, user_file['file_type'])
+    _, = set_updated_google_doc(user_id, user_file['file_type'])
 
 
 def file_format(work_sheet, file_type):

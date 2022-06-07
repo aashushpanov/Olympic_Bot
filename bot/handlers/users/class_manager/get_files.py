@@ -13,11 +13,10 @@ def register_get_files_handlers(dp: Dispatcher):
 
 async def get_file(callback: types.CallbackQuery, callback_data: dict):
     await callback.answer()
-    user = get_admin(callback.from_user.id)
     if callback_data.get('type') == 'users_file':
-        file_path, _ = make_users_file(user['grades'], user['literals'])
+        file_path, _ = make_users_file(callback.from_user.id)
     else:
-        file_path, _ = make_olympiads_status_file(user['grades'], user['literals'])
+        file_path, _ = make_olympiads_status_file(callback.from_user.id)
     file = InputFile(file_path)
     await callback.message.answer_document(file)
 
