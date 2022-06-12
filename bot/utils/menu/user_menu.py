@@ -1,8 +1,8 @@
 from aiogram.utils.callback_data import CallbackData
 
-from ...utils.menu.MenuNode import MenuNode, NodeGenerator
-from ...utils.db.get import get_subjects
-from ...utils.menu.generator_functions import get_interests, get_my_olympiads, register_olympiads_options
+from utils.menu.MenuNode import MenuNode, NodeGenerator
+from utils.db.get import get_subjects
+from utils.menu.generator_functions import get_interests, get_my_olympiads, register_olympiads_options
 
 
 add_interest_call = CallbackData('add_olympiad', 'data')
@@ -62,28 +62,31 @@ def set_user_menu(main_node=None, root_id='0.1'):
     return user_menu
 
 
-def set_interest_menu(root_node=None):
+def set_interest_menu(root_node=None, confirm_button=True):
     # меню выбора предметов
     # --------------------------------------------------------------------------------------------------------
     if root_node is None:
-        olympiad_interest_menu = MenuNode(text='Выбор предметов', id='o_interest')
+        id = 'o_int' if confirm_button else 'i_int_2'
+        olympiad_interest_menu = MenuNode(text='Выбор предметов', id=id)
     else:
         olympiad_interest_menu = root_node
 
     subjects = get_subjects()
     for _, subject in subjects.iterrows():
         if subject['section'] == 'Базовый':
-            olympiad_interest_menu.set_child(MenuNode(text=subject['subject_name'],
-                                                      callback=add_interest_call.new(data=subject['code'])))
+            olympiad_interest_menu.set_child(MenuNode(text=subject['name'],
+                                                      callback=add_interest_call.new(data=subject['id'])))
     for section in subjects[subjects['section'].notna()].groupby(['section']).groups.keys():
         if section != 'Базовый':
             olympiad_interest_menu.set_child(MenuNode(text=section))
-    olympiad_interest_menu.set_child(MenuNode(text='\U00002705 Готово', callback=confirm.new()))
 
     for _, child in olympiad_interest_menu.childs().items():
         section_subjects = subjects[subjects['section'] == child.text]
         for _, subject in section_subjects.iterrows():
-            child.set_child(MenuNode(text=subject['subject_name'],
-                                     callback=add_interest_call.new(data=subject['code'])))
+            child.set_child(MenuNode(text=subject['name'],
+                                     callback=add_interest_call.new(data=subject['id'])))
+
+    if confirm_button:
+        olympiad_interest_menu.set_child(MenuNode(text='\U00002705 Готово', callback=confirm.new()))
 
     return olympiad_interest_menu

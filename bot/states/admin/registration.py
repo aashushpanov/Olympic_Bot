@@ -5,7 +5,7 @@ from aiogram.utils.callback_data import CallbackData
 
 from keyboards.keyboards import time_keyboard, callbacks_keyboard, time_call
 from utils.db.add import add_admin, set_user_file_format
-from utils.google_sheets.create import create_file, user_files_update
+from utils.files.tables import user_files_update, create_files
 
 ru_abc = {'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф',
           'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', ' '}
@@ -99,4 +99,4 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
 
 def create_admins_files(user_id):
     file_types = ['users_file', 'status_file', 'subjects_file', 'olympiads_file', 'class_managers_file', 'answers_file']
-    create_file(user_id, file_types)
+    create_files(user_id, file_types)

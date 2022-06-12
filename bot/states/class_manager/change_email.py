@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from keyboards.keyboards import cansel_keyboard
 from utils.db.add import add_email
-from utils.google_sheets.create import bind_email
+from utils.files.tables import bind_email
 from utils.menu.class_manager_menu import change_email_call
 
 

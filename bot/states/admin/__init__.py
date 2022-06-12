@@ -10,4 +10,4 @@ def register_admin_states(dp):
     set_key_handlers(dp)
     delete_data_handlers(dp)
     register_announcement_handlers(dp)
-    register_registration_handlers(dp)
+    # register_registration_handlers(dp)

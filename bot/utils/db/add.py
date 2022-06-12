@@ -24,12 +24,13 @@ def add_user(user_id, f_name, l_name, grade=None, literal=None, interests: set =
     """
     with database() as (cur, conn, status):
         date = dt.date.today()
-        sql = "INSERT INTO users (id, f_name, l_name, is_admin, notify_time, is_active, reg_date, last_active_date)" \
-              " VALUES (%s, %s, %s, %s, %s, 1, %s, %s)"
-        cur.execute(sql, [user_id, f_name, l_name, 0, time, 1, date, date])
+        sql = "INSERT INTO users (id, f_name, l_name, is_admin, notification_time, is_active, reg_date," \
+              " last_active_date) VALUES (%s, %s, %s, 0, %s, 1, %s, %s)"
+        cur.execute(sql, [user_id, f_name, l_name, time, date, date])
         sql = "SELECT id FROM grades WHERE grade_num = %s AND grade_literal = %s"
         cur.execute(sql, [grade, literal])
-        grade_id = cur.fetchone()[0]
+        res = cur.fetchone()
+        grade_id = None if not res else res[0]
         if not grade_id:
             sql = "INSERT INTO grades (grade_num, grade_literal) VALUES (%s, %s) RETURNING id"
             cur.execute(sql, [grade, literal])
@@ -111,7 +112,7 @@ def add_admin(user_id, f_name, l_name, time, email):
         date = dt.date.today()
         sql = "DELETE FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
-        sql = "INSERT INTO users (id, f_name, l_name, is_admin, notify_time, email, is_active, reg_date," \
+        sql = "INSERT INTO users (id, f_name, l_name, is_admin, notification_time, email, is_active, reg_date," \
               " last_active_date) VALUES (%s, %s, %s, 3, %s, %s, 1, %s, %s)"
         cur.execute(sql, [user_id, f_name, l_name, time, email, date, date])
         conn.commit()
@@ -165,20 +166,42 @@ def add_class_manager(user_id, f_name, l_name, grades, literals, time, email):
     """
     with database() as (cur, conn, status):
         date = dt.date.today()
-        sql = "INSERT INTO users (id, f_name, l_name, notify_time, email, is_admin, is_active, reg_date," \
+        sql = "INSERT INTO users (id, f_name, l_name, notification_time, email, is_admin, is_active, reg_date," \
               " last_active_date) VALUES (%s, %s, %s, %s, %s, 2, 1, %s, %s)"
         cur.execute(sql, [user_id, f_name, l_name, time, email, date, date])
         grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
         for grade_num, grade_literal in grade_list:
             sql = "SELECT id FROM grades WHERE grade_num = %s AND grade_literal = %s"
             cur.execute(sql, [grade_num, grade_literal])
-            grade_id = cur.fetchone()[0]
+            res = cur.fetchone()
+            grade_id = None if not res else res[0]
             if not grade_id:
                 sql = "INSERT INTO grades (grade_num, grade_literal) VALUES (%s, %s) RETURNING id"
                 cur.execute(sql, [grade_num, grade_literal])
                 grade_id = cur.fetchone()[0]
             sql = "INSERT INTO user_refer_grade (grade_id, user_id) VALUES (%s, %s)"
             cur.execute(sql, [grade_id, user_id])
+        conn.commit()
+    return status.status
+
+
+def add_teaching(user_id, subjects: dict):
+    with database() as (cur, conn, status):
+        for subject_id in subjects.keys():
+            subject_data = subjects[subject_id]
+            grade_list = [[subject_data['grades'][i], subject_data['literals'][i]]
+                          for i in range(len(subject_data['grades']))]
+            for grade_num, grade_literal in grade_list:
+                sql = "SELECT id FROM grades WHERE grade_num = %s AND grade_literal = %s"
+                cur.execute(sql, [grade_num, grade_literal])
+                res = cur.fetchone()
+                grade_id = None if not res else res[0]
+                if not grade_id:
+                    sql = "INSERT INTO grades (grade_num, grade_literal) VALUES (%s, %s) RETURNING id"
+                    cur.execute(sql, [grade_num, grade_literal])
+                    grade_id = cur.fetchone()[0]
+                sql = "INSERT INTO teaching (user_id, subject_id, grade_id) VALUES (%s, %s, %s)"
+                cur.execute(sql, [user_id, subject_id, grade_id])
         conn.commit()
     return status.status
 
@@ -238,7 +261,7 @@ def add_olympiads(olympiads: DataFrame):
     with database() as (cur, conn, status):
         for _, olympiad in olympiads.iterrows():
             sql = "INSERT INTO olympiads (name, code, subject_id, grade, is_active, urls, key_needed, pre_registration)" \
-                  " VALUES (%s, %s, %s, 0, %s, 0, 0)"
+                  " VALUES (%s, %s, %s, %s, 0, %s, 0, 0)"
             cur.execute(sql, [olympiad['name'], olympiad['code'], olympiad['subject_id'], olympiad['grade'],
                               Json(olympiad['urls'])])
         conn.commit()
@@ -511,7 +534,22 @@ def add_question(question: Series):
     return res[0], status
 
 
-def add_question_answer(question_id, answer, admin_id, admin_message_id):
+def add_questions_admin_message_id(questions):
+    """
+    Он берет фрейм данных вопросов и обновляет столбец admin_message_id в базе данных.
+
+    :param questions: датафрейм вопросов
+    :return: Статус подключения к базе данных.
+    """
+    with database() as (cur, conn, status):
+        for _, question in questions.iterrows():
+            sql = "UPDATE questions SET admin_message_id = %s WHERE id = %s"
+            cur.execute(sql, [question['admin_message_id'], question['id']])
+        conn.commit()
+    return status.status
+
+
+def add_question_answer(question_id, answer, admin_id):
     """
     It updates the question with the given id with the given answer, admin_id, admin_message_id, and answer_date
 
@@ -523,8 +561,8 @@ def add_question_answer(question_id, answer, admin_id, admin_message_id):
     """
     with database() as (cur, conn, status):
         date = dt.date.today()
-        sql = "UPDATE questions SET answer = %s, to_admin = %s, admin_message_id = %s, answer_date = %s WHERE id = %s"
-        cur.execute(sql, [answer, admin_id, admin_message_id, date, question_id])
+        sql = "UPDATE questions SET answer = %s, to_admin = %s, answer_date = %s WHERE id = %s"
+        cur.execute(sql, [answer, admin_id, date, question_id])
         conn.commit()
     return status.status
 
@@ -538,24 +576,23 @@ def add_google_doc_row(user_id, file_type):
     :return: The status of the database connection.
     """
     with database() as (cur, conn, status):
-        sql = "INSERT INTO google_docs (user_id, file_type) VALUES (%s, %s) RETURNING id"
+        sql = "INSERT INTO google_docs (user_id, file_type) VALUES (%s, %s)"
         cur.execute(sql, [user_id, file_type])
-        res = cur.fetchone()
         conn.commit()
-    return res, status.status
+    return status.status
 
 
-def add_google_doc_url(doc_id, url):
+def add_google_doc_url(user_id, file_type, url):
     """
     Эта функция обновляет URL-адрес документа Google для пользователя.
 
-    :param doc_id: Идентификатор документа Google
-    :param url: URL документа Google
-    :return: Статус подключения к базе данных.
+    :param user_id: Идентификатор пользователя
+    :param file_type:
+    :param url: адрес гугл документа
     """
     with database() as (cur, conn, status):
-        sql = "UPDATE google_docs SET url = %s WHERE id = %s"
-        cur.execute(sql, [url, doc_id])
+        sql = "UPDATE google_docs SET url = %s WHERE user_id = %s AND file_type = %s"
+        cur.execute(sql, [url, user_id, file_type])
         conn.commit()
     return status.status
 
@@ -608,21 +645,47 @@ def set_excel_doc_id(user_id, file_type, file_id=''):
     return status.status
 
 
-def change_users_files(user_ids, file_types):
+def change_users_files(user_id=None, file_types=None):
     """
-    It takes a list of user ids and a list of file types and sets the is_changed flag to 1 for all files of the given file
-    types for the given users
+    Он изменяет столбец is_changed таблиц excel_docs и google_docs на 1 для всех файлов заданных типов файлов, которые
+    связаны с данным user_id или любым пользователем, который связан с той же оценкой, что и данный user_id.
 
-    :param user_ids: a list of user ids
-    :param file_types: a list of file types to change
-    :return: The status of the database connection.
+    :param user_id: Идентификатор пользователя, который вносит изменения
+    :param file_types: список типов файлов, которые вы хотите изменить
+    :return: Статус подключения к базе данных.
     """
     with database() as (cur, conn, status):
-        for user_id in user_ids:
-            sql = "UPDATE excel_docs SET is_changed = 1 WHERE file_type = ANY(%s) AND user_id = %s"
+        if user_id is not None:
+            sql = "UPDATE excel_docs SET is_changed = 1 WHERE file_type = ANY(%s) AND user_id = ANY(" \
+                  "SELECT id FROM users WHERE is_admin = 2 AND id = ANY(SELECT user_id FROM user_refer_grade WHERE" \
+                  " grade_id =ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s)))"
             cur.execute(sql, [file_types, user_id])
-            sql = "UPDATE google_docs SET is_changed = 1 WHERE file_type = ANY(%s) AND user_id = %s"
+
+            sql = "UPDATE google_docs SET is_changed = 1 WHERE file_type = ANY(%s) AND user_id = ANY(" \
+                  "SELECT id FROM users WHERE is_admin = 2 AND id = ANY(SELECT user_id FROM user_refer_grade WHERE" \
+                  " grade_id =ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s)))"
             cur.execute(sql, [file_types, user_id])
+
+        sql = "UPDATE excel_docs SET is_changed = 1 WHERE file_type = ANY(%s) AND" \
+              " user_id = ANY(SELECT id FROM users WHERE is_admin = 3)"
+        cur.execute(sql, [file_types])
+        sql = "UPDATE google_docs SET is_changed = 1 WHERE file_type = ANY(%s) AND" \
+              " user_id = ANY(SELECT id FROM users WHERE is_admin = 3)"
+        cur.execute(sql, [file_types])
+        conn.commit()
+    return status.status
+
+
+def change_teachers_files(user_id, file_types, subject_id):
+    with database() as (cur, conn, status):
+        sql = "UPDATE google_docs SET is_changed = 1 WHERE file_type = ANY(%s) AND" \
+              " user_id = ANY(SELECT user_id FROM teaching" \
+              " WHERE grade_id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s) AND subject_id = %s)"
+        cur.execute(sql, [file_types, user_id, subject_id])
+        sql = "UPDATE excel_docs SET is_changed = 1 WHERE file_type = ANY(%s) AND" \
+              " user_id = ANY(SELECT user_id FROM teaching" \
+              " WHERE grade_id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s) AND subject_id = %s)"
+        cur.execute(sql, [file_types, user_id, subject_id])
         conn.commit()
     return status.status
 
@@ -638,6 +701,7 @@ def set_common_file_data(file_type, file_data):
     with database() as (cur, conn, status):
         sql = "UPDATE templates_and_examples SET file_data = %s, is_changed = 0 WHERE file_type = %s"
         cur.execute(sql, [file_data, file_type])
+        conn.commit()
     return status.status
 
 

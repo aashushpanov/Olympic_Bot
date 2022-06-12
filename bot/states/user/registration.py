@@ -9,7 +9,7 @@ from filters import TimeAccess
 from utils.menu.MenuNode import move
 from keyboards.keyboards import grad_keyboard, time_call, time_keyboard, literal_keyboard, yes_no_keyboard
 from utils.menu.user_menu import add_interest_call, confirm
-from utils.db.add import add_user, add_olympiads_to_track, change_files, change_google_docs
+from utils.db.add import add_user, add_olympiads_to_track, change_users_files
 from utils.db.get import is_exist, get_olympiads
 from utils.menu.menu_structure import list_menu, interest_menu
 
@@ -147,8 +147,7 @@ async def personal_data_agreement(callback: types.CallbackQuery, state: FSMConte
             await callback.message.answer('К сожалению, олимпиады добавить не удалось')
     else:
         await callback.message.answer('При добавлении олимпиад произошла ошибка.')
-    change_files(['users_file'])
-    change_google_docs(['users_file'], user.get('grade'), user.get('literal'))
+    change_users_files(callback.from_user.id, ['users_file'])
     await callback.message.answer('Регистрация завершена, можете вызвать /menu.')
     await state.finish()
 

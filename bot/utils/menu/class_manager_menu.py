@@ -1,9 +1,9 @@
 from aiogram.utils.callback_data import CallbackData
 
-from ...utils.menu.MenuNode import MenuNode, NodeGenerator
-from ...utils.menu.admin_menu import set_excel_format_call, set_google_doc_format_call, change_email_call
-from ...utils.menu.generator_functions import get_download_options
-from ...utils.menu.user_menu import change_notify_time_call, show_personal_data_call
+from utils.menu.MenuNode import MenuNode, NodeGenerator
+from utils.menu.admin_menu import set_excel_format_call, set_google_doc_format_call, change_email_call
+from utils.menu.generator_functions import get_download_options
+from utils.menu.user_menu import change_notify_time_call, show_personal_data_call
 
 get_cm_status_file_call = CallbackData('get_cm_status_file')
 get_cm_users_file_call = CallbackData('get_cm_status_file_call')

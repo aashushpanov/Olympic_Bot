@@ -12,21 +12,19 @@ from aiogram.utils.callback_data import CallbackData
 
 from filters import IsAdmin, TimeAccess
 from keyboards.keyboards import callbacks_keyboard, cansel_keyboard, yes_no_keyboard
-from utils.db.get import get_subjects, get_olympiads, get_file
+from utils.db.get import get_subjects, get_olympiads, get_common_file
 from utils.files.reader import read_file
 from utils.files.templates import make_olympiads_template, make_subjects_template
 from utils.menu.admin_menu import set_olympiads_call, set_subjects_call, set_olympiads_dates_call
+from utils.menu.generator_functions import get_file_call
 from utils.menu.menu_structure import reset_interest_menu
-from utils.db.add import add_olympiads, add_subjects, add_dates, change_files, update_olympiads, update_subjects, \
-    change_google_docs
+from utils.db.add import add_olympiads, add_subjects, add_dates, update_olympiads, update_subjects, change_users_files, \
+    change_common_files
 
 # stages = {'школьный': 1, 'муниципальный': 2, 'региональный': 3, 'заключительный': 4, 'пригласительный': 0,
 #           'отборочный': 1, ''}
 
 
-get_dates_template_file_call = CallbackData('get_dates_template_file')
-get_subjects_template_file_call = CallbackData('get_subjects_template_file')
-get_olympiads_template_file_call = CallbackData('get_olympiads_template_file')
 add_not_existing_subjects_call = CallbackData('add_not_existing_subjects', 'data')
 add_not_existing_olympiads_call = CallbackData('add_not_existing_olympiads', 'data')
 update_dates_call = CallbackData('update_dates')
@@ -79,8 +77,8 @@ async def start(callback: types.CallbackQuery):
     if callback.data == 'set_subjects':
         await callback.answer()
         reply_markup = callbacks_keyboard(texts=['Пример заполнения предметов', 'Скачать шаблон'],
-                                          callbacks=[get_file('subjects_example')['url'],
-                                                     get_subjects_template_file_call.new()],
+                                          callbacks=[get_common_file('subjects_example')['file_data'],
+                                                     get_file_call.new(type='subjects_template')],
                                           cansel_button=True)
         await callback.message.answer(
             'Загрузите файл с предметами, следующие файлы помогут правильно заполнить таблицу:',
@@ -89,8 +87,8 @@ async def start(callback: types.CallbackQuery):
     if callback.data == 'set_olympiads':
         await callback.answer()
         reply_markup = callbacks_keyboard(texts=['Пример заполнения олимпиад', 'Скачать шаблон'],
-                                          callbacks=[get_file('olympiads_example')['url'],
-                                                     get_olympiads_template_file_call.new()],
+                                          callbacks=[get_common_file('olympiads_example')['file_data'],
+                                                     get_file_call.new(type='olympiads_template')],
                                           cansel_button=True)
         await callback.message.answer(
             'Загрузите файл с олимпиадами, следующие файлы помогут правильно заполнить таблицу:',
@@ -99,8 +97,8 @@ async def start(callback: types.CallbackQuery):
     if callback.data == 'set_olympiads_dates':
         await callback.answer()
         reply_markup = callbacks_keyboard(texts=['Пример заполнения дат этапов', 'Скачать шаблон'],
-                                          callbacks=[get_file('dates_example')['url'],
-                                                     get_dates_template_file_call.new()],
+                                          callbacks=[get_common_file('dates_example')['file_data'],
+                                                     get_file_call.new(type='dates_template')],
                                           cansel_button=True)
         await callback.message.answer('Загрузите файл с датами, следующие файлы помогут правильно заполнить таблицу:',
                                       reply_markup=reply_markup)
@@ -136,8 +134,8 @@ async def load_ol_file(message: types.Message, state: FSMContext):
                 if status:
                     await message.answer('Следующие олимпиады успешно добавлены:\n{}'
                                          .format('\n'.join(olympiads_to_str(olympiads_new))))
-                    change_files(['olympiads_file', 'dates_template'])
-                    change_google_docs(['olympiads_file'])
+                    change_users_files(message.from_user.id, ['olympiads_file'])
+                    change_common_files(['dates_template'])
                 else:
                     await message.answer('Что-то пошло не так.')
             else:
@@ -162,15 +160,15 @@ async def load_subj_file(message: types.Message, state: FSMContext):
         if not subjects_exists.empty:
             reply_markup = yes_no_keyboard(callback=update_subjects_call.new())
             await message.answer('Предметы с этими кодами уже существуют:\n{}\n\nОбновить данные по ним?'
-                                 .format(', '.join(list(subjects_exists['name']))), reply_markup=reply_markup)
+                                 .format('\n'.join(list(subjects_exists['name']))), reply_markup=reply_markup)
         if not subjects_new.empty:
             status = add_subjects(subjects=subjects_new)
             if status:
                 await message.answer('Следующие предметы успешно добавлены:\n{}'
-                                     .format(', '.join(list(subjects_new['name']))))
+                                     .format('\n'.join(list(subjects_new['name']))))
                 reset_interest_menu()
-                change_files(['subjects_file', 'olympiads_template'])
-                change_google_docs(['subjects_file'])
+                change_users_files(message.from_user.id, ['subjects_file'])
+                change_common_files(['olympiads_template'])
             else:
                 await message.answer('Что-то пошло не так.')
         else:
@@ -211,8 +209,7 @@ async def load_dates_file(message: types.Message, state: FSMContext):
                 if status:
                     await message.answer('Даты по следующим предметы успешно добавлены:\n{}'
                                          .format('\n'.join(olympiads_to_str(dates_new))))
-                    change_files(['olympiads_file'])
-                    change_google_docs(['olympiads_file'])
+                    change_users_files(message.from_user.id, ['olympiads_file'])
                 else:
                     await message.answer('Что-то пошло не так.')
             else:
@@ -254,8 +251,7 @@ async def confirm_load_files(callback: types.CallbackQuery, state: FSMContext, c
                 if not dates_new.empty:
                     await callback.message.answer('Даты по следующим предметы успешно добавлены:\n{}'
                                                   .format('\n'.join(olympiads_to_str(dates_new))))
-                    change_files(['olympiads_file'])
-                    change_google_docs(['olympiads_file'])
+                    change_users_files(callback.from_user.id, ['olympiads_file'])
                 else:
                     await callback.message.answer('Ничего не добавлено')
             else:
@@ -267,8 +263,8 @@ async def confirm_load_files(callback: types.CallbackQuery, state: FSMContext, c
             if not olympiads_new.empty:
                 await callback.message.answer('Следующие олимпиады успешно добавлены:\n{}'.
                                               format('\n'.join(olympiads_to_str(olympiads_new))))
-                change_files(['olympiads_file', 'dates_template'])
-                change_google_docs(['olympiads_file'])
+                change_users_files(callback.from_user.id, ['olympiads_file'])
+                change_common_files(['dates_template'])
             else:
                 await callback.message.answer('Ничего не добавлено')
             await state.finish()
@@ -306,8 +302,8 @@ async def update_data(callback: types.CallbackQuery, state: FSMContext):
         if status:
             await callback.message.answer('Следующие данные успешно обновлены:\n{}'
                                           .format('\n'.join(text_data)))
-            change_files(['olympiads_file', 'dates_template', 'subjects_file'])
-            change_google_docs(['olympiads_file', 'dates_template', 'subjects_file'])
+            change_users_files(callback.from_user.id, ['olympiads_file', 'subjects_file'])
+            change_common_files(['dates_template'])
         else:
             await callback.message.answer('Что-то пошло не так.')
     else:
@@ -380,7 +376,7 @@ def parsing_new_olympiads(olympiads_to_add: pd.DataFrame):
                     'site_url': row['ссылка на сайт олимпиады'] if isinstance(row['ссылка на сайт олимпиады'], str) else '',
                     'ol_url': row['ссылка на прохождение олимпиады'] if isinstance(row['ссылка на сайт олимпиады'], str) else ''}
             for grade in range(l_grade, h_grade + 1):
-                code = row['Тип'] + '_' + subject_id + '_' + str(grade)
+                code = "{}_{}_{}".format(row['Тип'], subject_id, str(grade))
                 olympiad = pd.DataFrame([[row['Название'], code, subject_id, grade, urls]], columns=columns)
                 if code in olympiad_codes.values:
                     olympiads_exists = pd.concat([olympiads_exists, olympiad], axis=0)

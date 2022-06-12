@@ -1,12 +1,12 @@
 import pandas as pd
 
-from ...utils.db.get import get_subjects, get_olympiads
+from utils.db.get import get_subjects, get_olympiads
 
 
 def make_subjects_file():
-    file_path = 'data/files/to_send/subjects.xlsx'
+    file_path = 'bot/data/files/to_send/subjects.xlsx'
     subjects = get_subjects()
-    columns_rename = {'code': 'Код предмета', 'subject_name': 'Предмет', 'section': 'Раздел'}
+    columns_rename = {'code': 'Код предмета', 'name': 'Предмет', 'section': 'Раздел'}
     subjects.rename(columns=columns_rename, inplace=True)
     subjects.drop(columns=['id'], inplace=True)
     subjects.to_excel(file_path, index=False)
@@ -14,7 +14,7 @@ def make_subjects_file():
 
 
 def make_olympiads_dates_template():
-    file_path = 'data/files/to_send/dates_template.xlsx'
+    file_path = 'bot/data/files/to_send/dates_template.xlsx'
     olympiads = get_olympiads()
     olympiads_list = list(olympiads.groupby('name').groups.keys())
     columns = ['Название', 'мл. класс', 'ст. класс', 'дата начала', 'дата окончания',
@@ -27,7 +27,7 @@ def make_olympiads_dates_template():
 def make_subjects_template(subjects=None):
     if subjects is None:
         subjects = []
-    file_path = 'data/files/to_send/subjects_template.xlsx'
+    file_path = 'bot/data/files/to_send/subjects_template.xlsx'
     columns = ['Предмет', 'Код предмета', 'Раздел']
     subjects_template = pd.DataFrame([[x, '', ''] for x in subjects], columns=columns)
     subjects_template.to_excel(file_path, index=False)
@@ -37,9 +37,9 @@ def make_subjects_template(subjects=None):
 def make_olympiads_template(olympiads=None):
     if olympiads is None:
         olympiads = []
-    file_path = 'data/files/to_send/olympiads_template.xlsx'
+    file_path = 'bot/data/files/to_send/olympiads_template.xlsx'
     subjects = get_subjects()
-    subjects_list = list(subjects['subject_name'].values)
+    subjects_list = list(subjects['name'].values)
     ol_subj_list = merge_lists(olympiads, subjects_list)
     columns = ['Префикс', 'Название', 'Предмет', 'мл. класс', 'ст. класс', 'ссылка на регистрацию',
                'ссылка на сайт олимпиады', 'Доступные предметы']

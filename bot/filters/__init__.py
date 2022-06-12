@@ -1,6 +1,6 @@
 from aiogram import Dispatcher
 
-from ..filters.filters import IsAdmin, TimeAccess, IsExist
+from filters.filters import IsAdmin, TimeAccess, IsExist
 
 
 def register_filters(dp: Dispatcher):

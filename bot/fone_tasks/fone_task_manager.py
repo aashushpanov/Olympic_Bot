@@ -1,12 +1,12 @@
 import datetime as dt
 import pytz
 
-from updates import greeting, update_olympiads_to_track, update_olympiads_activity, update_missed_olympiads, \
+from .updates import update_olympiads_to_track, update_olympiads_activity, update_missed_olympiads, \
     create_notifications, send_notifications, create_question_notifications
 from handlers.users.admin.set_admin import update_admins
 from utils.db.add import clean_notifications
 from utils.db.get import get_notifications, get_users_by_notification_time
-from utils.google_sheets.create import update_all_files
+from utils.files.tables import update_all_files
 
 
 async def manager():

@@ -2,11 +2,11 @@ import datetime as dt
 
 from aiogram import types
 
-from ...utils.menu.MenuNode import MenuNode
-from ...keyboards.keyboards import tree_menu_keyboard
-from ...utils.menu.admin_menu import set_admin_menu, set_group_admin_menu
-from ...utils.menu.class_manager_menu import set_class_manager_menu
-from ...utils.menu.user_menu import set_user_menu, set_interest_menu
+from utils.menu.MenuNode import MenuNode
+from keyboards.keyboards import tree_menu_keyboard
+from utils.menu.admin_menu import set_admin_menu, set_group_admin_menu
+from utils.menu.class_manager_menu import set_class_manager_menu
+from utils.menu.user_menu import set_user_menu, set_interest_menu
 
 
 main_menu = MenuNode(text='Меню')
@@ -19,11 +19,14 @@ user_menu = set_user_menu(root_id='user')
 
 interest_menu = set_interest_menu()
 
+interest_menu_no_confirm = set_interest_menu(confirm_button=False)
+
 class_manager_menu = set_class_manager_menu()
 
 menu_childs = main_menu.all_childs()
 menu_childs.update(user_menu.all_childs())
 menu_childs.update(interest_menu.all_childs())
+menu_childs.update(interest_menu_no_confirm.all_childs())
 menu_childs.update(admin_group_menu.all_childs())
 menu_childs.update(class_manager_menu.all_childs())
 

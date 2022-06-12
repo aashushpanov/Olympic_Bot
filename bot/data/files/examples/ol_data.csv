@@ -1,30 +1,30 @@
-﻿Префикс;Название;Предмет;мл. класс;ст. класс;ссылка на регистрацию;ссылка на сайт олимпиады
-v;ВСОШ по английскому языку;Английский язык;4;11;;https://vos.olimpiada.ru/engl/2021_2022
-v;ВСОШ по биологии;Биология;4;11;;https://vos.olimpiada.ru/biol/2021_2022
-v;ВСОШ по астрономии;Астрономия;4;11;;https://vos.olimpiada.ru/astr/2021_2022
-v;ВСОШ по географии;География;4;11;;https://vos.olimpiada.ru/geog/2021_2022
-v;ВСОШ по информатике;Информатика;4;11;;https://www.olympiads.ru/moscow/index.shtml
-v;ВСОШ по испанскому языку;Испанский язык;4;11;;https://vos.olimpiada.ru/span/2021_2022
-v;ВСОШ по искусству;Искусство МХК;6;11;;https://vos.olimpiada.ru/amxk/2021_2022
-v;ВСОШ по истории;История;4;11;;https://vos.olimpiada.ru/hist/2021_2022
-v;ВСОШ по итальянскому языку;Итальянский язык;4;11;;https://vos.olimpiada.ru/ital/2021_2022
-v;ВСОШ по китайскому языку;Китайский язык;4;11;;https://vos.olimpiada.ru/chin/2021_2022
-v;ВСОШ по литературе;Литература;4;11;;https://vos.olimpiada.ru/litr/2021_2022
-v;ВСОШ по математике;Математика;3;11;;https://olympiads.mccme.ru/vmo/
-v;ВСОШ по немецкому языку;Немецкий язык;4;11;;https://vos.olimpiada.ru/germ/2021_2022
-v;ВСОШ по ОБЖ;ОБЖ;4;11;;https://vos.olimpiada.ru/bsvf/2021_2022
-v;ВСОШ по обществознанию;Обществознание;4;11;;https://vos.olimpiada.ru/soci/2021_2022
-v;ВСОШ по праву;Право;4;11;;https://vos.olimpiada.ru/law/2021_2022
-v;ВСОШ по русскому языку;Русский язык;3;11;;https://vos.olimpiada.ru/russ/2021_2022
-v;ВСОШ по технологии (ТТ);Технология ТТ;4;11;;https://vos.olimpiada.ru/tech/2021_2022
-v;ВСОШ по технологии (РТ);Технология РТ;4;11;;https://vos.olimpiada.ru/tech/2021_2022
-v;ВСОШ по технологии (КД);Технология КД;4;11;;https://vos.olimpiada.ru/tech/2021_2022
-v;ВСОШ по физике;Физика;6;11;;https://vos.olimpiada.ru/phys/2021_2022
-v;ВСОШ по физической культуре;Физическая культура;4;11;;https://vos.olimpiada.ru/pcul/2021_2022
-v;ВСОШ по французскому языку;Французский язык;4;11;;https://vos.olimpiada.ru/fren/2021_2022
-v;ВСОШ по химии;Химия;6;11;;https://vos.olimpiada.ru/chem/2021_2022
-v;ВСОШ по экологии;Экология;4;11;;https://vos.olimpiada.ru/ekol/2021_2022
-v;ВСОШ по экономике;Экономика;6;11;;https://vos.olimpiada.ru/ekol/2021_2022
-m;МОШ по астрономии;Астрономия;4;11;https://reg.olimpiada.ru/login/;https://mosastro.olimpiada.ru
-m;МОШ по информатике;Информатика;4;9;https://reg.olimpiada.ru/login/;https://mos-inf.olimpiada.ru/
-m;МОШ по истории;История;4;11;https://reg.olimpiada.ru/login/;https://moshist.ru/
+﻿Название;Тип;Предмет;мл. класс;ст. класс;ссылка на регистрацию;ссылка на сайт олимпиады;ссылка на прохождение олимпиады
+ВСОШ по английскому языку;v;Английский язык;4;11;;https://vos.olimpiada.ru/engl/2021_2022;https://online.olimpiada.ru/
+ВСОШ по биологии;v;Биология;4;11;;https://vos.olimpiada.ru/biol/2021_2022;https://online.olimpiada.ru/
+ВСОШ по астрономии;v;Астрономия;4;11;;https://vos.olimpiada.ru/astr/2021_2022;https://online.olimpiada.ru/
+ВСОШ по географии;v;География;4;11;;https://vos.olimpiada.ru/geog/2021_2022;https://online.olimpiada.ru/
+ВСОШ по информатике;v;Информатика;4;11;;https://www.olympiads.ru/moscow/index.shtml;https://online.olimpiada.ru/
+ВСОШ по испанскому языку;v;Испанский язык;4;11;;https://vos.olimpiada.ru/span/2021_2022;https://online.olimpiada.ru/
+ВСОШ по искусству;v;Искусство МХК;6;11;;https://vos.olimpiada.ru/amxk/2021_2022;https://online.olimpiada.ru/
+ВСОШ по истории;v;История;4;11;;https://vos.olimpiada.ru/hist/2021_2022;https://online.olimpiada.ru/
+ВСОШ по итальянскому языку;v;Итальянский язык;4;11;;https://vos.olimpiada.ru/ital/2021_2022;https://online.olimpiada.ru/
+ВСОШ по китайскому языку;v;Китайский язык;4;11;;https://vos.olimpiada.ru/chin/2021_2022;https://online.olimpiada.ru/
+ВСОШ по литературе;v;Литература;4;11;;https://vos.olimpiada.ru/litr/2021_2022;https://online.olimpiada.ru/
+ВСОШ по математике;v;Математика;3;11;;https://olympiads.mccme.ru/vmo/;https://online.olimpiada.ru/
+ВСОШ по немецкому языку;v;Немецкий язык;4;11;;https://vos.olimpiada.ru/germ/2021_2022;https://online.olimpiada.ru/
+ВСОШ по ОБЖ;v;ОБЖ;4;11;;https://vos.olimpiada.ru/bsvf/2021_2022;https://online.olimpiada.ru/
+ВСОШ по обществознанию;v;Обществознание;4;11;;https://vos.olimpiada.ru/soci/2021_2022;https://online.olimpiada.ru/
+ВСОШ по праву;v;Право;4;11;;https://vos.olimpiada.ru/law/2021_2022;https://online.olimpiada.ru/
+ВСОШ по русскому языку;v;Русский язык;3;11;;https://vos.olimpiada.ru/russ/2021_2022;https://online.olimpiada.ru/
+ВСОШ по технологии (ТТ);v;Технология ТТ;4;11;;https://vos.olimpiada.ru/tech/2021_2022;https://online.olimpiada.ru/
+ВСОШ по технологии (РТ);v;Технология РТ;4;11;;https://vos.olimpiada.ru/tech/2021_2022;https://online.olimpiada.ru/
+ВСОШ по технологии (КД);v;Технология КД;4;11;;https://vos.olimpiada.ru/tech/2021_2022;https://online.olimpiada.ru/
+ВСОШ по физике;v;Физика;6;11;;https://vos.olimpiada.ru/phys/2021_2022;https://online.olimpiada.ru/
+ВСОШ по физической культуре;v;Физическая культура;4;11;;https://vos.olimpiada.ru/pcul/2021_2022;https://online.olimpiada.ru/
+ВСОШ по французскому языку;v;Французский язык;4;11;;https://vos.olimpiada.ru/fren/2021_2022;https://online.olimpiada.ru/
+ВСОШ по химии;v;Химия;6;11;;https://vos.olimpiada.ru/chem/2021_2022;https://online.olimpiada.ru/
+ВСОШ по экологии;v;Экология;4;11;;https://vos.olimpiada.ru/ekol/2021_2022;https://online.olimpiada.ru/
+ВСОШ по экономике;v;Экономика;6;11;;https://vos.olimpiada.ru/ekol/2021_2022;https://online.olimpiada.ru/
+МОШ по астрономии;m;Астрономия;4;11;https://reg.olimpiada.ru/login/;https://mosastro.olimpiada.ru;https://reg.olimpiada.ru/
+МОШ по информатике;m;Информатика;4;9;https://reg.olimpiada.ru/login/;https://mos-inf.olimpiada.ru/;https://reg.olimpiada.ru/
+МОШ по истории;m;История;4;11;https://reg.olimpiada.ru/login/;https://moshist.ru/;https://reg.olimpiada.ru/

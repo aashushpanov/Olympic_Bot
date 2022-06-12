@@ -6,7 +6,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from data import config
 from keyboards.keyboards import cansel_keyboard
 from loader import bot
-from utils.db.add import add_question, change_files, change_google_docs
+from utils.db.add import add_question, change_users_files
 from utils.db.get import get_user, get_admin
 from utils.menu.user_menu import question_to_admin_call
 
@@ -42,8 +42,7 @@ async def receive_question(message: types.Message, state: FSMContext):
                              format(question_no))
         text = 'Задан вопрос: {}\n\n{}'.format(question_no, question['message'])
         await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text)
-        change_files(['answers_file'])
-        change_google_docs(['answers_file'])
+        change_users_files(message.from_user.id, ['answers_file'])
     else:
         await message.answer('Что-то пошло не так.')
     await state.finish()

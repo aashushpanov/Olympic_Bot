@@ -3,8 +3,8 @@ from aiogram.types import InputFile
 
 from filters.filters import IsAdmin
 from states.admin.set_olympiad import SetOlympiads, make_subjects_template, make_olympiads_template
-from utils.db.add import set_file_ids
-from utils.db.get import get_file
+from utils.db.add import set_excel_doc_id, set_common_file_data
+from utils.db.get import get_user_excel_file, get_common_file
 from utils.files.data_files import make_olympiads_status_file, make_olympiads_with_dates_file, make_answers_file, \
     make_users_file, make_class_managers_file
 from utils.files.templates import make_olympiads_dates_template, make_subjects_file
@@ -25,8 +25,13 @@ async def send_file(callback: types.CallbackQuery, callback_data: dict):
     :type callback_data: dict
     """
     file_type = callback_data.get('type')
-    file_status = get_file(file_type)
-    if file_status['changed']:
+    if file_type.endswith('template'):
+        file = get_common_file(file_type)
+        data_field = 'file_data'
+    else:
+        file = get_user_excel_file(callback.from_user.id, file_type)
+        data_field = 'file_id'
+    if file['is_changed']:
         match file_type:
             case 'users_file':
                 file_path, _ = make_users_file()
@@ -54,9 +59,11 @@ async def send_file(callback: types.CallbackQuery, callback_data: dict):
         file = InputFile(file_path)
         message = await callback.message.answer_document(file)
         file_id = message.document.file_id
-        file_unique_id = message.document.file_unique_id
-        set_file_ids(file_type, file_id, file_unique_id)
+        if data_field == 'file_id':
+            set_excel_doc_id(callback.from_user.id, file_type, file_id)
+        else:
+            set_common_file_data(file_type, file_id)
     else:
-        await callback.message.answer_document(file_status['file_id'])
+        await callback.message.answer_document(file[data_field])
     await callback.answer()
 

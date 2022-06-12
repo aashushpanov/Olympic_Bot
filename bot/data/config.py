@@ -17,8 +17,9 @@ URL = str(env_vars.get("URL_VPS"))
 
 ADMIN_GROUP_ID = str(env_vars.get("ADMIN_GROUP_ID"))
 CLASS_MANAGERS_PASSWORD = str(env_vars.get("CLASS_MANAGERS_PASSWORD"))
+TEACHER_PASSWORD = str(env_vars.get("TEACHER_PASSWORD"))
 
+GOOGLE_SERVICE_FILENAME = str(env_vars.get("GOOGLE_SERVICE_FILENAME"))
 GOOGLE_WEB_CLIENT = str(env_vars.get("GOOGLE_WEB_CLIENT"))
-GOOGLE_SERVICE_ACCOUNT = str(env_vars.get("GOOGLE_SERVICE_ACCOUNT"))
 
 

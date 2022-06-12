@@ -1,7 +1,7 @@
 from aiogram import Dispatcher, types
 
 from states.user.change_personal_data import confirm_change_name_call
-from utils.db.add import change_name, change_files, change_google_docs
+from utils.db.add import change_name, change_users_files
 
 
 def register_confirm_change_name_handler(dp: Dispatcher):
@@ -15,7 +15,6 @@ async def confirm(callback: types.CallbackQuery, callback_data: dict):
     status = change_name(user_id, first_name, last_name)
     if status:
         await callback.message.answer('Данные изменены')
-        change_files(['users_file'])
-        change_google_docs(['users_file'])
+        change_users_files(user_id, ['users_file'])
     else:
         await callback.message.answer('Что-то пошло не так.')

@@ -8,7 +8,7 @@ from aiogram.utils.callback_data import CallbackData
 from filters import IsAdmin
 from keyboards.keyboards import cansel_keyboard, callbacks_keyboard
 from loader import bot
-from utils.db.get import get_file, get_users, get_olympiads, get_all_olympiads_status, get_class_managers
+from utils.db.get import get_users, get_olympiads, get_all_olympiads_status, get_class_managers, get_common_file
 from utils.menu.admin_menu import announcement_call, grade_announcement_call, subject_announcement_call, \
     olympiad_announcement_call, cm_announcement_call
 
@@ -44,7 +44,8 @@ async def everybody_start(callback: types.CallbackQuery):
 
 async def by_grade_start(callback: types.CallbackQuery):
     await callback.answer()
-    markup = callbacks_keyboard(texts=['Посмотреть пример'], callbacks=[get_file('grade_announcement_example')['url']],
+    markup = callbacks_keyboard(texts=['Посмотреть пример'],
+                                callbacks=[get_common_file('grade_announcement_example')['file_data']],
                                 cansel_button=True)
     await callback.message.answer('Введите объявление для одного или нескольких классов \U00002B07.'
                                   ' Формат сообщения можно посмотреть в примере', reply_markup=markup)
@@ -54,7 +55,7 @@ async def by_grade_start(callback: types.CallbackQuery):
 async def by_olympiad_start(callback: types.CallbackQuery):
     await callback.answer()
     markup = callbacks_keyboard(texts=['Посмотреть пример'],
-                                callbacks=[get_file('olympiad_announcement_example')['url']],
+                                callbacks=[get_common_file('olympiad_announcement_example')['file_data']],
                                 cansel_button=True)
     await callback.message.answer('Введите объявление для одной или нескольких олимпиад \U00002B07.'
                                   ' Формат сообщения можно посмотреть в примере', reply_markup=markup)
@@ -64,7 +65,7 @@ async def by_olympiad_start(callback: types.CallbackQuery):
 async def by_subject_start(callback: types.CallbackQuery):
     await callback.answer()
     markup = callbacks_keyboard(texts=['Посмотреть пример'],
-                                callbacks=[get_file('subject_announcement_example')['url']],
+                                callbacks=[get_common_file('subject_announcement_example')['file_data']],
                                 cansel_button=True)
     await callback.message.answer('Введите объявление для одного или нескольких предметов \U00002B07.'
                                   ' Формат сообщения можно посмотреть в примере', reply_markup=markup)
@@ -165,7 +166,7 @@ async def fix_announcement(callback: types.CallbackQuery, state: FSMContext, cal
             file_name = ''
     if file_name != '':
         markup = callbacks_keyboard(texts=['Посмотреть пример'],
-                                    callbacks=[get_file(file_name)['url']],
+                                    callbacks=[get_common_file(file_name)['file_data']],
                                     cansel_button=True)
     else:
         markup = None

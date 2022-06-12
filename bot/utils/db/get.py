@@ -25,8 +25,9 @@ async def is_exist(user_id):
     :param user_id: Идентификатор пользователя
     :return: 1 если результат иначе 0
     """
+    result = 0
     with database() as (cur, conn, status):
-        sql = "SELECT first_name FROM users WHERE id = %s"
+        sql = "SELECT f_name FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
         result = cur.fetchone()
     return 1 if result else 0
@@ -115,11 +116,11 @@ def get_all_olympiads_status(user_id=None):
     columns = ['olympiad_id', 'user_id', 'stage', 'key', 'result_code', 'status_code', 'action_timestamp']
     with database() as (cur, conn, status):
         if user_id is None:
-            sql = "SELECT olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
+            sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
                   " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id"
             cur.execute(sql)
         else:
-            sql = "SELECT olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
+            sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
                   " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id" \
                   " WHERE user_id = ANY(SELECT user_id FROM user_refer_grade" \
                   " WHERE grade_id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s))" \
@@ -163,18 +164,19 @@ def get_users(user_id=None):
     :param user_id: Идентификатор пользователя, который запрашивает данные
     :return: Фрейм данных с информацией о пользователях
     """
-    columns = ['user_id', 'f_name', 'l_name', 'reg_date', 'grade', 'is_active', 'last_active_date',
+    columns = ['user_id', 'f_name', 'l_name', 'reg_date', 'is_active', 'last_active_date',
                'grade', 'literal', 'interest']
     with database() as (cur, conn, status):
         if user_id is None:
-            sql = "SELECT users.id, f_name, l_name, reg_date, is_active, last_active_date, grade_num, grade_literal," \
+            sql = "SELECT users.id, f_name, l_name, reg_date, is_active, last_active_date, max(grade_num), max(grade_literal)," \
                   " array_agg(interests.subject_id) as interest" \
-                  " FROM users LEFT JOIN user_refer_grade on user_id LEFT JOIN grades on grade_id" \
+                  " FROM users LEFT JOIN user_refer_grade on users.id = user_refer_grade.user_id" \
+                  " LEFT JOIN grades on grades.id = user_refer_grade.grade_id" \
                   " RIGHT JOIN interests on users.id = interests.user_id WHERE is_admin = 0 group by users.id"
             cur.execute(sql)
             res = cur.fetchall()
         else:
-            sql = "SELECT users.id f_name, l_name, reg_date, is_active, last_active_date, grade_num, grade_literal," \
+            sql = "SELECT users.id f_name, l_name, reg_date, is_active, last_active_date, max(grade_num), max(grade_literal)," \
                   " array_agg(interests.subject_id) as interest" \
                   " FROM users LEFT JOIN user_refer_grade on users.id = user_refer_grade.user_id" \
                   " LEFT JOIN grades on grades.id = user_refer_grade.grade_id" \
@@ -263,7 +265,7 @@ def get_users_by_notification_time(time):
     :return: Список идентификаторов пользователей
     """
     with database() as (cur, conn, status):
-        sql = "SELECT id FROM users WHERE notify_time <= %s"
+        sql = "SELECT id FROM users WHERE notification_time <= %s"
         cur.execute(sql, [time])
         res = [x[0] for x in cur.fetchall()]
     return res
@@ -282,6 +284,15 @@ def get_subjects():
     return data
 
 
+def get_subject(subject_id):
+    with database() as (cur, conn, status):
+        sql = "SELECT id, code, name, section FROM subjects WHERE id = %s"
+        cur.execute(sql, [subject_id])
+        res = cur.fetchone()
+        data = pd.Series(res, index=['id', 'code', 'name', 'section'])
+    return data
+
+
 def get_olympiads():
     """
     Он получает все олимпиады из базы данных и возвращает их в виде кадра данных pandas.
@@ -295,6 +306,7 @@ def get_olympiads():
         data = pd.DataFrame(res, columns=['id', 'name', 'code', 'subject_id', 'stage', 'start_date', 'end_date',
                                           'is_active', 'grade', 'key_needed', 'pre_registration', 'urls', 'keys_count'])
         data['stage'] = data['stage'].fillna(-1)
+        data['keys_count'] = data['key_count'].fillna(0)
         data[['key_needed', 'pre_registration']] = data[['key_needed', 'pre_registration']].fillna(0)
         data = data.astype({'stage': 'int32', 'grade': 'int32', 'pre_registration': 'int32',
                             'key_needed': 'int32', 'keys_count': 'int32'})
@@ -429,8 +441,8 @@ def get_answers():
               " question_date, answer_date FROM questions"
         cur.execute(sql)
         res = cur.fetchall()
-        data = pd.Series(res, index=['question_id', 'from_user', 'question', 'user_message_id', 'admin_message_id',
-                                     'answer', 'to_admin', 'question_date', 'answer_date'])
+        data = pd.DataFrame(res, columns=['question_id', 'from_user', 'question', 'user_message_id', 'admin_message_id',
+                                          'answer', 'to_admin', 'question_date', 'answer_date'])
     return data
 
 
@@ -443,10 +455,26 @@ def get_user_google_files(user_id):
     :return: Фрейм данных со столбцами file_type, url и is_changed.
     """
     with database() as (cur, conn, status):
-        sql = "SELECT file_type, url, is_changed FROM google_sheets WHERE user_id = %s"
+        sql = "SELECT file_type, url, is_changed FROM google_docs WHERE user_id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['file_type', 'url', 'is_changed'])
+    return data
+
+
+def get_user_google_file(user_id, file_type):
+    """
+    Эта функция принимает user_id и file_type и возвращает фрейм данных со столбцами file_type, url и is_changed.
+
+    :param user_id: ID пользователя
+    :param file_type: Тип файла, который вы хотите получить
+    :return: Фрейм данных со столбцами file_type, url и is_changed.
+    """
+    with database() as (cur, conn, status):
+        sql = "SELECT file_type, url, is_changed FROM google_docs WHERE user_id = %s AND file_type = %s"
+        cur.execute(sql, [user_id, file_type])
+        res = cur.fetchone()
+        data = pd.Series(res, index=['file_type', 'url', 'is_changed'])
     return data
 
 
@@ -465,22 +493,6 @@ def get_user_excel_files(user_id):
     return data
 
 
-def get_user_google_file(user_id, file_type):
-    """
-    > Эта функция принимает user_id и file_type и возвращает серию pandas со значениями file_type, url и is_changed.
-
-    :param user_id: Идентификатор пользователя
-    :param file_type: Тип файла, который вы хотите получить
-    :return: Серия pandas со столбцами file_type, url и is_changed из таблицы google_sheets.
-    """
-    with database() as (cur, conn, status):
-        sql = "SELECT file_type, url, is_changed FROM google_sheets WHERE user_id = %s AND file_type = %s"
-        cur.execute(sql, [user_id, file_type])
-        res = cur.fetchone()
-        data = pd.Series(res, index=['file_type', 'url', 'is_changed'])
-    return data
-
-
 def get_user_excel_file(user_id, file_type):
     """
     > Эта функция принимает user_id и file_type и возвращает серию pandas со значениями file_type, url и is_changed.
@@ -490,7 +502,7 @@ def get_user_excel_file(user_id, file_type):
     :return: Серия pandas со столбцами file_type, url и is_changed из таблицы google_sheets.
     """
     with database() as (cur, conn, status):
-        sql = "SELECT file_type, file_id, is_changed FROM excel_docs WHERE user_id = %s AND file_type = %s"
+        sql = "SELECT file_type, is_changed FROM excel_docs WHERE user_id = %s AND file_type = %s"
         cur.execute(sql, [user_id, file_type])
         res = cur.fetchone()
         data = pd.Series(res, index=['file_type', 'file_id', 'is_changed'])
@@ -503,7 +515,7 @@ def get_changed_google_files():
     :return: Фрейм данных с user_id и file_type всех измененных листов Google.
     """
     with database() as (cur, conn, status):
-        sql = "SELECT user_id, file_type FROM google_sheets WHERE is_changed = 1"
+        sql = "SELECT user_id, file_type FROM google_docs WHERE is_changed = 1"
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['user_id', 'file_type'])

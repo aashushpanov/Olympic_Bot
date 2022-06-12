@@ -5,8 +5,8 @@ from data import config
 from filters import IsAdmin
 from fone_tasks.updates import show_admin_question_call
 from loader import bot
-from utils.db.add import set_message_id_to_questions, add_question_answer, change_files, change_google_docs
-from utils.db.get import get_new_questions, get_question, get_user, get_admin
+from utils.db.add import add_question_answer, add_questions_admin_message_id, change_users_files
+from utils.db.get import get_new_questions, get_question, get_admin
 
 question_answer_call = CallbackData('q_a', 'no', 'id')
 
@@ -22,12 +22,12 @@ async def show_questions(callback: types.CallbackQuery):
     questions = get_new_questions()
     if not questions.empty:
         for index, question in questions.iterrows():
-            question_no = question['no']
-            text = 'Номер вопроса: {}\n\n{}'.format(question_no, question['message'])
+            question_id = question['id']
+            text = 'Номер вопроса: {}\n\n{}'.format(question_id, question['message'])
             message = await callback.message.answer(text=text)
             message_id = message.message_id
-            questions.loc[index, 'message_id'] = message_id
-        set_message_id_to_questions(questions)
+            questions.loc[index, 'admin_message_id'] = message_id
+        add_questions_admin_message_id(questions)
     else:
         await callback.message.answer('Вопросов нет')
 
@@ -53,8 +53,7 @@ async def question_answer(message: types.Message):
                 text = 'Ответ на ваш вопрос номер {} от {} {}:\n\n{}'.format(question_id, admin['last_name'],
                                                                              admin['first_name'], answer)
                 await bot.send_message(chat_id=user_id, text=text)
-                change_files(['answers_file'])
-                change_google_docs(['answers_file'])
+                change_users_files(user_id, ['answers_file'])
             else:
                 await message.answer('Что-то пошло не так.')
         else:

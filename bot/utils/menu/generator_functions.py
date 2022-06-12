@@ -1,8 +1,8 @@
 from aiogram.utils.callback_data import CallbackData
 
-from ...utils.db.get import get_admin, get_user_files, get_olympiads_by_status, get_olympiads, get_subjects, get_user, \
-    get_tracked_olympiads, get_olympiad, get_olympiad_status
-from ...utils.menu.MenuNode import MenuNode, move
+from utils.db.get import get_admin, get_olympiads_by_status, get_olympiads, get_subjects, get_user, \
+    get_tracked_olympiads, get_olympiad, get_olympiad_status, get_user_google_files, get_user_excel_files
+from utils.menu.MenuNode import MenuNode, move
 
 get_key_call = CallbackData('get_key', 'data')
 get_dates_call = CallbackData('get_time', 'data')
@@ -20,12 +20,13 @@ files_alias = {'users_file': 'Список учеников', 'status_file': 'С
 async def get_download_options(_, **kwargs):
     user_id = kwargs.get('callback').message.chat.id
     admin = get_admin(user_id)
-    files = get_user_files(user_id)
     if admin['to_google_sheets']:
+        files = get_user_google_files(user_id)
         nodes = make_get_files_menu(files)
         for node in nodes:
             yield node
     else:
+        files = get_user_excel_files(user_id)
         for _, file in files.iterrows():
             yield MenuNode(files_alias[file['file_type']], callback=get_file_call.new(type=file['file_type']))
 

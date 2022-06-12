@@ -1,7 +1,7 @@
 import psycopg2
 import contextlib
 
-from ...data import config
+from data import config
 
 
 # "The Status class has a single attribute, _ok, which is initialized to 1. The error method sets _ok to 0. The status

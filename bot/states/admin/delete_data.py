@@ -5,8 +5,8 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from filters import TimeAccess, IsAdmin
 from keyboards.keyboards import callbacks_keyboard
-from utils.db.add import remove_subjects, remove_olympiads, change_files, change_google_docs
-from utils.db.get import get_file, get_olympiads, get_subjects
+from utils.db.add import remove_subjects, remove_olympiads, change_users_files
+from utils.db.get import get_olympiads, get_subjects, get_common_file
 from utils.files.reader import read_file
 from utils.menu.admin_menu import get_subjects_file_call, get_olympiads_file_call, delete_subjects_call, \
     delete_olympiads_call
@@ -32,14 +32,14 @@ async def start(callback: types.CallbackQuery):
     await callback.answer()
     if callback.data == 'delete_subjects':
         reply_markup = callbacks_keyboard(texts=['Пример файла на удаление предметов', 'Список текущих предметов'],
-                                          callbacks=[get_file('subjects_to_delete_example')['url'],
+                                          callbacks=[get_common_file('subjects_to_delete_example')['file_data'],
                                                      get_subjects_file_call.new()], cansel_button=True)
         await callback.message.answer('Загрузите файл с предметами которые надо удалить',
                                       reply_markup=reply_markup)
         await DeleteData.delete_subjects.set()
     elif callback.data == 'delete_olympiads':
         reply_markup = callbacks_keyboard(texts=['Пример файла на удаление олимпиад', 'Список текущих олимпиад'],
-                                          callbacks=[get_file('olympiads_to_delete_example')['url'],
+                                          callbacks=[get_common_file('olympiads_to_delete_example')['file_data'],
                                                      get_olympiads_file_call.new()], cansel_button=True)
         await callback.message.answer('Загрузите файл с олимпиадами которые надо удалить',
                                       reply_markup=reply_markup)
@@ -61,8 +61,7 @@ async def delete_subjects(message: types.Message, state: FSMContext):
             return
         if deleted_subjects:
             await message.answer('Удалены следующие предметы:\n{}'.format('\n'.join(deleted_subjects)))
-            change_files(['olympiads_file', 'dates_template', 'subjects_file'])
-            change_google_docs(['olympiads_file', 'dates_template', 'subjects_file'])
+            change_users_files(message.from_user.id, ['olympiads_file', 'dates_template', 'subjects_file'])
         else:
             await message.answer('Ничего не удалено.')
     await state.finish()
@@ -89,8 +88,7 @@ async def delete_olympiads(message: types.Message, state: FSMContext):
             olympiads_names.append(name[0] + ' (' + name[1] + ')' + ' ' + str(group['grade'].to_list()))
         if not deleted_olympiads.empty:
             await message.answer('Удалены следующие олимпиады:\n{}'.format('\n'.join(olympiads_names)))
-            change_files(['olympiads_file', 'dates_template'])
-            change_google_docs(['olympiads_file', 'dates_template'])
+            change_users_files(message.from_user.id, ['olympiads_file', 'dates_template'])
         else:
             await message.answer('Ничего не удалено.')
     await state.finish()
@@ -113,7 +111,7 @@ def parsing_olympiads_to_delete(olympiads_to_delete):
     expected_columns = ['Название', 'Предмет']
     if not all(expected_column in olympiads_to_delete.columns.to_list() for expected_column in expected_columns):
         return 0, 'wrong_file'
-    olympiads_codes = []
+    olympiads_ids = []
     olympiads = get_olympiads()
     subjects = get_subjects()
     olympiads = olympiads.join(subjects.set_index('id'), on='subject_id')
@@ -121,6 +119,6 @@ def parsing_olympiads_to_delete(olympiads_to_delete):
         ids = olympiads[(olympiads['name'] == row['Название']) &
                           (olympiads['subject_name'] == row['Предмет'])]['id'].values
         for olympiad_id in ids:
-            olympiads_codes.append(olympiad_id)
+            olympiads_ids.append(olympiad_id)
     status = 'ok'
     return olympiads_ids, status

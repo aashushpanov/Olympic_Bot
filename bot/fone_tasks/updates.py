@@ -58,7 +58,7 @@ def update_missed_olympiads():
         olympiad = pd.DataFrame([name], columns=columns)
         missed_olympiads_to_update = pd.concat([missed_olympiads_to_update, olympiad])
     if not missed_olympiads_to_update.empty:
-        _, = set_missed(missed_olympiads_to_update)
+        _ = set_missed(missed_olympiads_to_update)
 
 
 def create_notifications():
@@ -98,7 +98,7 @@ def create_notifications():
             notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)
             notifications = pd.concat([notifications, notification], axis=0)
     if not notifications.empty:
-        _, = add_notifications(notifications)
+        _ = add_notifications(notifications)
 
 
 def create_question_notifications():
@@ -117,7 +117,7 @@ def create_question_notifications():
             notification = pd.DataFrame([[admin['admin_id'], olympiad_code, message, notify_type]], columns=columns)
             notifications = pd.concat([notifications, notification], axis=0)
         if not notifications.empty:
-            _, = add_notifications(notifications)
+            _ = add_notifications(notifications)
 
 
 async def send_notifications(notifications):

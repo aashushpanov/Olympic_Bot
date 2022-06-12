@@ -7,10 +7,10 @@ from data import config
 from filters import IsExist
 from keyboards.keyboards import callbacks_keyboard, grad_keyboard, literal_keyboard, time_keyboard, time_call, \
     cansel_keyboard
-from utils.db.add import add_class_manager, change_files, class_manager_migrate, set_user_file_format, \
-    change_google_docs
+from utils.db.add import add_class_manager, class_manager_migrate, set_user_file_format, \
+    change_users_files
 from utils.db.get import get_user, get_access, get_admin
-from utils.google_sheets.create import create_file, user_files_update
+from utils.files.tables import user_files_update, create_files
 
 ru_abc = {'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф',
           'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', ' '}
@@ -131,7 +131,7 @@ async def get_grade(message: types.Message, state: FSMContext):
         await state.update_data(grades=grades)
         await RegistrationClassManager.get_literal.set()
         reply_markup = literal_keyboard()
-        await message.answer("Введите литеру своего класса.", reply_markup=reply_markup)
+        await message.answer("Введите литеру класса.", reply_markup=reply_markup)
     else:
         await message.answer('Введите корректный номер класса')
         return
@@ -208,8 +208,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
     create_class_managers_files(user_id)
     user_files_update(user_id)
     await message.answer("Все готово, можете вызвать /menu.")
-    change_files(['cm_file', 'users_file'])
-    change_google_docs(['cm_file', 'users_file'])
+    change_users_files(user_id, ['cm_file', 'users_file'])
 
 
 async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
@@ -228,10 +227,9 @@ async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
     create_class_managers_files(user_id)
     user_files_update(user_id)
     await callback.message.answer("Все готово. Можете вызвать /menu.")
-    change_files(['cm_file', 'users_file'])
-    change_google_docs(['cm_file', 'users_file'])
+    change_users_files(user_id, ['cm_file', 'users_file'])
 
 
 def create_class_managers_files(user_id):
     file_types = ['users_file', 'status_file']
-    create_file(user_id, file_types)
+    create_files(user_id, file_types)

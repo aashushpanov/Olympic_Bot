@@ -1,18 +1,28 @@
 import pandas as pd
 import pygsheets
+import os
 
-from ...utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc
-from ...utils.db.get import get_user_files, get_admin, get_changed_files, get_admins
-from ...utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
+from data.aliases import file_alias
+from data.config import GOOGLE_SERVICE_FILENAME
+from utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc, add_excel_doc_row
+from utils.db.get import get_admin, get_changed_google_files, get_user_google_files
+from utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
     make_class_managers_file, make_answers_file
-from ...utils.files.templates import make_subjects_file
+from utils.files.templates import make_subjects_file
 
-file_alias = {'users_file': 'Список учеников', 'status_file': 'Статус прохождения олимпиад',
-              'subjects_file': 'Список предметов', 'olympiads_file': 'Список олимпиад',
-              'class_managers_file': 'Список классных руководителей', 'answers_file': 'Список вопросов'}
+GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'bot', 'service_files', GOOGLE_SERVICE_FILENAME)
 
 
-def create_file(user_id, file_types: list):
+def create_files(user_id, file_types: list):
+    create_google_file(user_id, file_types)
+    create_excel_file(user_id, file_types)
+
+
+# def change_files(user_id, file_types):
+#     change_google_docs(user_id, file_types)
+
+
+def create_google_file(user_id, file_types: list):
     """
     Он создает электронную таблицу Google Docs, добавляет строку в базу данных, а затем форматирует электронную таблицу.
 
@@ -20,14 +30,15 @@ def create_file(user_id, file_types: list):
     :param file_types: list - список типов файлов, которые вы хотите создать
     :type file_types: list
     """
-    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
+
+    client = pygsheets.authorize(service_account_file=GOOGLE_SERVICE_FILE)
     for file_type in file_types:
-        doc_id, status = add_google_doc_row(user_id, file_type)
+        status = add_google_doc_row(user_id, file_type)
         if status:
             name = file_alias.get(file_type, 'Файл')
             title = '{} #{}'.format(name, user_id)
             spread_sheet = client.create(title)
-            status = add_google_doc_url(doc_id, spread_sheet.url)
+            status = add_google_doc_url(user_id, file_type, spread_sheet.url)
             if status:
                 user = get_admin(user_id)
                 if user['email']:
@@ -36,30 +47,32 @@ def create_file(user_id, file_types: list):
                 file_format(work_sheet, file_type)
 
 
+def create_excel_file(user_id, file_types: list):
+    for file_type in file_types:
+        add_excel_doc_row(user_id, file_type)
+
+
 def user_files_update(user_id):
-    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
-    files = get_user_files(user_id)
-    user = get_admin(user_id)
+    client = pygsheets.authorize(service_file=GOOGLE_SERVICE_FILE)
+    files = get_user_google_files(user_id)
     for _, file in files.iterrows():
-        update_file(client, file, user_id, user['grades'], user['literals'])
+        update_file(client, file, user_id)
 
 
 def update_all_files():
-    changed_files = get_changed_files()
-    admins = get_admins()
-    changed_files = changed_files.join(admins.set_index('admin_id'), on='user_id')
-    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
+    changed_files = get_changed_google_files()
+    client = pygsheets.authorize(service_file=GOOGLE_SERVICE_FILE)
     for _, file in changed_files.iterrows():
-        update_file(client, file, file['user_id'], file['grades'], file['literals'])
+        update_file(client, file, file['user_id'])
 
 
-def update_file(client, user_file, user_id, grades=None, literals=None):
+def update_file(client, user_file, user_id):
     name = file_alias.get(user_file['file_type'], 'Файл')
     match user_file['file_type']:
         case 'users_file':
-            _, data = make_users_file(grades, literals)
+            _, data = make_users_file(user_id)
         case 'status_file':
-            _, data = make_olympiads_status_file(grades, literals)
+            _, data = make_olympiads_status_file(user_id)
         case 'olympiads_file':
             _, data = make_olympiads_with_dates_file()
         case 'class_managers_file':
@@ -70,7 +83,7 @@ def update_file(client, user_file, user_id, grades=None, literals=None):
             _, data = make_subjects_file()
         case _:
             data = pd.DataFrame()
-    title = '{} #{}'.format(name, user_file['no'])
+    title = '{} #{}'.format(name, user_id)
     try:
         spread_sheet = client.open(title)
     except pygsheets.exceptions.SpreadsheetNotFound:
@@ -79,7 +92,7 @@ def update_file(client, user_file, user_id, grades=None, literals=None):
     work_sheet.clear()
     work_sheet.set_dataframe(data, (1, 1))
     file_format(work_sheet, user_file['file_type'])
-    _, = set_updated_google_doc(user_id, user_file['file_type'])
+    _ = set_updated_google_doc(user_id, user_file['file_type'])
 
 
 def file_format(work_sheet, file_type):
@@ -112,7 +125,7 @@ def file_format(work_sheet, file_type):
             work_sheet.adjust_column_width(start=2, end=3, pixel_size=230)
 
         case 'answers_file':
-            pygsheets.datarange.DataRange('A1', 'D1', worksheet=work_sheet).apply_format(cell)
+            pygsheets.datarange.DataRange('A1', 'F1', worksheet=work_sheet).apply_format(cell)
             work_sheet.adjust_column_width(start=1, pixel_size=120)
         case 'subjects_file':
             pygsheets.datarange.DataRange('A1', 'C1', worksheet=work_sheet).apply_format(cell)
@@ -121,13 +134,12 @@ def file_format(work_sheet, file_type):
 def bind_email(user_id):
     admin = get_admin(user_id)
     email = admin['email']
-    files = get_user_files(user_id)
-    client = pygsheets.authorize(service_file='././olympicbot1210-c81dc6c184cb.json')
+    files = get_user_google_files(user_id)
+    client = pygsheets.authorize(service_file=GOOGLE_SERVICE_FILE)
     for _, file in files.iterrows():
         file_type = file['file_type']
-        no = file['no']
         name = file_alias.get(file_type, 'Файл')
-        title = '{} #{}'.format(name, no)
+        title = '{} #{}'.format(name, user_id)
         spread_sheet = client.open(title)
         to_remove_permissions = []
         for user in spread_sheet.permissions:
