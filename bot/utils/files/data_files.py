@@ -1,7 +1,8 @@
 import pandas as pd
 
+from data.aliases import status_codes
 from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers, \
-    get_class_managers, get_admins
+    get_class_managers, get_admins, get_cm_keys, get_all_cm_keys
 
 
 def make_users_file(user_id):
@@ -58,7 +59,7 @@ def make_olympiads_with_dates_file():
     return file_path, olympiads_file
 
 
-def make_olympiads_status_file(user_id):
+def make_olympiads_status_file(user_id=None, teaching=None):
     file_path = 'bot/data/files/to_send/status_file.xlsx'
     users = get_users()
     olympiads = get_olympiads()
@@ -76,18 +77,11 @@ def make_olympiads_status_file(user_id):
         grade = str(olympiad_status['grade']) + literal
         olympiad_name = olympiad_status['name']
         subject = olympiad_status['subject_name']
-        key = olympiad_status['key']
-        match olympiad_status['status_code']:
-            case 0:
-                status = 'Добавлена'
-            case 1:
-                status = 'Зарегистрирован'
-            case 2:
-                status = 'Пройдена'
-            case -1:
-                status = 'Пропущена'
-            case _:
-                status = 'Не определен'
+        if teaching:
+            key = "Взят" if olympiad_status['key'] else ""
+        else:
+            key = olympiad_status['key']
+        status = status_codes.get(olympiad_status['status_code'], 'Не определен')
         new_olympiad_status = pd.DataFrame([[f_name, l_name, grade, olympiad_name, subject, key, status]],
                                            columns=columns)
         status_file = pd.concat([status_file, new_olympiad_status], axis=0)
@@ -114,3 +108,26 @@ def make_answers_file():
         answers_file = pd.concat([answers_file, answer_row], axis=0)
     answers_file.to_excel(file_path, index=False)
     return file_path, answers_file
+
+
+def make_cm_key_file(cm_id):
+    file_path = 'bot/data/files/to_send/cm_key_file.xlsx'
+    columns = ['Олимпиада', 'Класс', 'Ключ', 'Метка']
+    cm_key_file = get_cm_keys(cm_id)
+    cm_key_file = cm_key_file.fillna('')
+    cm_key_file.columns = columns
+    cm_key_file.to_excel(file_path, index=False)
+    return file_path, cm_key_file
+
+
+def make_all_cm_key_file():
+    file_path = 'bot/data/files/to_send/all_cm_key_file.xlsx'
+    columns = ['ФИО', 'Олимпиада', 'Класс', 'Ключ', 'Метка']
+    cm_key_file = get_all_cm_keys()
+    cm_key_file['fio'] = cm_key_file.apply(lambda row: '{} {}'.format(row['l_name'], row['f_name']))
+    cm_key_file = cm_key_file.fillna('')
+    cm_key_file = cm_key_file.drop(['l_name', 'f_name'])
+    cm_key_file = cm_key_file.reindex(columns=['fio', 'olympiad_name', 'grade', 'key', 'label'])
+    cm_key_file.columns = columns
+    cm_key_file.to_excel(file_path, index=False)
+    return file_path, cm_key_file

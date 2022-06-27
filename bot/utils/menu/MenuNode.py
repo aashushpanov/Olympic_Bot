@@ -33,6 +33,10 @@ class MenuNode(BaseNode):
     def text(self):
         return self._text
 
+    @text.setter
+    def text(self, text):
+        self._text = text
+
     async def childs_data(self, **kwargs):
         for child in self._childs:
             yield child.id, child.text, child.callback
@@ -109,12 +113,14 @@ class NodeGenerator(MenuNode):
     def append(self, node):
         self._reg_nodes.append(node)
 
-    def add_blind_node(self, node_id, type='simple', func=None, row_width=1):
+    def add_blind_node(self, node_id, type='simple', func=None, row_width=1, text=None):
         node_id = self.id + '_' + node_id
         if type == 'simple':
             self._blind_node = BlindNode(node_id, self, row_width=row_width)
         if type == 'generator':
-            self._blind_node = NodeGenerator(text='gen', func=func, id=node_id)
+            if text is None:
+                text = 'Меню'
+            self._blind_node = NodeGenerator(text=text, func=func, id=node_id)
         self._blind_node._parent = self
 
     def set_sub_child(self, sub_child):

@@ -11,7 +11,6 @@ from utils.db.add import set_keys
 from utils.db.get import get_olympiads, get_subjects
 from utils.menu.admin_menu import set_keys_call
 
-
 load_keys_to_db_call = CallbackData('load_keys_to_db')
 
 
@@ -63,8 +62,7 @@ async def confirm_keys_file(message: types.Message, state: FSMContext):
                                  .format('\n'.join([subject + ': ' + str(olympiads)
                                                     for subject, olympiads in conflict_subjects.items()])))
         if not keys.empty:
-            await message.answer('''Ключи для {}-х классов готовы к загрузке, убедитесь в правильности файла.\n\n
-            Найдены следующие предметы:\n{}\n\nЗагрузить?'''
+            await message.answer("Ключи для {}-х классов готовы к загрузке, убедитесь в правильности файла.\n\nНайдены следующие предметы:\n{}\n\nЗагрузить?"
                                  .format(grade, '\n'.join([' '.join(olympiad) for olympiad in res_string])),
                                  reply_markup=yes_no_keyboard(callback=load_keys_to_db_call.new()))
 
@@ -95,27 +93,27 @@ def parce_keys(keys_file, grade):
     keys_subjects = list(keys_file.columns.values)
     olympiads = get_olympiads()
     subjects = get_subjects()
-    olympiads = olympiads.join(subjects.set_index('code'), on='subject_code')
+    olympiads = olympiads.join(subjects.set_index('id'), on='subject_id', rsuffix='_subject')
     olympiads = olympiads[olympiads['grade'] == grade]
     conflict_subjects = {}
     non_existent_olympiads = []
-    columns = ['olympiad_code', 'no', 'key']
+    columns = ['olympiad_id', 'no', 'key']
     keys = pd.DataFrame(columns=columns)
     keys_count = {}
     keys_nums = {}
     for keys_subject in keys_subjects:
-        target_olympiads = olympiads[(olympiads['subject_name'] == keys_subject) & (olympiads['key_needed'] == 1)]
+        target_olympiads = olympiads[(olympiads['name_subject'] == keys_subject) & (olympiads['key_needed'] == 1)]
         if target_olympiads.shape[0] == 0:
             non_existent_olympiads.append(keys_subject)
         elif target_olympiads.shape[0] > 1:
             conflict_subjects[keys_subject] = list(target_olympiads['name'].values)
         else:
             key_list = keys_file[keys_subject].values
-            olympiad_code = target_olympiads['code'].iloc[0]
-            count = olympiads[olympiads['code'] == olympiad_code]['keys_count'].iloc[0]
-            subject_keys = pd.DataFrame([[olympiad_code, i, key] for i, key in enumerate(key_list)], columns=columns)
+            olympiad_id = target_olympiads['id'].iloc[0]
+            count = olympiads[olympiads['id'] == olympiad_id]['keys_count'].iloc[0]
+            subject_keys = pd.DataFrame([[olympiad_id, i, key] for i, key in enumerate(key_list)], columns=columns)
             subject_keys['no'] = subject_keys['no'] + count
             keys = pd.concat([keys, subject_keys])
-            keys_count[olympiad_code] = int(count) + len(key_list)
+            keys_count[olympiad_id] = int(count) + len(key_list)
             keys_nums[keys_subject] = str(len(key_list)) + ' ключей'
     return keys, conflict_subjects, non_existent_olympiads, keys_count, keys_nums

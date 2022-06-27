@@ -1,4 +1,5 @@
 import datetime as dt
+import math
 
 from aiogram import Dispatcher, types
 from aiogram.utils.callback_data import CallbackData
@@ -30,23 +31,35 @@ def register_olympiad_options_handlers(dp: Dispatcher):
 async def get_dates(callback: types.CallbackQuery, callback_data: dict):
     olympiad = get_olympiad(callback_data.get('data'))
     start_date = olympiad['start_date']
-    finish_date = olympiad['finish_date']
-    status = 'проходила ' if dt.date.today() > finish_date else 'проходит '
-    if start_date == finish_date:
-        dates = finish_date.strftime('%d.%m.%y')
+    end_date = olympiad['end_date']
+    status = 'проходила ' if dt.date.today() > end_date else 'проходит '
+    if start_date == end_date:
+        dates = end_date.strftime('%d.%m.%y')
     else:
-        dates = 'с ' + start_date.strftime('%d.%m.%y') + ' по ' + finish_date.strftime('%d.%m.%y')
+        dates = 'с ' + start_date.strftime('%d.%m.%y') + ' по ' + end_date.strftime('%d.%m.%y')
     await callback.answer('Олимпиада ' + status + dates, show_alert=True)
 
 
 async def get_key(callback: types.CallbackQuery, callback_data: dict):
     user_id = callback.from_user.id
     olympiad_id = callback_data.get('data')
-    stage = get_olympiad(olympiad_id)['stage']
+    olympiad = get_olympiad(olympiad_id)
+    if olympiad['keys_count'] == 0:
+        await callback.answer('К сожалению, ключи на эту олимпиаду закончились. Обратитесь к классному руководителю.',
+                              show_alert=True)
+        return
+    if olympiad['keys_count'] is None:
+        await callback.answer('Ключи для этой олимпиады еще не загружены.', show_alert=True)
+        return
+    stage = olympiad['stage']
     key_id = get_olympiad_status(user_id, olympiad_id, stage)['key_id']
-    if key_id:
-        key = get_key_from_db(user_id, olympiad_id, stage)
-        change_users_files(callback.from_user.id, ['status_file'])
+    if math.isnan(key_id):
+        key, status = get_key_from_db(user_id, olympiad_id, stage)
+        if status:
+            change_users_files(callback.from_user.id, ['status_file'])
+        else:
+            await callback.answer('К сожалению, ключ получить не удалось', show_alert=True)
+            return
     else:
         key = get_key_by_id(key_id)
     if key:

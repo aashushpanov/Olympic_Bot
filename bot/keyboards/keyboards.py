@@ -1,3 +1,4 @@
+import pandas as pd
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ReplyKeyboardMarkup
@@ -14,6 +15,8 @@ olympiad_call = CallbackData('olympiad', 'data')
 grade_call = CallbackData('grade', 'data')
 time_call = CallbackData('time', 'data')
 choose_admin_call = CallbackData('choose_admin', 'data')
+pages_keyboard_call = CallbackData('pk', 'data')
+page_move_call = CallbackData('page_move', 'data')
 
 
 def keyboard_handlers(dp: Dispatcher):
@@ -105,7 +108,7 @@ def time_keyboard():
 def olympiads_keyboard(subject):
     markup = InlineKeyboardMarkup(row_width=1)
     olympiads = get_olympiads()
-    for name, group in olympiads[(olympiads['subject_code'] == subject) & (olympiads['active'] == 1)].groupby('name'):
+    for name, group in olympiads[(olympiads['subject_id'] == subject) & (olympiads['is_active'] == 1)].groupby('name'):
         markup.insert(InlineKeyboardButton(text=name, callback_data=olympiad_call.new(data=name)))
     return markup
 
@@ -126,3 +129,53 @@ def admins_keyboard():
         markup.insert(InlineKeyboardButton(text=admin_name, callback_data=choose_admin_call.new(data=admin_id)))
     markup.insert(InlineKeyboardButton(text='Задать всем', callback_data=choose_admin_call.new(data='all')))
     return markup
+
+
+def pages_keyboard(list_of_instance: pd.DataFrame, callback_column: str, text_column: str, page: int, height: int = 5):
+    """
+    Он принимает фрейм данных, столбец для использования в качестве данных обратного вызова, столбец для использования в
+    качестве текста, текущую страницу и количество строк на странице и возвращает клавиатуру со строками фрейма данных в
+    качестве кнопок.
+
+    :param list_of_instance: pd.DataFrame — кадр данных, содержащий данные, которые вы хотите отобразить
+    :type list_of_instance: pd.DataFrame
+    :param callback_column: столбец в кадре данных, который содержит данные обратного вызова
+    :type callback_column: str
+    :param text_column: столбец в кадре данных, содержащий текст, который будет отображаться на кнопке
+    :type text_column: str
+    :param page: int - номер страницы
+    :type page: int
+    :param height: количество строк для отображения на странице, defaults to 5
+    :type height: int (optional)
+    :return: Объект InlineKeyboardMarkup
+    """
+    if list_of_instance.shape[0] - (page + 1) * height == 1:
+        top = (page + 1) * height + 1
+        last_page = True
+    else:
+        top = (page + 1) * height
+        last_page = False
+    if list_of_instance.shape[0] < (page + 1) * height:
+        last_page = True
+    page_list = list_of_instance.iloc[height*page:top]
+    markup = InlineKeyboardMarkup(row_width=1)
+    for _, row in page_list.iterrows():
+        markup.insert(InlineKeyboardButton(text=row[text_column],
+                                           callback_data=pages_keyboard_call.new(data=row[callback_column])))
+    left_btn = None
+    right_btn = None
+    if page != 1:
+        left_btn = InlineKeyboardButton(text='\U000025C0', callback_data=page_move_call.new(data='decr'))
+    if not last_page:
+        right_btn = InlineKeyboardButton(text='\U000025B6', callback_data=page_move_call.new(data='incr'))
+    if right_btn and left_btn:
+        markup.row(left_btn, right_btn)
+    else:
+        if left_btn:
+            btn = left_btn
+        else:
+            btn = right_btn
+        markup.row(btn)
+    return markup
+
+

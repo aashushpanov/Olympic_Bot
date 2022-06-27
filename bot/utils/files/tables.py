@@ -7,7 +7,7 @@ from data.config import GOOGLE_SERVICE_FILENAME
 from utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc, add_excel_doc_row
 from utils.db.get import get_admin, get_changed_google_files, get_user_google_files
 from utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
-    make_class_managers_file, make_answers_file
+    make_class_managers_file, make_answers_file, make_cm_key_file
 from utils.files.templates import make_subjects_file
 
 GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'bot', 'service_files', GOOGLE_SERVICE_FILENAME)
@@ -81,6 +81,8 @@ def update_file(client, user_file, user_id):
             _, data = make_answers_file()
         case 'subjects_file':
             _, data = make_subjects_file()
+        case 'cm_key_file':
+            _, data = make_cm_key_file(user_id)
         case _:
             data = pd.DataFrame()
     title = '{} #{}'.format(name, user_id)
@@ -129,6 +131,10 @@ def file_format(work_sheet, file_type):
             work_sheet.adjust_column_width(start=1, pixel_size=120)
         case 'subjects_file':
             pygsheets.datarange.DataRange('A1', 'C1', worksheet=work_sheet).apply_format(cell)
+        case 'cm_key_file':
+            pygsheets.datarange.DataRange('A1', 'D1', worksheet=work_sheet).apply_format(cell)
+            work_sheet.adjust_column_width(start=2, pixel_size=50)
+            work_sheet.adjust_column_width(start=4, pixel_size=50)
 
 
 def bind_email(user_id):

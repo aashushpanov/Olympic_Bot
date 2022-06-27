@@ -2,21 +2,24 @@ from aiogram.utils.callback_data import CallbackData
 
 from utils.menu.MenuNode import MenuNode, NodeGenerator
 from utils.menu.admin_menu import set_excel_format_call, set_google_doc_format_call, change_email_call
-from utils.menu.generator_functions import get_download_options
+from utils.menu.generator_functions import get_download_options, get_file_call
 from utils.menu.user_menu import change_notify_time_call, show_personal_data_call
 
 get_cm_status_file_call = CallbackData('get_cm_status_file')
 get_cm_users_file_call = CallbackData('get_cm_status_file_call')
 migrate_call = CallbackData('migrate')
+delete_personal_data_call = CallbackData('delete_personal_data')
+get_key_for_class_call = CallbackData('get_key_for_class')
+taken_keys_call = CallbackData('taken_keys')
 
 
 def set_class_manager_menu():
-    class_manager_menu = MenuNode(id='cm_menu')
+    class_manager_menu = MenuNode(id='cm_menu', text='Меню')
 
     class_manager_menu.set_childs([
         MenuNode('Личные данные'),
-        NodeGenerator('Данные по классу', func=get_download_options),
-        MenuNode('Перейти на новую версию', migrate_call.new())
+        NodeGenerator('Данные учеников', func=get_download_options),
+        MenuNode('Взять ключи ВСОШ', callback=get_key_for_class_call.new())
     ])
     class_manager_menu.child(text='Данные по классу').add_blind_node('cm_dl_opt')
 
@@ -24,7 +27,8 @@ def set_class_manager_menu():
         MenuNode('Личные данные', callback=show_personal_data_call.new()),
         MenuNode('Установить время для уведомлений', callback=change_notify_time_call.new()),
         MenuNode('Изменить почту', callback=change_email_call.new()),
-        MenuNode('Формат выгружаемых данных')
+        MenuNode('Формат выгружаемых данных'),
+        MenuNode('Удалить себя из системы', callback=delete_personal_data_call.new())
     ])
 
     class_manager_menu.child(text='Личные данные').child(text='Формат выгружаемых данных').set_childs([

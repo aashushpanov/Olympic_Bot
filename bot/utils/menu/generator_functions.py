@@ -1,5 +1,6 @@
 from aiogram.utils.callback_data import CallbackData
 
+from data.aliases import file_alias
 from utils.db.get import get_admin, get_olympiads_by_status, get_olympiads, get_subjects, get_user, \
     get_tracked_olympiads, get_olympiad, get_olympiad_status, get_user_google_files, get_user_excel_files
 from utils.menu.MenuNode import MenuNode, move
@@ -11,10 +12,6 @@ confirm_execution_question_call = CallbackData('confirm_execution_qw', 'data')
 del_interest_call = CallbackData('del_subj', 'data')
 get_file_call = CallbackData('get_file', 'type')
 update_file_call = CallbackData('update_file', 'type')
-
-files_alias = {'users_file': 'Список учеников', 'status_file': 'Статус прохождения олимпиад',
-               'subjects_file': 'Список предметов', 'olympiads_file': 'Список олимпиад',
-               'class_managers_file': 'Список классных руководителей', 'answers_file': 'Список вопросов'}
 
 
 async def get_download_options(_, **kwargs):
@@ -28,7 +25,7 @@ async def get_download_options(_, **kwargs):
     else:
         files = get_user_excel_files(user_id)
         for _, file in files.iterrows():
-            yield MenuNode(files_alias[file['file_type']], callback=get_file_call.new(type=file['file_type']))
+            yield MenuNode(file_alias[file['file_type']], callback=get_file_call.new(type=file['file_type']))
 
 
 def make_get_files_menu(files):
@@ -38,7 +35,7 @@ def make_get_files_menu(files):
             callback = update_file_call.new(type=file['file_type'])
         else:
             callback = file['url']
-        nodes.append(MenuNode(files_alias[file['file_type']], callback=callback))
+        nodes.append(MenuNode(file_alias[file['file_type']], callback=callback))
     return nodes
 
 
@@ -79,27 +76,49 @@ async def get_my_olympiads(node, **kwargs):
             yield MenuNode(text=text, callback=move.new(action='d', node=next_node, data=olympiad['id'], width=1))
 
 
-async def register_olympiads_options(_, **kwargs):
+async def get_my_olympiads_with_keys(node, **kwargs):
+    user_id = kwargs.get('callback').message.chat.id
+    my_olympiads_ids = get_tracked_olympiads(user_id)['olympiad_id'].values
+    user_grade = get_user(user_id)['grade']
+    olympiads = get_olympiads()
+    olympiads = olympiads[olympiads['id'].isin(my_olympiads_ids) & olympiads['key_needed'] == 1]
+    if not olympiads.empty:
+        for _, olympiad in olympiads.iterrows():
+            olympiad_grade = olympiad['grade']
+            text = olympiad['name']
+            if user_grade != olympiad_grade:
+                text += ' (за {} класс)'.format(olympiad_grade)
+            if olympiad['is_active'] == 0:
+                text += ' (прошла)'
+            yield MenuNode(text=text, callback=get_key_call.new(data=olympiad['id']))
+
+
+async def register_olympiads_options(node, **kwargs):
     callback = kwargs.get('callback')
     olympiad_id = kwargs.get('data')
     olympiad = get_olympiad(olympiad_id)
+    node.text = olympiad['name']
     stage = olympiad['stage']
     olympiad_status = get_olympiad_status(callback.from_user.id, olympiad_id, stage)
     reg_url = olympiad['urls'].get('reg_url')
     site_url = olympiad['urls'].get('site_url')
+    ol_url = olympiad['urls'].get('ol_url')
     nodes = []
-    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle' and reg_url and olympiad['active']:
+    if olympiad['pre_registration'] and olympiad_status['status_code'] == 0 and reg_url and olympiad['is_active']:
         nodes.append(MenuNode(text='Зарегистрироваться', callback=reg_url))
     if site_url:
         nodes.append(MenuNode(text='Сайт олимпиады', callback=site_url))
-    if olympiad['key_needed'] and olympiad['keys_count'] and olympiad['active']:
+    if ol_url and olympiad['is_active']:
+        nodes.append(MenuNode(text='Пройти олимпиаду', callback=ol_url))
+    if olympiad['key_needed'] and olympiad['keys_count'] and olympiad['is_active']:
         nodes.append(MenuNode(text='Получить ключ', callback=get_key_call.new(data=olympiad_id)))
-    if olympiad['pre_registration'] and olympiad_status['status'] == 'idle' and olympiad['active']:
+    if olympiad['pre_registration'] and olympiad_status['status_code'] == 0 and olympiad['is_active']:
         nodes.append(MenuNode(text='Подтвердить регистрацию',
                               callback=confirm_registration_question_call.new(data=olympiad_id)))
-    if olympiad_status['status'] == 'reg' and olympiad['active']:
+    if olympiad_status['status_code'] == 1 and olympiad['is_active']:
         nodes.append(MenuNode(text='Подтвердить участие',
                               callback=confirm_execution_question_call.new(data=olympiad_id)))
     nodes.append(MenuNode(text='Узнать даты проведения', callback=get_dates_call.new(data=olympiad_id)))
     for node in nodes:
         yield node
+

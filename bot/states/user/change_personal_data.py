@@ -58,7 +58,7 @@ async def change_name_start(callback: types.CallbackQuery):
     user = get_user(callback.from_user.id)
     class_manager = get_class_manager_by_grade(user['grade'], user['literal'])
     if class_manager.empty:
-        await callback.message.answer('Ваш классный руководитель еще не зарегистрирован.')
+        await callback.answer('Ваш классный руководитель еще не зарегистрирован.', show_alert=True)
         return
     await callback.message.answer('Введите имя.')
     await ChangePersonalData.change_first_name.set()

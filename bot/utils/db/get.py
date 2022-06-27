@@ -100,19 +100,12 @@ def get_key_by_id(key_id):
     """
     with database() as (cur, conn, status):
         sql = "SELECT key FROM keys WHERE id = %s"
-        cur.execute(sql, [key_id])
+        cur.execute(sql, [int(key_id)])
         key = cur.fetchone()[0]
     return key
 
 
-def get_all_olympiads_status(user_id=None):
-    """
-    Он возвращает кадр данных всех статусов олимпиад всех пользователей в том же классе, что и user_id, переданный в
-    функцию.
-
-    :param user_id: Идентификатор пользователя, который запрашивает данные
-    :return: Датафрейм со всеми статусами олимпиад
-    """
+def get_all_olympiads_status(user_id=None, teaching=False):
     columns = ['olympiad_id', 'user_id', 'stage', 'key', 'result_code', 'status_code', 'action_timestamp']
     with database() as (cur, conn, status):
         if user_id is None:
@@ -120,11 +113,19 @@ def get_all_olympiads_status(user_id=None):
                   " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id"
             cur.execute(sql)
         else:
-            sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
-                  " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id" \
-                  " WHERE user_id = ANY(SELECT user_id FROM user_refer_grade" \
-                  " WHERE grade_id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s))" \
-                  " AND user_id = ANY(SELECT user_id FROM users WHERE is_admin = 0) "
+            if teaching:
+                sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
+                      " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id" \
+                      " WHERE user_id = ANY(SELECT user_id FROM user_refer_grade" \
+                      " WHERE grade_id = ANY(SELECT grade_id FROM teaching WHERE user_id = %s)) AND" \
+                      " olympiad_id = ANY(SELECT olympiad_id FROM olympiads WHERE" \
+                      " subject_id = ANY(SELECT subject_id FROM teaching WHERE user_id = %s))"
+            else:
+                sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
+                      " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id" \
+                      " WHERE user_id = ANY(SELECT user_id FROM user_refer_grade" \
+                      " WHERE grade_id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s))" \
+                      " AND user_id = ANY(SELECT user_id FROM users WHERE is_admin = 0) "
             cur.execute(sql, [user_id])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=columns)
@@ -234,7 +235,69 @@ def get_class_manager_by_grade(grade, literal):
               " WHERE grade_num = %s AND grade_literal = %s) AND is_admin = 2"
         cur.execute(sql, [grade, literal])
         res = cur.fetchone()
-    data = pd.Series(res, index=['admin_id', 'f_name', 'l_name'])
+    if res is None:
+        data = pd.Series([], dtype='object')
+    else:
+        data = pd.Series(res, index=['admin_id', 'f_name', 'l_name'])
+    return data
+
+
+def get_class_managers_grades(cm_id):
+    """
+    Эта функция возвращает кадр данных всех оценок, за которые отвечает классный руководитель.
+
+    :param cm_id: id руководителя класса
+    :return: Фрейм данных сgrade_id,grade_num иgrade_literal оценок, с которыми связан менеджер классов.
+    """
+    with database() as (cur, conn, status):
+        sql = "SELECT id, grade_num, grade_literal FROM grades WHERE id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s)"
+        cur.execute(sql, [cm_id])
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['grade_id', 'grade_num', 'grade_literal'])
+    return data
+
+
+def get_cm_keys_limit(cm_id, olympiad_name, grade_num):
+    with database() as (cur, conn, status):
+        sql = "SELECT id FROM olympiads WHERE name = %s AND grade = %s"
+        cur.execute(sql, [olympiad_name, grade_num])
+        olympiad_id = cur.fetchone()[0]
+        sql = "SELECT key_remains FROM cm_key_limits WHERE user_id = %s AND olympiad_id = %s"
+        cur.execute(sql, [cm_id, olympiad_id])
+        res_1 = cur.fetchone()
+        sql = "SELECT keys_count FROM olympiads WHERE id = %s"
+        cur.execute(sql, [olympiad_id])
+        res_2 = cur.fetchone()
+        if res_1[0] and res_2[0]:
+            res = min(res_1[0], res_2[0])
+        else:
+            res = 0
+    return res, olympiad_id
+
+
+def get_cm_keys(cm_id):
+    with database() as (cur, conn, status):
+        sql = "SELECT name, grade, key, label FROM cm_keys LEFT JOIN keys ON keys.id = cm_keys.key_id" \
+              " LEFT JOIN olympiads ON keys.olympiad_id = olympiads.id WHERE user_id = %s"
+        cur.execute(sql, [cm_id])
+        res = cur.fetchall()
+        if res:
+            data = pd.DataFrame(res, columns=['olympiad_name', 'grade', 'key', 'label'])
+        else:
+            data = pd.DataFrame()
+    return data
+
+
+def get_all_cm_keys():
+    with database() as (cur, conn, status):
+        sql = "SELECT f_name, l_name, name, grade, key, label FROM cm_keys LEFT JOIN keys ON keys.id = cm_keys.key_id" \
+              " LEFT JOIN olympiads ON keys.olympiad_id = olympiads.id LEFT JOIN users ON users.id = cm_keys.user_id "
+        cur.execute(sql)
+        res = cur.fetchall()
+        if res:
+            data = pd.DataFrame(res, columns=['f_name', 'l_name', 'olympiad_name', 'grade', 'key', 'label'])
+        else:
+            data = pd.DataFrame()
     return data
 
 
@@ -306,7 +369,7 @@ def get_olympiads():
         data = pd.DataFrame(res, columns=['id', 'name', 'code', 'subject_id', 'stage', 'start_date', 'end_date',
                                           'is_active', 'grade', 'key_needed', 'pre_registration', 'urls', 'keys_count'])
         data['stage'] = data['stage'].fillna(-1)
-        data['keys_count'] = data['key_count'].fillna(0)
+        data['keys_count'] = data['keys_count'].fillna(0)
         data[['key_needed', 'pre_registration']] = data[['key_needed', 'pre_registration']].fillna(0)
         data = data.astype({'stage': 'int32', 'grade': 'int32', 'pre_registration': 'int32',
                             'key_needed': 'int32', 'keys_count': 'int32'})
@@ -355,6 +418,7 @@ def get_key_from_db(user_id, olympiad_id, stage):
     :param stage: 1 - регистрация, 2 - первый этап, 3 - второй этап, 4 - третий этап
     :return: ключ, статус.статус
     """
+    key = ""
     with database() as (cur, conn, status):
         sql = "SELECT key, id FROM keys WHERE olympiad_id = %s AND id =" \
               " (SELECT MAX(id) FROM keys WHERE olympiad_id = %s AND is_taken = 0)"
@@ -363,7 +427,7 @@ def get_key_from_db(user_id, olympiad_id, stage):
         key = res[0]
         key_id = res[1]
         sql = "UPDATE olympiads_status SET key_id = %s WHERE user_id = %s AND stage = %s AND olympiad_id = %s"
-        cur.execute(sql, [key, user_id, stage, olympiad_id])
+        cur.execute(sql, [key_id, user_id, stage, olympiad_id])
         sql = "UPDATE olympiads SET keys_count = keys_count - 1 WHERE id = %s"
         cur.execute(sql, [olympiad_id])
         sql = "UPDATE keys SET is_taken = 1 WHERE olympiad_id = %s AND id = %s"

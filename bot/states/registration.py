@@ -1,10 +1,12 @@
 import pandas as pd
+from _cffi_backend import callback
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.utils.callback_data import CallbackData
 
 from data import config
+from data.config import PERSONAL_AGREEMENT
 from filters import IsExist, TimeAccess
 from filters.filters import delete_message
 from keyboards.keyboards import callbacks_keyboard, cansel_keyboard, grad_keyboard, time_keyboard, literal_keyboard, \
@@ -52,6 +54,8 @@ class Registration(StatesGroup):
     get_l_name = State()
     get_grade = State()
     get_literal = State()
+    get_grade_quantity = State()
+    ask_teaching = State()
     get_subjects = State()
     get_interest = State()
     get_notifications_time = State()
@@ -75,13 +79,18 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(get_l_name, state=Registration.get_l_name)
     dp.register_message_handler(get_grade, state=Registration.get_grade)
     dp.register_message_handler(get_literal, state=Registration.get_literal)
+    dp.register_message_handler(get_grade_quantity, state=Registration.get_grade_quantity)
 
     dp.register_callback_query_handler(add_extra_grade, add_extra_grade_call.filter(),
                                        state=Registration.get_literal)
+    dp.register_callback_query_handler(add_extra_grade, add_extra_grade_call.filter(),
+                                       state=Registration.get_grade_quantity)
     dp.register_callback_query_handler(ask_teaching, confirm_grades_call.filter(),
                                        state=Registration.get_literal)
+    dp.register_callback_query_handler(ask_teaching, confirm_grades_call.filter(),
+                                       state=Registration.get_grade_quantity)
     dp.register_callback_query_handler(ask_subject, get_subject_call.filter(),
-                                       state=Registration.get_literal)
+                                       state=Registration.ask_teaching)
     dp.register_callback_query_handler(ask_subject, add_extra_subject_call.filter(), state=Registration.get_literal)
     dp.register_callback_query_handler(get_teaching_subjects, add_interest_call.filter(),
                                        state=Registration.get_subjects)
@@ -97,7 +106,7 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(personal_data_agreement, personal_data_agreement_call.filter(), TimeAccess(1),
                                        state=Registration.personal_data_agreement)
     dp.register_callback_query_handler(ask_notification_time, skip_teaching_call.filter(),
-                                       state=Registration.get_subjects)
+                                       state=Registration.ask_teaching)
 
     dp.register_message_handler(get_email, state=Registration.get_email)
     dp.register_callback_query_handler(get_email, skip_email_call.filter(), state=Registration.get_email)
@@ -207,8 +216,8 @@ async def get_l_name(message: types.Message, state: FSMContext):
         return
     await message.answer("Введите номер класса", reply_markup=keyword)
     if access == 2:
-        await state.update_data(grades=[])
-        await state.update_data(literals=[])
+        await state.update_data(grades=[], literals=[], quantity=[])
+
     if access == 1:
         await Registration.get_subjects.set()
     else:
@@ -253,23 +262,15 @@ async def get_literal(message: types.Message, state: FSMContext):
                 subject_str = f'{name}: {grades}'
                 subjects_list.append(subject_str)
             text = 'Выбранные предметы:\n\n{}'.format('\n\n'.join(subjects_list))
-            markup = callbacks_keyboard(texts=['Еще один класс', 'Еще один предмет', 'Закончить'],
+            markup = callbacks_keyboard(texts=['Еще один класс', 'Еще один предмет', 'Закончить выбор'],
                                         callbacks=[add_extra_grade_call.new(), add_extra_subject_call.new(),
                                                    confirm_subjects_call.new()])
             await message.answer(text, reply_markup=markup)
         elif data.get('access') == 2:
-            literals = data.get('literals')
-            grades = data.get('grades')
-            literals.append(message.text)
-            await state.update_data(literals=literals)
-            if len(literals) == 1:
-                text = 'Выбран {} класс'
-            else:
-                text = 'Выбраны {} классы'
-            grades = [str(grades[i]) + literals[i] for i in range(len(literals))]
-            markup = callbacks_keyboard(texts=['Еще один класс', 'Дальше'],
-                                        callbacks=[add_extra_grade_call.new(), confirm_grades_call.new()])
-            await message.answer(text.format(', '.join(grades)), reply_markup=markup)
+            async with state.proxy() as data:
+                data['literals'].append(message.text.upper())
+            await Registration.get_grade_quantity.set()
+            await message.answer('Введите численность этого класса')
         elif data.get('access') == 0:
             await state.update_data(literal=message.text.upper())
             await Registration.get_interest.set()
@@ -278,6 +279,30 @@ async def get_literal(message: types.Message, state: FSMContext):
     else:
         await message.answer('Введите корректную литеру класса')
         return
+
+
+async def get_grade_quantity(message: types.Message, state: FSMContext):
+    try:
+        quantity = int(message.text)
+    except ValueError:
+        await message.answer('Неправильный формат численности класса.')
+        return
+    if 4 < quantity < 50:
+        async with state.proxy() as data:
+            literals = data['literals']
+            grades = data['grades']
+            data['quantity'].append(quantity)
+            quantity = data['quantity']
+        if len(literals) == 1:
+            text = 'Выбран класс {}'
+        else:
+            text = 'Выбранные классы: {}'
+        grades = ['{}{}: {}чел.'.format(grades[i], literals[i], quantity[i]) for i in range(len(literals))]
+        markup = callbacks_keyboard(texts=['Еще один класс', 'Закончить выбор'],
+                                    callbacks=[add_extra_grade_call.new(), confirm_grades_call.new()])
+        await message.answer(text.format(', '.join(grades)), reply_markup=markup)
+    else:
+        await message.answer('Неправильный формат численности класса.')
 
 
 async def add_extra_grade(callback: types.CallbackQuery):
@@ -295,13 +320,15 @@ async def add_interest(callback: types.CallbackQuery, state: FSMContext, callbac
     await callback.answer('Запомним')
 
 
-async def ask_teaching(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
+async def ask_teaching(callback: types.CallbackQuery):
     await callback.message.delete_reply_markup()
     await callback.answer()
-    texts = ['Да', 'Нет']
+    texts = ['Добавить', 'Пропустить']
     callbacks = [get_subject_call.new(), skip_teaching_call.new()]
+    await Registration.ask_teaching.set()
     reply_markup = callbacks_keyboard(texts=texts, callbacks=callbacks)
-    await callback.message.answer('Вы преподаете в школе?', reply_markup=reply_markup)
+    await callback.message.answer('Если вы преподаете в школе, можно добавить отслеживание олимпиад'
+                                  ' у ваших учеников по выбранному предмету.', reply_markup=reply_markup)
 
 
 async def ask_subject(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
@@ -349,7 +376,7 @@ async def get_notifications_time(callback: types.CallbackQuery, state: FSMContex
         await callback.message.answer('Введите почту. (Для подключения Google таблиц)', reply_markup=markup)
     else:
         markup = yes_no_keyboard(callback=personal_data_agreement_call.new())
-        url = "https://docs.google.com/document/d/1EgF13-M14QiQZYCjp0U2Eq4Q4B-401YbT9X-n0WJ_iw/edit?usp=sharing"
+        url = PERSONAL_AGREEMENT
         await callback.message.answer('''Вы согласны на <a href="{}">обработку персональных данных</a>?'''.format(url),
                                       reply_markup=markup, parse_mode='HTML')
         await Registration.personal_data_agreement.set()
@@ -360,8 +387,12 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
     match message:
         case types.Message():
             email = message.text
+            if not email.__contains__('@') or not email.__contains__('.'):
+                markup = callbacks_keyboard(texts=['Пропустить'], callbacks=[skip_email_call.new()])
+                await message.answer('Введите корректную почту', reply_markup=markup)
+                return
         case types.CallbackQuery():
-            email = ''
+            email = None
             message = message.message
         case _:
             email = None
@@ -382,13 +413,16 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
     if access == 2:
         literals = user.get('literals')
         grades = user.get('grades')
-        status = add_class_manager(user_id, user['f_name'], user['l_name'], grades, literals, user['time'], email)
+        quantity = user.get('quantity')
+        status = add_class_manager(user_id, user['f_name'], user['l_name'], grades, literals, quantity,
+                                   user['time'], email)
         if status == 0:
             await message.answer('Что-то пошло не так.')
             await state.finish()
             return
         if user.get('current_subject_id'):
             status = add_teaching(user_id, user['subjects'])
+            create_files(user_id, ['teaching_file'])
             if status:
                 subject_texts = []
                 for subject_id in user['subjects'].keys():
@@ -413,6 +447,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
             await message.answer('Что-то пошло не так.')
     user_files_update(user_id)
     await message.answer("Все готово, можете вызвать /menu.")
+    await state.finish()
 
 
 async def personal_data_agreement(callback: types.CallbackQuery, state: FSMContext):
@@ -452,10 +487,11 @@ def add_olympiads(interests, user_id, grade):
 
 
 def create_admins_files(user_id):
-    file_types = ['users_file', 'status_file', 'subjects_file', 'olympiads_file', 'class_managers_file', 'answers_file']
+    file_types = ['users_file', 'status_file', 'subjects_file', 'olympiads_file', 'class_managers_file',
+                  'answers_file', 'all_cm_key_file']
     create_files(user_id, file_types)
 
 
 def create_class_managers_files(user_id):
-    file_types = ['users_file', 'status_file']
+    file_types = ['users_file', 'status_file', 'cm_key_file']
     create_files(user_id, file_types)

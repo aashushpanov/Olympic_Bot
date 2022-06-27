@@ -151,41 +151,107 @@ def remove_admin_access(user_ids):
     return status.status
 
 
-def add_class_manager(user_id, f_name, l_name, grades, literals, time, email):
-    """
-    It adds a class manager to the database
-
-    :param user_id: The user's id
-    :param f_name: First name of the user
-    :param l_name: last name
-    :param grades: a list of integers
-    :param literals: a list of strings, each string is a grade literal (e.g. "A", "B", "C", etc.)
-    :param time: a string in the format of "HH:MM"
-    :param email: The email of the user
-    :return: The status of the database connection.
-    """
+def add_class_manager(user_id, f_name, l_name, grades, literals, quantity, time, email):
     with database() as (cur, conn, status):
         date = dt.date.today()
         sql = "INSERT INTO users (id, f_name, l_name, notification_time, email, is_admin, is_active, reg_date," \
               " last_active_date) VALUES (%s, %s, %s, %s, %s, 2, 1, %s, %s)"
         cur.execute(sql, [user_id, f_name, l_name, time, email, date, date])
-        grade_list = [[grades[i], literals[i]] for i in range(len(grades))]
-        for grade_num, grade_literal in grade_list:
+        grade_list = [[grades[i], literals[i], quantity[i]] for i in range(len(grades))]
+        for grade_num, grade_literal, grade_quantity in grade_list:
             sql = "SELECT id FROM grades WHERE grade_num = %s AND grade_literal = %s"
             cur.execute(sql, [grade_num, grade_literal])
             res = cur.fetchone()
             grade_id = None if not res else res[0]
             if not grade_id:
-                sql = "INSERT INTO grades (grade_num, grade_literal) VALUES (%s, %s) RETURNING id"
-                cur.execute(sql, [grade_num, grade_literal])
+                sql = "INSERT INTO grades (grade_num, grade_literal, grade_quantity) VALUES (%s, %s, %s) RETURNING id"
+                cur.execute(sql, [grade_num, grade_literal, grade_quantity])
                 grade_id = cur.fetchone()[0]
             sql = "INSERT INTO user_refer_grade (grade_id, user_id) VALUES (%s, %s)"
             cur.execute(sql, [grade_id, user_id])
+
+        conn.commit()
+    return status.status
+
+
+def update_cm_key_limits():
+    with database() as (cur, conn, status):
+        sql = "DELETE FROM cm_key_limits WHERE olympiad_id = ANY(SELECT id FROM sch1210.olympiads" \
+              " WHERE key_needed = 1 AND is_active = 0)"
+        cur.execute(sql)
+        sql = "SELECT users.id, grade_num, sum(grade_quantity) from users" \
+              " RIGHT JOIN user_refer_grade ON users.id = user_refer_grade.user_id" \
+              " LEFT JOIN grades ON grades.id = user_refer_grade.grade_id" \
+              " WHERE is_admin = 2 GROUP BY users.id, grade_num"
+        cur.execute(sql)
+        res = cur.fetchall()
+        data = pd.DataFrame(res, columns=['user_id', "grade_num", 'grade_quantity'])
+        for _, row in data.iterrows():
+            sql = "SELECT id FROM olympiads WHERE grade = %s"
+            cur.execute(sql, [int(row['grade_num'])])
+            res = cur.fetchall()
+            if res is None:
+                continue
+            for olympiad_id in res:
+                sql = "INSERT INTO cm_key_limits (user_id, olympiad_id, key_remains)" \
+                      " VALUES (%s, %s, %s) ON CONFLICT DO NOTHING"
+                user_id = int(row['user_id'])
+                grade_quantity = int(row['grade_quantity'])
+                cur.execute(sql, [user_id, olympiad_id, grade_quantity])
+        conn.commit()
+
+
+def get_keys_to_cm(user_id, olympiad_id, key_quantity):
+    """
+    Он принимает user_id, olympiad_id и key_quantity и возвращает список ключей и статус
+
+    :param user_id: id пользователя, который запрашивает ключи
+    :param olympiad_id: идентификатор олимпиады
+    :param key_quantity: список целых чисел, каждое число — это количество ключей, которое пользователь хочет получить для
+    определенной олимпиады
+    :return: Ключи и статус
+    """
+    with database() as (cur, conn, status):
+        keys = []
+        key_ids = []
+        for _ in range(key_quantity):
+            sql = "SELECT key, id FROM keys WHERE olympiad_id = %s AND id =" \
+                  " (SELECT MAX(id) FROM keys WHERE olympiad_id = %s AND is_taken = 0)"
+            cur.execute(sql, [olympiad_id, olympiad_id])
+            res = cur.fetchone()
+            key = res[0]
+            key_id = res[1]
+            keys.append(key)
+            key_ids.append(key_id)
+            sql = "UPDATE keys SET is_taken = 1 WHERE id = %s"
+            cur.execute(sql, [key_id])
+            sql = "UPDATE olympiads SET keys_count = keys_count - 1 WHERE id = %s"
+            cur.execute(sql, [olympiad_id])
+            sql = "INSERT INTO cm_keys (user_id, key_id) VALUES (%s, %s)"
+            cur.execute(sql, [user_id, key_id])
+        sql = "UPDATE cm_key_limits SET key_remains = key_remains - %s WHERE olympiad_id = %s"
+        cur.execute(sql, [key_quantity, olympiad_id])
+        conn.commit()
+    return keys, key_ids, status.status
+
+
+def add_key_label(user_id, key_id, label):
+    with database() as (cur, conn, status):
+        sql = "UPDATE cm_keys SET label = %s WHERE user_id = %s AND key_id = %s"
+        cur.execute(sql, [label, user_id, key_id])
         conn.commit()
     return status.status
 
 
 def add_teaching(user_id, subjects: dict):
+    """
+    Он принимает user_id и словарь предметов и добавляет данные обучения в базу данных.
+
+    :param user_id: идентификатор пользователя, которому вы хотите добавить обучение
+    :param subjects: словарь subject_id: {'grades': [], 'literals': []}
+    :type subjects: dict
+    :return: Статус подключения к базе данных.
+    """
     with database() as (cur, conn, status):
         for subject_id in subjects.keys():
             subject_data = subjects[subject_id]
@@ -382,16 +448,16 @@ def add_olympiads_to_track(olympiads: DataFrame, user_id):
         for _, olympiad in olympiads.iterrows():
             timestamp = dt.datetime.timestamp(dt.datetime.now())
             sql = "SELECT id FROM  olympiads_status WHERE id = %s AND is_active = 0"
-            cur.execute(sql, [olympiad['olympiad_id']])
+            cur.execute(sql, [olympiad['id']])
             if cur.fetchone():
                 sql = "UPDATE olympiads_status SET is_active = 1 WHERE id = %s"
-                cur.execute(sql, [olympiad['olympiad_id']])
+                cur.execute(sql, [olympiad['id']])
             else:
                 sql = "INSERT INTO olympiads_status (user_id, olympiad_id, status_code, stage, action_timestamp)" \
                       "VALUES (%s, %s, %s, %s, %s)"
-                status = 0 if current_olympiads[current_olympiads['id'] == olympiad['id']]['pre_registration'].item()\
+                status_code = 0 if current_olympiads[current_olympiads['id'] == olympiad['id']]['pre_registration'].item()\
                     else 1
-                cur.execute(sql, [user_id, olympiad['id'], status, olympiad['stage'], timestamp])
+                cur.execute(sql, [user_id, olympiad['id'], status_code, olympiad['stage'], timestamp])
         conn.commit()
     return status.status
 
@@ -482,9 +548,9 @@ def set_keys(keys: DataFrame, keys_count: dict):
         for _, key in keys.iterrows():
             sql = "INSERT INTO keys (olympiad_id, key) VALUES (%s, %s)"
             cur.execute(sql, [key['olympiad_id'], key['key']])
-        for olympiad_id, keys_count in keys_count.items():
+        for olympiad_id, count in keys_count.items():
             sql = "UPDATE olympiads SET keys_count = %s WHERE id = %s"
-            cur.execute(sql, [keys_count, olympiad_id])
+            cur.execute(sql, [count, int(olympiad_id)])
         conn.commit()
     return status.status
 
