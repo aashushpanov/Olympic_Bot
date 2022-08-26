@@ -3,7 +3,7 @@ import datetime as dt
 from aiogram import types
 from aiogram.dispatcher.filters import Filter
 
-from utils.db.get import get_access, is_exist
+from utils.db.get import get_access, is_exist, is_inactive
 
 
 class IsAdmin(Filter):
@@ -57,6 +57,22 @@ class IsExist(Filter):
                 result = await is_exist(data.message.chat.id)
             case types.Message():
                 result = await is_exist(data.from_user.id)
+        return result == self.target
+
+
+class IsInActive(Filter):
+    key = 'is_inactive'
+
+    def __init__(self, target=1):
+        self.target = target
+
+    async def check(self, data: types.CallbackQuery | types.Message):
+        result = 0
+        match data:
+            case types.CallbackQuery():
+                result = await is_inactive(data.message.chat.id)
+            case types.Message():
+                result = await is_inactive(data.from_user.id)
         return result == self.target
 
 

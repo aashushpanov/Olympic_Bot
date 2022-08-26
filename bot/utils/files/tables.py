@@ -10,7 +10,7 @@ from utils.files.data_files import make_users_file, make_olympiads_status_file, 
     make_class_managers_file, make_answers_file, make_cm_key_file
 from utils.files.templates import make_subjects_file
 
-GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'bot', 'service_files', GOOGLE_SERVICE_FILENAME)
+GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'service_files', GOOGLE_SERVICE_FILENAME)
 
 
 def create_files(user_id, file_types: list):

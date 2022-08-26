@@ -21,7 +21,7 @@ def set_class_manager_menu():
         NodeGenerator('Данные учеников', func=get_download_options),
         MenuNode('Взять ключи ВСОШ', callback=get_key_for_class_call.new())
     ])
-    class_manager_menu.child(text='Данные по классу').add_blind_node('cm_dl_opt')
+    class_manager_menu.child(text='Данные учеников').add_blind_node('cm_dl_opt')
 
     class_manager_menu.child(text='Личные данные').set_childs([
         MenuNode('Личные данные', callback=show_personal_data_call.new()),

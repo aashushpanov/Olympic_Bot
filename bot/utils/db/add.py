@@ -10,17 +10,17 @@ from .get import get_olympiads
 
 def add_user(user_id, f_name, l_name, grade=None, literal=None, interests: set = None, time=16):
     """
-    It adds a user to the database
+    Он добавляет пользователя в базу данных
 
-    :param user_id: The user's id
-    :param f_name: First name
-    :param l_name: Last name
-    :param grade: int
-    :param literal: the literal of the grade, e.g. 'A'
-    :param interests: set = None
+    :param user_id: идентификатор пользователя
+    :param f_name: Имя пользователя
+    :param l_name: Фамилия
+    :param grade: инт
+    :param literal: литерал оценки (например, A, B, C и т. д.)
+    :param interests: набор идентификаторов субъектов
     :type interests: set
-    :param time: The time of day the user wants to be notified, defaults to 16 (optional)
-    :return: The status of the database connection.
+    :param time: время суток, в которое пользователь хочет получать уведомления, defaults to 16 (optional)
+    :return: Состояние базы данных.
     """
     with database() as (cur, conn, status):
         date = dt.date.today()
@@ -40,6 +40,31 @@ def add_user(user_id, f_name, l_name, grade=None, literal=None, interests: set =
         for interest in interests:
             sql = "INSERT INTO interests (user_id, subject_id) VALUES (%s, %s)"
             cur.execute(sql, [user_id, interest])
+        conn.commit()
+    return status.status
+
+
+def set_user_inactive(user_id):
+    with database() as (cur, conn, status):
+        sql = "UPDATE users SET is_active = 0 WHERE user_id = %s"
+        cur.execute(sql, [user_id])
+        conn.commit()
+    return status.status
+
+
+def set_user_active(user_id):
+    with database() as (cur, conn, status):
+        sql = "UPDATE users SET is_active = 1 WHERE user_id = %s"
+        cur.execute(sql, [user_id])
+        conn.commit()
+    return status.status
+
+
+def set_active_date(user_id):
+    date = dt.date.today()
+    with database() as (cur, conn, status):
+        sql = "UPDATE users SET last_active_date = %s WHERE id = %s"
+        cur.execute(sql, [date, user_id])
         conn.commit()
     return status.status
 
@@ -152,6 +177,19 @@ def remove_admin_access(user_ids):
 
 
 def add_class_manager(user_id, f_name, l_name, grades, literals, quantity, time, email):
+    """
+    Он добавляет диспетчер классов в базу данных
+
+    :param user_id: Идентификатор пользователя
+    :param f_name: Имя пользователя
+    :param l_name: фамилия
+    :param grades: список целых чисел
+    :param literals: список строк, каждая строка является литералом оценки (например, «A», «B», «C» и т. д.)
+    :param quantity: количество учеников в классе
+    :param time: время суток, когда пользователь хочет получать уведомления
+    :param email: электронная почта пользователя
+    :return: Состояние базы данных.
+    """
     with database() as (cur, conn, status):
         date = dt.date.today()
         sql = "INSERT INTO users (id, f_name, l_name, notification_time, email, is_admin, is_active, reg_date," \
@@ -167,6 +205,9 @@ def add_class_manager(user_id, f_name, l_name, grades, literals, quantity, time,
                 sql = "INSERT INTO grades (grade_num, grade_literal, grade_quantity) VALUES (%s, %s, %s) RETURNING id"
                 cur.execute(sql, [grade_num, grade_literal, grade_quantity])
                 grade_id = cur.fetchone()[0]
+            else:
+                sql = "UPDATE grades SET grade_quantity = %s WHERE id = %s"
+                cur.execute(sql, [grade_quantity, grade_id])
             sql = "INSERT INTO user_refer_grade (grade_id, user_id) VALUES (%s, %s)"
             cur.execute(sql, [grade_id, user_id])
 
@@ -175,8 +216,11 @@ def add_class_manager(user_id, f_name, l_name, grades, literals, quantity, time,
 
 
 def update_cm_key_limits():
+    """
+    Он обновляет таблицу cm_key_limits в базе данных.
+    """
     with database() as (cur, conn, status):
-        sql = "DELETE FROM cm_key_limits WHERE olympiad_id = ANY(SELECT id FROM sch1210.olympiads" \
+        sql = "DELETE FROM cm_key_limits WHERE olympiad_id = ANY(SELECT id FROM olympiads" \
               " WHERE key_needed = 1 AND is_active = 0)"
         cur.execute(sql)
         sql = "SELECT users.id, grade_num, sum(grade_quantity) from users" \
@@ -236,6 +280,14 @@ def get_keys_to_cm(user_id, olympiad_id, key_quantity):
 
 
 def add_key_label(user_id, key_id, label):
+    """
+    Обновляет метку ключа в базе данных
+
+    :param user_id: Идентификатор пользователя
+    :param key_id: Идентификатор ключа, к которому вы хотите добавить метку
+    :param label: Метка, которую вы хотите присвоить ключу
+    :return: Статус работы базы данных.
+    """
     with database() as (cur, conn, status):
         sql = "UPDATE cm_keys SET label = %s WHERE user_id = %s AND key_id = %s"
         cur.execute(sql, [label, user_id, key_id])
@@ -458,6 +510,14 @@ def add_olympiads_to_track(olympiads: DataFrame, user_id):
                 status_code = 0 if current_olympiads[current_olympiads['id'] == olympiad['id']]['pre_registration'].item()\
                     else 1
                 cur.execute(sql, [user_id, olympiad['id'], status_code, olympiad['stage'], timestamp])
+        conn.commit()
+    return status.status
+
+
+def set_olympiad_status_inactive(user_id, olympiad_id):
+    with database() as (cur, conn, status):
+        sql = "UPDATE olympiads_status SET is_active = 0 WHERE olympiad_id = %s AND user_id = %s"
+        cur.execute(sql, [olympiad_id, user_id])
         conn.commit()
     return status.status
 

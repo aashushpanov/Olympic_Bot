@@ -6,11 +6,15 @@ def register_help_handlers(dp: Dispatcher):
     from states.user.change_interests import AddNewInterests
     from states.user.feedback import AddQuestion
     from states.user.registration import Registration
+    from utils.menu.generator_functions import add_olympiad_help_call
+    from utils.menu.generator_functions import get_key_help_call
     dp.register_message_handler(registration_help, commands=['help'], state=Registration.all_states)
     dp.register_message_handler(add_olympiad_help, commands=['help'], state=AddOlympiad.all_states)
     dp.register_message_handler(change_interests_help, commands=['help'], state=AddNewInterests.all_states)
     dp.register_message_handler(admin_message_help, commands=['help'], state=AddQuestion.all_states)
     dp.register_message_handler(menu_help, commands=['help'])
+    dp.register_callback_query_handler(how_add_olympiad, add_olympiad_help_call.filter())
+    dp.register_callback_query_handler(how_get_key, get_key_help_call.filter())
 
 
 async def menu_help(message: types.Message):
@@ -68,3 +72,17 @@ async def admin_message_help(message: types.Message):
     text = "Наберите сообщение на клавиатуре, тогда ваш вопрос будет зарегистрирован, о чем вам сообщит бот. " \
            "Администраторы сразу увидят ваше обращение и ответят на него."
     await message.answer(text=text)
+
+
+async def how_add_olympiad(callback: types.CallbackQuery):
+    text = "Зайдите в меню 'Олимпиады' -> 'Добавить отдельные олимпиады'. Переключая страницы, выберите из предложенного " \
+           "списка нужную олимпиаду, а также класс (свой или выше)."
+    await callback.answer()
+    await callback.message.answer(text=text)
+
+
+async def how_get_key(callback: types.CallbackQuery):
+    text = "Взять ключ можно из главного меню, выбрав 'Получить ключ' и затем нажать на нужную олимпиаду." \
+           "Также эта возможность есть в меню 'Олимпиады' -> 'Мои олимпиады' -> (Нужная олимпиада)."
+    await callback.answer()
+    await callback.message.answer(text=text)

@@ -27,27 +27,35 @@ async def is_exist(user_id):
     """
     result = 0
     with database() as (cur, conn, status):
-        sql = "SELECT f_name FROM users WHERE id = %s"
+        sql = "SELECT f_name FROM users WHERE id = %s AND is_active = 1"
         cur.execute(sql, [user_id])
         result = cur.fetchone()
     return 1 if result else 0
 
 
-def get_tracked_olympiads(user_id):
+async def is_inactive(user_id):
     """
-    Получает все олимпиады, которые отслеживает пользователь
+    Возвращает 1, если пользователь неактивен, 0, если пользователь активен.
 
-    :param user_id: идентификатор пользователя
-    :return: Фрейм данных со следующими столбцами:
-        olympiad_id: идентификатор олимпиады
-        status_code: статус олимпиады
-        result_code: результат олимпиады
-        этап: этап олимпиады
-        key_id: key_id Олимпии
+    :param user_id: Идентификатор пользователя
+    :return: 1 если пользователь активен, 0 если пользователь неактивен
     """
+    result = 0
     with database() as (cur, conn, status):
-        sql = "SELECT olympiad_id, status_code, result_code, stage, key_id, action_timestamp" \
-              " FROM olympiads_status WHERE user_id = %s AND is_active = 1"
+        sql = "SELECT f_name FROM users WHERE id = %s AND is_active = 0"
+        cur.execute(sql, [user_id])
+        result = cur.fetchone()
+    return 1 if result else 0
+
+
+def get_tracked_olympiads(user_id, with_inactive=False):
+    with database() as (cur, conn, status):
+        if with_inactive:
+            sql = "SELECT olympiad_id, status_code, result_code, stage, key_id, action_timestamp" \
+                  " FROM olympiads_status WHERE user_id = %s"
+        else:
+            sql = "SELECT olympiad_id, status_code, result_code, stage, key_id, action_timestamp" \
+                  " FROM olympiads_status WHERE user_id = %s AND is_active = 1"
         cur.execute(sql, [user_id])
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['olympiad_id', 'status_code', 'result_code',
@@ -83,11 +91,11 @@ def get_olympiad_status(user_id, olympiad_id, stage):
     :return: Серия с кодом состояния, этапом и key_id пользователя.
     """
     with database() as (cur, conn, status):
-        sql = "SELECT status_code, stage, key_id FROM  olympiads_status WHERE olympiad_id = %s" \
+        sql = "SELECT status_code, stage, key_id, is_active FROM  olympiads_status WHERE olympiad_id = %s" \
               " AND user_id = %s AND stage = %s"
         cur.execute(sql, [olympiad_id, user_id, stage])
         res = cur.fetchone()
-        data = pd.Series(res, index=['status_code', 'stage', 'key_id'])
+        data = pd.Series(res, index=['status_code', 'stage', 'key_id', 'is_active'])
     return data
 
 
@@ -153,7 +161,7 @@ def get_user(user_id):
         sql = "SELECT subject_id FROM interests WHERE user_id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchall()
-        data['interest'] = res[0]
+        data['interest'] = res[0] if res else []
     return data
 
 
@@ -177,11 +185,11 @@ def get_users(user_id=None):
             cur.execute(sql)
             res = cur.fetchall()
         else:
-            sql = "SELECT users.id f_name, l_name, reg_date, is_active, last_active_date, max(grade_num), max(grade_literal)," \
+            sql = "SELECT users.id, f_name, l_name, reg_date, is_active, last_active_date, max(grade_num), max(grade_literal)," \
                   " array_agg(interests.subject_id) as interest" \
                   " FROM users LEFT JOIN user_refer_grade on users.id = user_refer_grade.user_id" \
                   " LEFT JOIN grades on grades.id = user_refer_grade.grade_id" \
-                  " RIGHT JOIN interests on users.id = interests.user_id" \
+                  " FULL JOIN interests on users.id = interests.user_id" \
                   " WHERE users.id = ANY(SELECT user_id FROM user_refer_grade" \
                   " WHERE grade_id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s))" \
                   " AND users.id = ANY(SELECT id FROM users WHERE is_admin = 0) group by users.id"
@@ -268,7 +276,7 @@ def get_cm_keys_limit(cm_id, olympiad_name, grade_num):
         sql = "SELECT keys_count FROM olympiads WHERE id = %s"
         cur.execute(sql, [olympiad_id])
         res_2 = cur.fetchone()
-        if res_1[0] and res_2[0]:
+        if res_1 and res_2:
             res = min(res_1[0], res_2[0])
         else:
             res = 0
@@ -281,10 +289,11 @@ def get_cm_keys(cm_id):
               " LEFT JOIN olympiads ON keys.olympiad_id = olympiads.id WHERE user_id = %s"
         cur.execute(sql, [cm_id])
         res = cur.fetchall()
+        columns = ['olympiad_name', 'grade', 'key', 'label']
         if res:
-            data = pd.DataFrame(res, columns=['olympiad_name', 'grade', 'key', 'label'])
+            data = pd.DataFrame(res, columns=columns)
         else:
-            data = pd.DataFrame()
+            data = pd.DataFrame(columns=columns)
     return data
 
 
@@ -549,7 +558,7 @@ def get_user_excel_files(user_id):
     :param user_id: идентификатор пользователя
     :return: Фрейм данных со столбцами file_type, url и is_changed.
     """
-    with database() as (cur, conn):
+    with database() as (cur, conn, status):
         sql = "SELECT file_type, file_id, is_changed FROM excel_docs WHERE user_id = %s"
         cur.execute(sql, [user_id])
         res = cur.fetchall()

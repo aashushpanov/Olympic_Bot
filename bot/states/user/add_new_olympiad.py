@@ -78,8 +78,8 @@ async def get_grade(callback: types.CallbackQuery, state: FSMContext, callback_d
     olympiad_name = callback_data.get('data')
     olympiads = get_olympiads()
     user_grade = get_user(callback.from_user.id)['grade']
-    available_grades = set(olympiads[(olympiads['name'] == olympiad_name) & (olympiads['grade'] >= user_grade)]['grade']
-                           .values)
+    available_grades = set(olympiads[(olympiads['name'] == olympiad_name) & (olympiads['grade'] >= user_grade) &
+                                     (olympiads['is_active'] == 1)]['grade'].values)
     if available_grades:
         await state.update_data(olympiad=olympiad_name)
         await AddOlympiad.choose_grade.set()

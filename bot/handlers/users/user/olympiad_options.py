@@ -8,10 +8,10 @@ from aiogram.utils.exceptions import MessageCantBeDeleted
 from filters import TimeAccess
 from filters.filters import delete_message
 from keyboards.keyboards import yes_no_keyboard
-from utils.db.add import set_registration, set_execution, change_users_files
+from utils.db.add import set_registration, set_execution, change_users_files, set_olympiad_status_inactive
 from utils.db.get import get_olympiad, get_key_from_db, get_olympiad_status, get_user, get_olympiads, get_key_by_id
 from utils.menu.generator_functions import get_dates_call, get_key_call, confirm_execution_question_call, \
-    confirm_registration_question_call
+    confirm_registration_question_call, set_olympiad_inactive_call
 from utils.menu.user_menu import get_nearest_olympiads_call
 
 confirm_registration_call = CallbackData('confirm_registration', 'data', 'stage')
@@ -26,6 +26,7 @@ def register_olympiad_options_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(confirm_execution_question, confirm_execution_question_call.filter())
     dp.register_callback_query_handler(confirm_execution, confirm_execution_call.filter())
     dp.register_callback_query_handler(get_nearest_olympiads, get_nearest_olympiads_call.filter(), TimeAccess())
+    dp.register_callback_query_handler(set_olympiad_inactive, set_olympiad_inactive_call.filter(), TimeAccess())
 
 
 async def get_dates(callback: types.CallbackQuery, callback_data: dict):
@@ -141,3 +142,13 @@ async def get_nearest_olympiads(callback: types.CallbackQuery):
         await callback.message.answer("\n".join(olympiads_list))
     else:
         await callback.answer('В ближайшее время ничего нет.', show_alert=True)
+
+
+async def set_olympiad_inactive(callback: types.CallbackQuery, callback_data: dict):
+    user_id = callback.from_user.id
+    olympiad_id = callback_data.get('data')
+    status = set_olympiad_status_inactive(user_id, olympiad_id)
+    if status:
+        await callback.answer('Вы больше не будете получать уведомления об этой олимпиаде.', show_alert=True)
+    else:
+        await callback.answer('Что-тот пошло не так.', show_alert=True)

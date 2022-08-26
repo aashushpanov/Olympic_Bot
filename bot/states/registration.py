@@ -1,5 +1,4 @@
 import pandas as pd
-from _cffi_backend import callback
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -479,7 +478,7 @@ async def personal_data_agreement(callback: types.CallbackQuery, state: FSMConte
 
 def add_olympiads(interests, user_id, grade):
     olympiads = get_olympiads()
-    olympiads_to_add = pd.DataFrame(olympiads[(olympiads['subject_id'].isin(interests)) &
+    olympiads_to_add = pd.DataFrame(olympiads[(olympiads['subject_id'].isin(list(map(int, interests)))) &
                                               (olympiads['grade'] == int(grade)) & (olympiads['is_active'])],
                                     columns=olympiads.columns)
     status = add_olympiads_to_track(olympiads_to_add, user_id)

@@ -11,11 +11,11 @@ from utils.files.tables import update_all_files
 
 async def manager():
     """
-    It updates the database, gets the users who need to be notified, gets the notifications for those users, and sends the
-    notifications
+    Он обновляет базу данных, получает пользователей, которые должны быть уведомлены в настоящее время, получает уведомления
+    для этих пользователей и отправляет уведомления.
     """
     hour = dt.datetime.now(pytz.timezone('Europe/Moscow')).time().hour
-    await greeting()
+    # await greeting()
     if 0 <= hour < 1:
         await update_admins()
         update_olympiads_activity()
@@ -25,7 +25,7 @@ async def manager():
         create_notifications()
         create_question_notifications()
         update_all_files()
-    # update_cm_key_limits()
+    update_cm_key_limits()
 
     users = get_users_by_notification_time(hour)
     notifications = get_notifications(users)

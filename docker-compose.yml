@@ -15,3 +15,4 @@ services:
     image: aashushpanov/my_repo:olympic_bot
     container_name: olympic_bot_schpk
 
+  

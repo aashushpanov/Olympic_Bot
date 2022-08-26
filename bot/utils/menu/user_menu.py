@@ -3,7 +3,7 @@ from aiogram.utils.callback_data import CallbackData
 from utils.menu.MenuNode import MenuNode, NodeGenerator
 from utils.db.get import get_subjects
 from utils.menu.generator_functions import get_interests, get_my_olympiads, register_olympiads_options, \
-    get_my_olympiads_with_keys
+    add_olympiad_help_call, get_key_help_call
 
 add_interest_call = CallbackData('add_olympiad', 'data')
 add_new_interests_call = CallbackData('add_new_interest')
@@ -26,15 +26,14 @@ def set_user_menu(main_node=None, root_id='0.1'):
     user_menu.set_childs([
         MenuNode('Личные данные'),
         MenuNode('Олимпиады'),
-        NodeGenerator('Получить ключ', func=get_my_olympiads_with_keys),
-        MenuNode('Обратная связь'),
+        NodeGenerator('Получить ключ', func=get_my_olympiads('with_keys')),
         MenuNode('Помощь')
     ])
 
     user_menu.child(text='Получить ключ').add_blind_node('get_key')
 
     user_menu.child(text='Личные данные').set_childs([
-        MenuNode('Личные данные', callback=show_personal_data_call.new()),
+        MenuNode('Имя и класс', callback=show_personal_data_call.new()),
         MenuNode('Изменить данные', callback=change_name_call.new()),
         MenuNode('Добавить предметы', callback=add_new_interests_call.new()),
         NodeGenerator('Удалить предметы', func=get_interests),
@@ -45,16 +44,32 @@ def set_user_menu(main_node=None, root_id='0.1'):
     user_menu.child(text='Личные данные').child(text='Удалить предметы').add_blind_node('del_subj')
 
     user_menu.child(text='Олимпиады').set_childs([
-        NodeGenerator(text='Список моих олимпиад', func=get_my_olympiads),
+        NodeGenerator(text='Мои олимпиады', func=get_my_olympiads('current')),
         MenuNode('Добавить отдельные олимпиады', callback=add_new_olympiad_call.new()),
-        MenuNode('Ближайшие олимпиады', callback=get_nearest_olympiads_call.new())
+        MenuNode('Ближайшие олимпиады', callback=get_nearest_olympiads_call.new()),
+        NodeGenerator('Прошедшие олимпиады', func=get_my_olympiads('past')),
+        NodeGenerator('Забытые олимпиады', func=get_my_olympiads('forgotten')),
     ])
 
-    user_menu.child(text='Олимпиады').child(text='Список моих олимпиад').add_blind_node('list_olymp', type='generator',
-                                                                                        func=register_olympiads_options)
-    user_menu.child(text='Олимпиады').child(text='Список моих олимпиад').blind_node.add_blind_node('ol_opt')
+    user_menu.child(text='Олимпиады').child(text='Мои олимпиады').add_blind_node('list_c_olymp', type='generator',
+                                                                                 func=register_olympiads_options)
+    user_menu.child(text='Олимпиады').child(text='Мои олимпиады').blind_node.add_blind_node('ol_opt')
 
-    user_menu.child(text='Обратная связь').set_childs([
+    user_menu.child(text='Олимпиады').child(text='Прошедшие олимпиады').add_blind_node('list_p_olymp', type='generator',
+                                                                                       func=register_olympiads_options)
+    user_menu.child(text='Олимпиады').child(text='Прошедшие олимпиады').blind_node.add_blind_node('ol_opt')
+
+    user_menu.child(text='Олимпиады').child(text='Забытые олимпиады').add_blind_node('list_f_olymp', type='generator',
+                                                                                     func=register_olympiads_options)
+    user_menu.child(text='Олимпиады').child(text='Забытые олимпиады').blind_node.add_blind_node('ol_opt')
+
+    user_menu.child(text='Помощь').set_childs([
+        MenuNode('Обратная связь'),
+        MenuNode('Как добавить олимпиаду', callback=add_olympiad_help_call.new()),
+        MenuNode('Как взять ключ', callback=get_key_help_call.new()),
+    ])
+
+    user_menu.child(text='Помощь').child(text='Обратная связь').set_childs([
         MenuNode('Задать вопрос про олимпиады', callback=question_to_admin_call.new()),
         MenuNode('Ошибка работы бота')
     ])

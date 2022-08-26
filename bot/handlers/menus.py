@@ -3,16 +3,17 @@ import os
 import pygsheets as pygsheets
 from aiogram import Dispatcher
 from aiogram import types
+from aiogram.types import CallbackQuery
 
 from data import config
 from data.config import GOOGLE_SERVICE_FILENAME
-from filters.filters import TimeAccess, IsExist
+from filters.filters import TimeAccess, IsExist, IsInActive
 from states.registration import reg_call
-from utils.db.add import set_updated_google_doc
+from utils.db.add import set_updated_google_doc, set_user_active
 from utils.files.tables import update_file
 from utils.menu.MenuNode import move
 from keyboards.keyboards import yes_no_keyboard
-from utils.db.get import get_access, get_admin, get_user_google_file
+from utils.db.get import get_access, get_admin, get_user_google_file, get_user
 from utils.menu.generator_functions import update_file_call
 from utils.menu.menu_structure import list_menu, main_menu, user_menu, admin_group_menu, class_manager_menu
 
@@ -21,6 +22,7 @@ GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'bot', 'service_files', GOOGLE_S
 
 
 def main_menu_handlers(dp: Dispatcher):
+    dp.register_message_handler(restore_active, IsInActive(), commands=['menu'])
     dp.register_message_handler(show_main_menu, IsExist(1), commands=['menu'],
                                 chat_type=types.ChatType.PRIVATE, state='*')
     dp.register_message_handler(reg_suggestion, IsExist(0), commands=['menu'], chat_type=types.ChatType.PRIVATE)
@@ -28,6 +30,14 @@ def main_menu_handlers(dp: Dispatcher):
                                 is_chat_admin=True, chat_id=config.ADMIN_GROUP_ID)
     dp.register_callback_query_handler(list_menu, move.filter(), TimeAccess(), state='*')
     dp.register_callback_query_handler(update_google_doc, update_file_call.filter())
+
+
+async def restore_active(message: types.Message):
+    user = get_user(message.from_user.id)
+    status = set_user_active(message.from_user.id)
+    if status:
+        await message.answer('Ваш аккаунт {} {} {} класс восстановлен.'
+                             .format(user['l_name'], user['f_name'], '{}{}'.format(user['grade'], user['literal'])))
 
 
 async def reg_suggestion(message: types.Message):
