@@ -693,19 +693,37 @@ def add_question_answer(question_id, answer, admin_id):
     return status.status
 
 
-def add_google_doc_row(user_id, file_type):
+def add_google_doc_row(user_id, file_type, url):
     """
     This function adds a row to the google_docs table
 
     :param user_id: The user's ID
     :param file_type: The type of file you want to create. This can be one of the following:
+    :param url: адрес гугл документа
     :return: The status of the database connection.
     """
     with database() as (cur, conn, status):
-        sql = "INSERT INTO google_docs (user_id, file_type) VALUES (%s, %s)"
-        cur.execute(sql, [user_id, file_type])
+        sql = "INSERT INTO google_docs (user_id, file_type, url) VALUES (%s, %s, %s)"
+        cur.execute(sql, [user_id, file_type, url])
         conn.commit()
     return status.status
+
+
+def add_google_doc_rows_from_reserve(user_id, file_types):
+    with database() as (cur, conn, status):
+        for file_type in file_types:
+            sql = "DELETE FROM reserved_google_files" \
+                  " WHERE id = (SELECT id FROM reserved_google_files LIMIT 1) RETURNING url"
+            cur.execute(sql, [])
+            res = cur.fetchone()
+            if res is not None:
+                sql = "INSERT INTO google_docs (user_id, file_type, url) VALUES (%s, %s, %s)"
+                cur.execute(sql, [user_id, file_type, res[0]])
+            else:
+                conn.commit()
+                return status.status, file_type
+        conn.commit()
+    return status.status, 0
 
 
 def add_google_doc_url(user_id, file_type, url):

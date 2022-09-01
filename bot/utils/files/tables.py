@@ -1,28 +1,30 @@
 import pandas as pd
 import pygsheets
 import os
+import asyncio
 
 from data.aliases import file_alias
 from data.config import GOOGLE_SERVICE_FILENAME
-from utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc, add_excel_doc_row
+from utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc, add_excel_doc_row, \
+    add_google_doc_rows_from_reserve
 from utils.db.get import get_admin, get_changed_google_files, get_user_google_files
 from utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
     make_class_managers_file, make_answers_file, make_cm_key_file
 from utils.files.templates import make_subjects_file
 
-GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'service_files', GOOGLE_SERVICE_FILENAME)
+GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'bot', 'service_files', GOOGLE_SERVICE_FILENAME)
 
 
-def create_files(user_id, file_types: list):
-    create_google_file(user_id, file_types)
-    create_excel_file(user_id, file_types)
+async def create_files(user_id, file_types: list, message):
+    await create_google_file(user_id, file_types)
+    await create_excel_file(user_id, file_types)
 
 
 # def change_files(user_id, file_types):
 #     change_google_docs(user_id, file_types)
 
 
-def create_google_file(user_id, file_types: list):
+async def create_google_file(user_id, file_types: list):
     """
     Он создает электронную таблицу Google Docs, добавляет строку в базу данных, а затем форматирует электронную таблицу.
 
@@ -30,32 +32,36 @@ def create_google_file(user_id, file_types: list):
     :param file_types: list - список типов файлов, которые вы хотите создать
     :type file_types: list
     """
+    status_1, file_type = add_google_doc_rows_from_reserve(user_id, file_types)
+    if status_1:
+        if file_type != 0:
+            client = pygsheets.authorize(service_account_file=GOOGLE_SERVICE_FILE)
+            for file_type in file_types[file_types.index(file_type):]:
+                name = file_alias.get(file_type, 'Файл')
+                title = '{} #{}'.format(name, user_id)
+                spread_sheet = client.create(title)
+                await asyncio.sleep(0.01)
+                status_2 = add_google_doc_row(user_id, file_type, spread_sheet.url)
+                if not status_2:
+                    pass
+                    # work_sheet = spread_sheet.sheet1
+                    # file_format(work_sheet, file_type)
+        user = get_admin(user_id)
+        if user['email']:
+            bind_email(user_id)
 
-    client = pygsheets.authorize(service_account_file=GOOGLE_SERVICE_FILE)
+
+async def create_excel_file(user_id, file_types: list):
     for file_type in file_types:
-        status = add_google_doc_row(user_id, file_type)
-        if status:
-            name = file_alias.get(file_type, 'Файл')
-            title = '{} #{}'.format(name, user_id)
-            spread_sheet = client.create(title)
-            status = add_google_doc_url(user_id, file_type, spread_sheet.url)
-            if status:
-                user = get_admin(user_id)
-                if user['email']:
-                    spread_sheet.share(user['email'])
-                work_sheet = spread_sheet.sheet1
-                file_format(work_sheet, file_type)
-
-
-def create_excel_file(user_id, file_types: list):
-    for file_type in file_types:
+        await asyncio.sleep(0.01)
         add_excel_doc_row(user_id, file_type)
 
 
-def user_files_update(user_id):
+async def user_files_update(user_id):
     client = pygsheets.authorize(service_file=GOOGLE_SERVICE_FILE)
     files = get_user_google_files(user_id)
     for _, file in files.iterrows():
+        await asyncio.sleep(0.01)
         update_file(client, file, user_id)
 
 
@@ -87,7 +93,8 @@ def update_file(client, user_file, user_id):
             data = pd.DataFrame()
     title = '{} #{}'.format(name, user_id)
     try:
-        spread_sheet = client.open(title)
+        spread_sheet = client.open_by_url(user_file['url'])
+        spread_sheet.title = title
     except pygsheets.exceptions.SpreadsheetNotFound:
         spread_sheet = client.create(title)
     work_sheet = spread_sheet.sheet1
@@ -146,7 +153,9 @@ def bind_email(user_id):
         file_type = file['file_type']
         name = file_alias.get(file_type, 'Файл')
         title = '{} #{}'.format(name, user_id)
-        spread_sheet = client.open(title)
+        url = file['url']
+        spread_sheet = client.open_by_url(url)
+        spread_sheet.title = title
         to_remove_permissions = []
         for user in spread_sheet.permissions:
             if user['role'] != 'owner':

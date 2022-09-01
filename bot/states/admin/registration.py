@@ -93,7 +93,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
         return
     await state.finish()
     create_admins_files(user_id)
-    user_files_update(user_id)
+    await user_files_update(user_id)
     await message.answer("Все готово. Можете вызвать /menu.")
 
 

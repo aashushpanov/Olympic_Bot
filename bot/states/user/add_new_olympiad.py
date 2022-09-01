@@ -30,7 +30,12 @@ def register_add_new_olympiad_handlers(dp: Dispatcher):
 async def start(callback: types.CallbackQuery, state: FSMContext):
     await AddOlympiad.choose_olympiad.set()
     olympiads = get_olympiads().dropna()
-    olympiads = olympiads[olympiads['is_active'] == 1]
+    user_grade = get_user(callback.from_user.id)['grade']
+    olympiads = olympiads[(olympiads['is_active'] == 1) & (olympiads['grade'] >= user_grade)]
+    if olympiads.empty:
+        await callback.answer('Для вашего класса нет доступных олимпиад', show_alert=True)
+        await state.finish()
+        return
     olympiads_groups = olympiads.sort_values(by=['start_date']).groupby('name', sort=False).first()
     olympiads_groups['name'] = olympiads_groups.index
     olympiads_groups['text'] = olympiads_groups.apply(lambda row: "{} с {}".format(row['name'], row['start_date'].strftime('%d.%m')), axis=1)

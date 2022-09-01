@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from keyboards.keyboards import cansel_keyboard
-from utils.db.add import add_email
+from utils.db.add import add_email, set_user_file_format
 from utils.files.tables import bind_email
 from utils.menu.class_manager_menu import change_email_call
 
@@ -28,9 +28,10 @@ async def start(callback: types.CallbackQuery):
 
 async def get_email(message: types.Message, state: FSMContext):
     email = message.text
-    status = add_email(message.from_user.id, email)
-    if status:
-        bind_email(message.from_user.id)
+    status_1 = add_email(message.from_user.id, email)
+    bind_email(message.from_user.id)
+    status_2 = set_user_file_format(message.from_user.id, 1)
+    if status_1 and status_2:
         await message.answer('Ваша новая почта {}. Что бы ее поменять, зайдите в Меню>Личные данные>Изменить почту.'
                              .format(email))
     else:

@@ -19,11 +19,12 @@ class Status:
 
 
 @contextlib.contextmanager
-def database():
+def database(url=None):
     """
     It creates a database connection, creates a cursor, and then yields the cursor and the connection to the caller
     """
-    conn = psycopg2.connect(config.URL)
+    url = config.URL if url is None else url
+    conn = psycopg2.connect(url)
     # conn = psycopg2.connect(
     #     host=config.HOST,
     #     dbname=config.DATABASE,

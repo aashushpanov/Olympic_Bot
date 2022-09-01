@@ -44,6 +44,8 @@ add_extra_grade_call = CallbackData('add_extra_literal')
 confirm_grades_call = CallbackData('confirm_literals')
 skip_email_call = CallbackData('skip_email')
 
+confirm_personal_data_call = CallbackData('confirm_personal_data')
+restart_registration_call = CallbackData('restart_registration')
 
 class Registration(StatesGroup):
     check_data = State()
@@ -57,6 +59,7 @@ class Registration(StatesGroup):
     ask_teaching = State()
     get_subjects = State()
     get_interest = State()
+    confirm_data = State()
     get_notifications_time = State()
     personal_data_agreement = State()
     get_email = State()
@@ -76,10 +79,11 @@ def register_registration_handlers(dp: Dispatcher):
 
     dp.register_message_handler(get_f_name, state=Registration.get_f_name)
     dp.register_message_handler(get_l_name, state=Registration.get_l_name)
+
     dp.register_message_handler(get_grade, state=Registration.get_grade)
     dp.register_message_handler(get_literal, state=Registration.get_literal)
-    dp.register_message_handler(get_grade_quantity, state=Registration.get_grade_quantity)
 
+    dp.register_message_handler(get_grade_quantity, state=Registration.get_grade_quantity)
     dp.register_callback_query_handler(add_extra_grade, add_extra_grade_call.filter(),
                                        state=Registration.get_literal)
     dp.register_callback_query_handler(add_extra_grade, add_extra_grade_call.filter(),
@@ -93,19 +97,22 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(ask_subject, add_extra_subject_call.filter(), state=Registration.get_literal)
     dp.register_callback_query_handler(get_teaching_subjects, add_interest_call.filter(),
                                        state=Registration.get_subjects)
-    dp.register_callback_query_handler(ask_notification_time, confirm_subjects_call.filter(),
+    dp.register_callback_query_handler(confirm_data, confirm_subjects_call.filter(),
                                        state=Registration.get_literal)
+    dp.register_callback_query_handler(confirm_data, skip_teaching_call.filter(),
+                                       state=Registration.ask_teaching)                             
 
     dp.register_callback_query_handler(add_interest, add_interest_call.filter(), state=Registration.get_interest)
     dp.register_callback_query_handler(list_menu, move.filter(), TimeAccess(), state=Registration.get_interest)
-    dp.register_callback_query_handler(ask_notification_time, confirm.filter(), state=Registration.get_interest)
+    dp.register_callback_query_handler(confirm_data, confirm.filter(), state=Registration.get_interest)
+    dp.register_callback_query_handler(start, restart_registration_call.filter(), state='*')
 
+    dp.register_callback_query_handler(ask_notification_time, confirm_personal_data_call.filter(),
+                                       state=Registration.confirm_data)
     dp.register_callback_query_handler(get_notifications_time, time_call.filter(),
                                        state=Registration.get_notifications_time)
     dp.register_callback_query_handler(personal_data_agreement, personal_data_agreement_call.filter(), TimeAccess(1),
                                        state=Registration.personal_data_agreement)
-    dp.register_callback_query_handler(ask_notification_time, skip_teaching_call.filter(),
-                                       state=Registration.ask_teaching)
 
     dp.register_message_handler(get_email, state=Registration.get_email)
     dp.register_callback_query_handler(get_email, skip_email_call.filter(), state=Registration.get_email)
@@ -114,8 +121,10 @@ def register_registration_handlers(dp: Dispatcher):
 async def choose_role(callback: types.CallbackQuery):
     await callback.answer()
     await callback.message.delete()
-    texts = ['Ученик', 'Учитель', 'Классный руководитель', 'Администратор']
-    callbacks = [user_reg_call.new(), teacher_reg_call.new(), class_manager_reg_call.new()]
+    # texts = ['Ученик', 'Учитель', 'Классный руководитель', 'Администратор']
+    # callbacks = [user_reg_call.new(), teacher_reg_call.new(), class_manager_reg_call.new()]
+    texts = ['Ученик', 'Классный руководитель', 'Администратор']
+    callbacks = [user_reg_call.new(), class_manager_reg_call.new()]
     admins = await bot.get_chat_administrators(config.ADMIN_GROUP_ID)
     admins = set([admin['user']['id'] for admin in admins if not admin['user']['is_bot']])
     if callback.from_user.id in admins:
@@ -156,15 +165,18 @@ async def start(message: types.Message | types.CallbackQuery, state: FSMContext,
         case types.CallbackQuery():
             await message.answer()
             message = message.message
-            prefix = callback_data.get('@')
-            if prefix == 'user_reg':
-                access = 0
-                await state.update_data(access=0)
-            elif prefix == 'admin_reg':
-                access = 3
-                await state.update_data(access=3)
-            else:
-                access = 0
+            async with state.proxy() as data:
+                access = data.get('access')
+            if access is None:
+                prefix = callback_data.get('@')
+                if prefix == 'user_reg':
+                    access = 0
+                    await state.update_data(access=0)
+                elif prefix == 'admin_reg':
+                    access = 3
+                    await state.update_data(access=3)
+                else:
+                    access = 0
             permission = True
         case types.Message():
             data = await state.get_data()
@@ -209,9 +221,14 @@ async def get_l_name(message: types.Message, state: FSMContext):
     keyword = grad_keyboard()
     await state.update_data(l_name=message.text)
     if access == 3:
-        reply_markup = time_keyboard()
-        await message.answer('Выберете удобное время для уведомлений', reply_markup=reply_markup)
-        await Registration.get_notifications_time.set()
+        text = "Подтвердите данные\n\n"
+        f_name = data['f_name']
+        l_name = message.text
+        text += "Имя: {} {}".format(l_name, f_name)
+        markup = callbacks_keyboard(texts=['Все верно', "Начать заново"],
+                                    callbacks=[confirm_personal_data_call.new(), restart_registration_call.new()])
+        await message.answer(text, reply_markup=markup)
+        await Registration.confirm_data.set()
         return
     await message.answer("Введите номер класса", reply_markup=keyword)
     if access == 2:
@@ -353,6 +370,32 @@ async def get_teaching_subjects(callback: types.CallbackQuery, state: FSMContext
     await callback.message.answer("Введите номер класса", reply_markup=keyword)
 
 
+async def confirm_data(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete_reply_markup()
+    async with state.proxy() as data:
+        text = "Подтвердите данные\n\n"
+        f_name = data['f_name']
+        l_name = data['l_name']
+        text += "Имя: {} {}".format(l_name, f_name)
+
+        access = data['access']
+        if access == 2:
+            grades = data['grades']
+            literals = data['literals']
+            quantity = data['quantity']
+            grades = ['{}{}: {}чел.'.format(grades[i], literals[i], quantity[i]) for i in range(len(literals))]
+            text += "\nКлассы: {}".format(', '.join(grades))
+        if access == 0:
+            grade = data['grade']
+            literal = data['literal']
+            text += "\nКласс: {}{}".format(grade, literal)
+    await callback.answer()
+    markup = callbacks_keyboard(texts=['Все верно', "Начать заново"],
+                                callbacks=[confirm_personal_data_call.new(), restart_registration_call.new()])
+    await callback.message.answer(text, reply_markup=markup)
+    await Registration.confirm_data.set()
+
+
 async def ask_notification_time(callback: types.CallbackQuery):
     await callback.answer()
     await delete_message(callback.message)
@@ -393,6 +436,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
         case types.CallbackQuery():
             email = None
             message = message.message
+            await delete_message(message)
         case _:
             email = None
     user = await state.get_data()
@@ -403,7 +447,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
             await message.answer("Вы зарегистрированы как Администратор."
                                  " Подождите буквально одну минуту пока создаются файлы.")
             await state.finish()
-            create_admins_files(user_id)
+            await create_admins_files(user_id, message)
             await message.answer("Все готово. Можете вызвать /menu.")
         else:
             await message.answer('Что-то пошло не так.')
@@ -421,7 +465,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
             return
         if user.get('current_subject_id'):
             status = add_teaching(user_id, user['subjects'])
-            create_files(user_id, ['teaching_file'])
+            await create_files(user_id, ['teaching_file'])
             if status:
                 subject_texts = []
                 for subject_id in user['subjects'].keys():
@@ -438,13 +482,13 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
         await message.answer("Вы зарегистрированы как классный руководитель {}."
                              " Подождите буквально одну минуту пока создаются файлы. Вам придет оповещение."
                              .format(', '.join([str(grades[i]) + literals[i] for i in range(len(literals))])))
-        create_class_managers_files(user_id)
+        await create_class_managers_files(user_id, message)
         change_users_files(user_id, ['cm_file', 'users_file'])
     if email is not None:
         status = set_user_file_format(user_id, 1)
         if status == 0:
             await message.answer('Что-то пошло не так.')
-    user_files_update(user_id)
+    # await user_files_update(user_id)
     await message.answer("Все готово, можете вызвать /menu.")
     await state.finish()
 
@@ -485,12 +529,12 @@ def add_olympiads(interests, user_id, grade):
     return olympiads_to_add, status
 
 
-def create_admins_files(user_id):
+async def create_admins_files(user_id, message):
     file_types = ['users_file', 'status_file', 'subjects_file', 'olympiads_file', 'class_managers_file',
                   'answers_file', 'all_cm_key_file']
-    create_files(user_id, file_types)
+    await create_files(user_id, file_types, message)
 
 
-def create_class_managers_files(user_id):
+async def create_class_managers_files(user_id, message):
     file_types = ['users_file', 'status_file', 'cm_key_file']
-    create_files(user_id, file_types)
+    await create_files(user_id, file_types, message)

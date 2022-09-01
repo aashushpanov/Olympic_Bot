@@ -7,7 +7,7 @@ from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympia
     get_class_managers, get_admins, get_cm_keys, get_all_cm_keys
 
 
-file_dir = os.path.join(os.getcwd(), 'data', 'files', 'to_send')
+file_dir = os.path.join(os.getcwd(), 'bot', 'data', 'files', 'to_send')
 
 
 def make_users_file(user_id):

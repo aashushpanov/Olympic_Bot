@@ -206,7 +206,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
                          .format(', '.join([str(grades[i]) + literals[i] for i in range(len(literals))])))
     await state.finish()
     create_class_managers_files(user_id)
-    user_files_update(user_id)
+    await user_files_update(user_id)
     await message.answer("Все готово, можете вызвать /menu.")
     change_users_files(user_id, ['cm_file', 'users_file'])
 
@@ -225,7 +225,7 @@ async def quick_registration(callback: types.CallbackQuery, state: FSMContext):
                                   .format(str(user['grades'][0]) + user['literals'][0]))
     await state.finish()
     create_class_managers_files(user_id)
-    user_files_update(user_id)
+    await user_files_update(user_id)
     await callback.message.answer("Все готово. Можете вызвать /menu.")
     change_users_files(user_id, ['cm_file', 'users_file'])
 
