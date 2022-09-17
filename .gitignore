@@ -1,2 +1,7 @@
 *.env
 /.idea/**
+/bot/service_files/
+/env_vars/
+/.vscode/
+/.ipynb_checkpoints/
+/.devcontainer/

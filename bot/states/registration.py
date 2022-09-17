@@ -90,10 +90,16 @@ def register_registration_handlers(dp: Dispatcher):
                                        state=Registration.get_grade_quantity)
     dp.register_callback_query_handler(ask_teaching, confirm_grades_call.filter(),
                                        state=Registration.get_literal)
-    dp.register_callback_query_handler(ask_teaching, confirm_grades_call.filter(),
-                                       state=Registration.get_grade_quantity)
-    dp.register_callback_query_handler(ask_subject, get_subject_call.filter(),
-                                       state=Registration.ask_teaching)
+
+    dp.register_callback_query_handler(confirm_data, confirm_grades_call.filter(),
+                                        state=Registration.get_grade_quantity)
+    dp.register_callback_query_handler(confirm_data, get_subject_call.filter(),
+                                        state=Registration.ask_teaching)                                  
+    # dp.register_callback_query_handler(ask_teaching, confirm_grades_call.filter(),
+    #                                    state=Registration.get_grade_quantity)
+    # dp.register_callback_query_handler(ask_subject, get_subject_call.filter(),
+    #                                    state=Registration.ask_teaching)
+
     dp.register_callback_query_handler(ask_subject, add_extra_subject_call.filter(), state=Registration.get_literal)
     dp.register_callback_query_handler(get_teaching_subjects, add_interest_call.filter(),
                                        state=Registration.get_subjects)
@@ -448,7 +454,7 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
                                  " Подождите буквально одну минуту пока создаются файлы.")
             await state.finish()
             await create_admins_files(user_id, message)
-            await message.answer("Все готово. Можете вызвать /menu.")
+            # await message.answer("Все готово. Можете вызвать /menu.")
         else:
             await message.answer('Что-то пошло не так.')
             await state.finish()

@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "olympicbot",
+  "private_key_id": "f23866c56190661fbfa3eeb8cbac918efd5e96c4",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCxnaHG34ZwZgsc\nSDcqEQ5V5iOCwhMiBAGiRRS7HSgkmkW0lvRjieGUfV7nH8OjKIVSQgjs9+4lTNCb\nwbJkRbUDCNd8Mc6zu2zH8iHzhuhcgH8jGJ5ZJe9Tk3BuqCv5ApLqkgVResnIHJDn\nuwJjBzWFX1PiUvmf/M2ETr3NqciJ9C8WZPCc8VNa/s4PlI2AEtU8MEXc86UrgFji\nTTh6Li4Wyau7vk8kfUARDHAoE7UttCLhOMzwzlfVs96qIaTWqIbpGqkYDHi2Mv00\nKeMxOd03GsbhDgtmrJI6BsfjIOQ9jEu6y8JL1uefGOZ+Ibsp2U7ElvgCPK8IL++A\nC62sMmzPAgMBAAECggEAA3atdvFY78wtn0mROdLHUsmAG8apFNq7JWzvcI6q/7u6\nbEEdVuuTaI/hT+SArifWIbqD7gsPq86Jqt/mGKp7UynS+esGut6GyodgPh19XoBq\n+kY6oEZrGlgfsyi4Ysy4DLb4P5SDZtGXyc0NyNyVIJqxShKQJ5yIbXITpXUQIhCG\nnFE6iE3snCRq4HmDmRTH0a7WsMnPoGQyCuXnrdRbegx0Ap0iquupuiXQqO0kToey\nnKk9MGKDrK2AEUDOskYqFm3bG/wrS7OhlhePtRIHsNV8cpVYHc5QAYKnAuMAB6S1\nptLcZTXFPLBJi4PW3XzT8kVmyJZ7i5WOKUGWZ+zQ0QKBgQDkqk2zkMjEDcCUtcO4\nQvw9RW+DgZjIEak0g0fl/+z89xwPUFM5oAnPPpy6X8b79/xP1GWKD5ZyP4rGOvLh\n+fyFA2Bp2mbqRO09TtoNzeVXlL12bJwxFAdu9tp4LcLCHJM2Fxc6Z3Cj605KGC/F\nkD8intl0rstPPxXY7oCuuXSTvQKBgQDG2Rfel+Kq7n1RnD3J5uC6ubnfrWH96WZ6\nr/UueXI1DHZQFkGQGQRWayqkAaECMIJP+TlzbkxRHbzG9NEGWeU5dyqDx5tIwmny\n1KgC7sz1PF6o+rI2oxXAV9+v83ZjTUtapADOY11ccvw9491ziAlCXMG1aAWUQRG5\n3IKmgevFewKBgQCzfII1OqZ8TZcmo24XimzX41Le1LEKCeLZF1suTC7HeWgLFS/e\ngaJxjGIVYOyeB0+DkeKJ9iZPU1UouEjB3Cm8dqQNMqOpq6TUhLpgL4efsV7uP95y\nH5ieHyHpR3IiT6+1u3Y+H8eowyDWxBlraAhGso1aK4HmmEwb1Uoo2+WHuQKBgBSK\nhI63/fBOZp+xlihvMzPWz76teHv0SmPOHXPJk+Sq/uXTBr7N9sa+l08N5AYH4M5G\nHoswD64pdkDPNXCEhMtk5f1q9z2S58Lv+NMkvANxUw39p79BJZQS/8Z7TfWAHJKm\ncnbfiNtt/WSfT1cJ7HrwfgoxTrI77orWnqB4t1RVAoGAXPb9qrCIuVvIUKvZoZFi\nYZcs+/AvnLvPC7N6UU5wjK/YeOeqr/f9mLrIS2iM9ZNjxjJEhcndUM0jX+Z8o9Zh\nFF071Gy32ckJlaXzYPwMSDo7kIL0EwPfr+NnmbHfl8/gnQGvB1X/iEl6abA8c9lc\nuvPkLkWsFVegEpdU6Ya5xik=\n-----END PRIVATE KEY-----\n",
+  "client_email": "service-account@olympicbot.iam.gserviceaccount.com",
+  "client_id": "106590392333791862537",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/service-account%40olympicbot.iam.gserviceaccount.com"
+}

@@ -18,7 +18,7 @@ from utils.menu.generator_functions import update_file_call
 from utils.menu.menu_structure import list_menu, main_menu, user_menu, admin_group_menu, class_manager_menu
 
 
-GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'bot', 'service_files', GOOGLE_SERVICE_FILENAME)
+GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'service_files', GOOGLE_SERVICE_FILENAME)
 
 
 def main_menu_handlers(dp: Dispatcher):

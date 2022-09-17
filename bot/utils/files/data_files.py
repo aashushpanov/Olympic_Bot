@@ -7,10 +7,10 @@ from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympia
     get_class_managers, get_admins, get_cm_keys, get_all_cm_keys
 
 
-file_dir = os.path.join(os.getcwd(), 'bot', 'data', 'files', 'to_send')
+file_dir = os.path.join(os.getcwd(), 'data', 'files', 'to_send')
 
 
-def make_users_file(user_id):
+def make_users_file(user_id=None):
     file_path = os.path.join(os.getcwd(), file_dir, 'users.xlsx')
     users = get_users(user_id)
     columns = ['Фамилия', 'Имя', 'Класс']
@@ -38,7 +38,7 @@ def make_olympiads_with_dates_file():
     file_path = os.path.join(os.getcwd(), file_dir, 'all_olympiads.xlsx')
     olympiads = get_olympiads()
     subjects = get_subjects()
-    olympiads = olympiads.join(subjects.set_index('id'), on='subject_id', rsuffix='subject_')
+    olympiads = olympiads.join(subjects.set_index('id'), on='subject_id', rsuffix='_subject')
     olympiads_groups = olympiads.groupby(['name', 'start_date', 'end_date'])
     columns = ['Название', 'Предмет', 'Этап', 'Дата начала', 'Дата окончания', 'мл. класс', 'ст. класс',
                'Активна', 'Ключ', 'Предварительная регистрация', 'Ссылка на сайт олимпиады', 'Ссылка на регистрацию']

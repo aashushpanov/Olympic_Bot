@@ -196,7 +196,7 @@ async def load_dates_file(message: types.Message, state: FSMContext):
             await message.answer('Даты по этим предметам уже существуют:\n{}'
                                  .format('\n'.join(olympiads_to_str(dates_exists))),
                                  reply_markup=callbacks_keyboard(texts=['Обновить данные по ним'],
-                                                                 callbacks=[update_dates_call.new()]))
+                                                                 callbacks=[update_dates_call.new()], cansel_button=True))
         if not olympiads_not_existing.empty:
             await message.answer(
                 'Следующих предметов нет в списке:\n {}'.format(', '.join(olympiads_to_str(olympiads_not_existing))),
@@ -215,7 +215,8 @@ async def load_dates_file(message: types.Message, state: FSMContext):
             else:
                 await message.answer('Ничего не добавлено')
             os.remove(file_path)
-            await state.finish()
+            if dates_exists.empty:
+                await state.finish()
     else:
         await message.answer('Что-то пошло не так.')
         await state.finish()

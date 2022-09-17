@@ -181,7 +181,7 @@ def get_users(user_id=None):
                   " array_agg(interests.subject_id) as interest" \
                   " FROM users LEFT JOIN user_refer_grade on users.id = user_refer_grade.user_id" \
                   " LEFT JOIN grades on grades.id = user_refer_grade.grade_id" \
-                  " RIGHT JOIN interests on users.id = interests.user_id WHERE is_admin = 0 group by users.id"
+                  " FULL JOIN interests on users.id = interests.user_id WHERE is_admin = 0 group by users.id"
             cur.execute(sql)
             res = cur.fetchall()
         else:
@@ -575,7 +575,7 @@ def get_user_excel_file(user_id, file_type):
     :return: Серия pandas со столбцами file_type, url и is_changed из таблицы google_sheets.
     """
     with database() as (cur, conn, status):
-        sql = "SELECT file_type, is_changed FROM excel_docs WHERE user_id = %s AND file_type = %s"
+        sql = "SELECT file_type, file_id, is_changed FROM excel_docs WHERE user_id = %s AND file_type = %s"
         cur.execute(sql, [user_id, file_type])
         res = cur.fetchone()
         data = pd.Series(res, index=['file_type', 'file_id', 'is_changed'])

@@ -26,7 +26,7 @@ async def greeting():
 def update_olympiads_activity():
     olympiads = get_olympiads()
     inactive_olympiads = pd.DataFrame(columns=olympiads.columns)
-    for _, olympiad in olympiads[olympiads['active'] == 1].iterrows():
+    for _, olympiad in olympiads[olympiads['is_active'] == 1].iterrows():
         if dt.date.today() > olympiad['finish_date']:
             olympiad = pd.DataFrame([olympiad])
             inactive_olympiads = pd.concat([inactive_olympiads, olympiad], ignore_index=True)
@@ -49,8 +49,8 @@ def update_missed_olympiads():
     olympiads = get_olympiads()
     olympiads_status = get_all_olympiads_status()
     olympiads_status = olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='_real')
-    missed_olympiads = olympiads_status[((olympiads_status['status'] == 'reg') | (olympiads_status['status'] == 'idle'))
-                                        & ((olympiads_status['active'] == 0) | (olympiads_status['stage'] !=
+    missed_olympiads = olympiads_status[((olympiads_status['status_code'] == 1) | (olympiads_status['status_code'] == 0))
+                                        & ((olympiads_status['is_active'] == 0) | (olympiads_status['stage'] !=
                                                                                 olympiads_status['stage_real']))]
     columns = ['code', 'stage']
     missed_olympiads_to_update = pd.DataFrame(columns=columns)
@@ -67,7 +67,7 @@ def create_notifications():
     olympiads_status = olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='_real')
     columns = ['user_id', 'olympiad_code', 'message', 'type']
     notifications = pd.DataFrame(columns=columns)
-    for _, status in olympiads_status[olympiads_status['status'] == 'idle'].iterrows():
+    for _, status in olympiads_status[olympiads_status['status_code'] == 0].iterrows():
         if (status['start_date'] - dt.date.today()).days < 2 or (
                 status['finish_date'] >= dt.date.today() >= status['start_date']):
             user_id = status['user_id']
@@ -83,7 +83,7 @@ def create_notifications():
             notify_type = 'reg_notify'
             notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)
             notifications = pd.concat([notifications, notification], axis=0)
-    for _, status in olympiads_status[olympiads_status['status'] == 'reg'].iterrows():
+    for _, status in olympiads_status[olympiads_status['status_code'] == 1].iterrows():
         user_id = status['user_id']
         olympiad_code = status['olympiad_code']
         if status['finish_date'] >= dt.date.today() >= status['start_date']:

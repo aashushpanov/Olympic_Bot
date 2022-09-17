@@ -33,7 +33,7 @@ async def receive_question(message: types.Message, state: FSMContext):
     grade = user['grade']
     literal = user['literal']
     question_from = '{} {} из {} спрашивает:\n\n'.format(user['l_name'], user['f_name'],
-                                                         grade + literal)
+                                                         str(grade) + literal)
     index = ['user_id', 'message']
     question = pd.Series([message.from_user.id, question_from + question_text], index=index)
     question_no, status = add_question(question)

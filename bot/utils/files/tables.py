@@ -6,13 +6,13 @@ import asyncio
 from data.aliases import file_alias
 from data.config import GOOGLE_SERVICE_FILENAME
 from utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc, add_excel_doc_row, \
-    add_google_doc_rows_from_reserve
-from utils.db.get import get_admin, get_changed_google_files, get_user_google_files
+    add_google_doc_rows_from_reserve, add_reserved_files_to_db
+from utils.db.get import get_admin, get_changed_google_files, get_user_google_files, get_access
 from utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
     make_class_managers_file, make_answers_file, make_cm_key_file
 from utils.files.templates import make_subjects_file
 
-GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'bot', 'service_files', GOOGLE_SERVICE_FILENAME)
+GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'service_files', GOOGLE_SERVICE_FILENAME)
 
 
 async def create_files(user_id, file_types: list, message):
@@ -74,11 +74,13 @@ def update_all_files():
 
 def update_file(client, user_file, user_id):
     name = file_alias.get(user_file['file_type'], 'Файл')
+    access = get_access(user_id)
+    user_id_to_file = None if access == 3 else user_id
     match user_file['file_type']:
         case 'users_file':
-            _, data = make_users_file(user_id)
+            _, data = make_users_file(user_id_to_file)
         case 'status_file':
-            _, data = make_olympiads_status_file(user_id)
+            _, data = make_olympiads_status_file(user_id_to_file)
         case 'olympiads_file':
             _, data = make_olympiads_with_dates_file()
         case 'class_managers_file':
@@ -163,3 +165,17 @@ def bind_email(user_id):
         if to_remove_permissions:
             spread_sheet.remove_permission(to_remove_permissions)
         spread_sheet.share(email)
+
+
+def delete_all_files():
+    gc = pygsheets.authorize(service_file=GOOGLE_SERVICE_FILE)
+    sheet_list = gc.spreadsheet_titles()
+    for sheet in sheet_list:
+        spread_sheet = gc.open(sheet)
+        spread_sheet.delete()
+
+
+def generate_reserved_files():
+    client = pygsheets.authorize(service_file=GOOGLE_SERVICE_FILE)
+    status = add_reserved_files_to_db(client)
+    return status

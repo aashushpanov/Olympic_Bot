@@ -1,6 +1,7 @@
 from .get_files import register_get_files_handlers
 from .help import register_help_handlers
 from .questions_answer import register_questions_answer_handlers
+from .service_actions import register_service_handlers
 from .set_admin import set_admin_handlers
 
 
@@ -9,3 +10,5 @@ def register_admin_handlers(dp):
     register_get_files_handlers(dp)
     register_questions_answer_handlers(dp)
     register_help_handlers(dp)
+    register_service_handlers(dp)
+

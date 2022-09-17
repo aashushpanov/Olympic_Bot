@@ -84,14 +84,14 @@ def callbacks_keyboard(texts: list, callbacks: list, cansel_button: bool = False
 
 
 def grad_keyboard():
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3, one_time_keyboard=True)
     buttons = ['3', '4', '5', '6', '7', '8', '9', '10', '11']
     keyboard.add(*buttons)
     return keyboard
 
 
 def literal_keyboard():
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3, one_time_keyboard=True)
     buttons = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К', 'Л', 'М', 'Н', 'Ф']
     keyboard.add(*buttons)
     return keyboard

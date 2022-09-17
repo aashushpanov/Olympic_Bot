@@ -3,7 +3,7 @@ from aiogram.utils.callback_data import CallbackData
 from fone_tasks.updates import show_admin_question_call
 from utils.menu.MenuNode import MenuNode, NodeGenerator
 from utils.menu.generator_functions import get_download_options, get_file_call
-from utils.menu.user_menu import change_notify_time_call
+from utils.menu.user_menu import change_notify_time_call, delete_yourself_call
 
 set_olympiads_call = CallbackData('set_olympiads')
 set_subjects_call = CallbackData('set_subjects')
@@ -18,6 +18,8 @@ get_cm_file_call = CallbackData('get_cm_file')
 get_answer_file_call = CallbackData('get_answer_file')
 delete_subjects_call = CallbackData('delete_subjects')
 delete_olympiads_call = CallbackData('delete_olympiads')
+delete_all_call = CallbackData('delete_all')
+create_reserved_google_files_call = CallbackData('create_reserved_google_files')
 announcement_call = CallbackData('announcement')
 grade_announcement_call = CallbackData('grade_announcement')
 olympiad_announcement_call = CallbackData('olympiad_announcement')
@@ -37,14 +39,16 @@ def set_admin_menu(main_node):
         MenuNode('Личные данные'),
         MenuNode('Данные олимпиад'),
         NodeGenerator('Выгрузки', func=get_download_options),
-        MenuNode('Объявление')
+        MenuNode('Объявление'),
+        MenuNode('Служебные функции')
     ])
     admin_menu.child(text='Выгрузки').add_blind_node('dl_opt')
 
     admin_menu.child(text='Личные данные').set_childs([
         MenuNode('Установить время для уведомлений', callback=change_notify_time_call.new()),
         MenuNode('Изменить email', callback=change_email_call.new()),
-        MenuNode('Формат выгружаемых данных')
+        MenuNode('Формат выгружаемых данных'),
+        MenuNode('Удалить себя из системы', callback=delete_yourself_call.new())
     ])
 
     admin_menu.child(text='Личные данные').child(text='Формат выгружаемых данных').set_childs([
@@ -57,8 +61,13 @@ def set_admin_menu(main_node):
         MenuNode('Добавить олимпиады', callback=set_olympiads_call.new()),
         MenuNode('Установить даты этапов', callback=set_olympiads_dates_call.new()),
         MenuNode('Загрузить ключи ВСОШ', callback=set_keys_call.new()),
+        MenuNode('Удаление данных')
+    ])
+
+    admin_menu.child(text='Данные олимпиад').child(text='Удаление данных').set_childs([
         MenuNode('Удалить предметы', callback=delete_subjects_call.new()),
         MenuNode('Удалить олимпиады', callback=delete_olympiads_call.new()),
+        
     ])
 
     # admin_menu.child(text='Выгрузки').set_childs([
@@ -75,6 +84,11 @@ def set_admin_menu(main_node):
         MenuNode('По олимпиаде', callback=olympiad_announcement_call.new()),
         MenuNode('По предмету', callback=subject_announcement_call.new()),
         MenuNode('Классным руководителям', callback=cm_announcement_call.new())
+    ])
+
+    admin_menu.child(text='Служебные функции').set_childs([
+        MenuNode('Создать google файлы', callback=create_reserved_google_files_call.new()),
+        MenuNode('Удалить все', callback=delete_all_call.new()),
     ])
 
     # all_childs = admin_menu.all_childs()

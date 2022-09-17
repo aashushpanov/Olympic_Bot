@@ -60,6 +60,14 @@ def set_user_active(user_id):
     return status.status
 
 
+def delete_user(user_id):
+    with database() as (cur, conn, status):
+        sql = "DELETE FROM users WHERE user_id = %s"
+        cur.execute(sql, [user_id])
+        conn.commit()
+    return status.status
+
+
 def set_active_date(user_id):
     date = dt.date.today()
     with database() as (cur, conn, status):
@@ -417,6 +425,16 @@ def remove_olympiads(olympiads_ids):
         data = pd.DataFrame(res, columns=['name', 'subject_code', 'grade'])
         conn.commit()
     return data, status.status
+
+
+def remove_all_olympiads():
+    with database() as (cur, conn, status):
+        sql = "DELETE FROM olympiads"
+        cur.execute(sql, [])
+        sql = "DELETE FROM keys"
+        cur.execute(sql, [])
+        conn.commit()
+    return status.status
 
 
 def add_subjects(subjects: DataFrame):
@@ -861,5 +879,31 @@ def change_common_files(file_types):
         for file_type in file_types:
             sql = "UPDATE templates_and_examples SET is_changed = 1 WHERE file_type = %s"
             cur.execute(sql, [file_type])
+        conn.commit()
+    return status.status
+
+
+def delete_all_db_data():
+    with database() as (cur, conn, status):
+        sql = 'DELETE FROM subjects'
+        cur.execute(sql, [])
+        sql = 'DELETE FROM users'
+        cur.execute(sql, [])
+        sql = 'DELETE FROM keys'
+        cur.execute(sql, [])
+        sql = 'DELETE FROM grades'
+        cur.execute(sql, [])
+        sql = 'DELETE FROM reserved_google_files'
+        cur.execute(sql, [])
+        conn.commit()
+    return status.status
+
+
+def add_reserved_files_to_db(client):
+    with database() as (cur, conn, status):
+        for i in range(60):
+            spread_sheet = client.create(str(i))
+            sql = "INSERT INTO reserved_google_files (url) VALUES (%s)"
+            cur.execute(sql, [spread_sheet.url])
         conn.commit()
     return status.status

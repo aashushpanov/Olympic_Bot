@@ -82,7 +82,7 @@ async def how_add_olympiad(callback: types.CallbackQuery):
 
 
 async def how_get_key(callback: types.CallbackQuery):
-    text = "Взять ключ можно из главного меню, выбрав 'Получить ключ' и затем нажать на нужную олимпиаду." \
+    text = "Взять ключ можно из главного меню, выбрав 'Получить ключ' и затем нажать на нужную олимпиаду. " \
            "Также эта возможность есть в меню 'Олимпиады' -> 'Мои олимпиады' -> (Нужная олимпиада)."
     await callback.answer()
     await callback.message.answer(text=text)

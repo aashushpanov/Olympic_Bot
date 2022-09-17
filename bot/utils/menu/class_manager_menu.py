@@ -3,12 +3,11 @@ from aiogram.utils.callback_data import CallbackData
 from utils.menu.MenuNode import MenuNode, NodeGenerator
 from utils.menu.admin_menu import set_excel_format_call, set_google_doc_format_call, change_email_call
 from utils.menu.generator_functions import get_download_options, get_file_call
-from utils.menu.user_menu import change_notify_time_call, show_personal_data_call
+from utils.menu.user_menu import change_notify_time_call, show_personal_data_call, delete_yourself_call
 
 get_cm_status_file_call = CallbackData('get_cm_status_file')
 get_cm_users_file_call = CallbackData('get_cm_status_file_call')
 migrate_call = CallbackData('migrate')
-delete_personal_data_call = CallbackData('delete_personal_data')
 get_key_for_class_call = CallbackData('get_key_for_class')
 taken_keys_call = CallbackData('taken_keys')
 
@@ -28,7 +27,7 @@ def set_class_manager_menu():
         MenuNode('Установить время для уведомлений', callback=change_notify_time_call.new()),
         MenuNode('Изменить почту', callback=change_email_call.new()),
         MenuNode('Формат выгружаемых данных'),
-        MenuNode('Удалить себя из системы', callback=delete_personal_data_call.new())
+        MenuNode('Удалить себя из системы', callback=delete_yourself_call.new())
     ])
 
     class_manager_menu.child(text='Личные данные').child(text='Формат выгружаемых данных').set_childs([

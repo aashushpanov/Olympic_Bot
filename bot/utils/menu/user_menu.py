@@ -14,6 +14,7 @@ change_notify_time_call = CallbackData('change_notify_time')
 get_nearest_olympiads_call = CallbackData('get_nearest_olympiads')
 show_personal_data_call = CallbackData('show_personal_data')
 change_name_call = CallbackData('change_personal_data')
+delete_yourself_call = CallbackData('delete_yourself')
 
 
 def set_user_menu(main_node=None, root_id='0.1'):
@@ -38,7 +39,7 @@ def set_user_menu(main_node=None, root_id='0.1'):
         MenuNode('Добавить предметы', callback=add_new_interests_call.new()),
         NodeGenerator('Удалить предметы', func=get_interests),
         MenuNode('Изменить время уведомлений', callback=change_notify_time_call.new()),
-        MenuNode('Удалить себя из системы')
+        MenuNode('Удалить себя из системы', callback=delete_yourself_call.new())
     ])
 
     user_menu.child(text='Личные данные').child(text='Удалить предметы').add_blind_node('del_subj')

@@ -2,30 +2,45 @@ import pandas as pd
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.utils.callback_data import CallbackData
 
 from filters import TimeAccess, IsAdmin
-from keyboards.keyboards import callbacks_keyboard
-from utils.db.add import remove_subjects, remove_olympiads, change_users_files
+from keyboards.keyboards import callbacks_keyboard, yes_no_keyboard
+from utils.db.add import remove_subjects, remove_olympiads, change_users_files, delete_all_db_data, remove_all_olympiads
 from utils.db.get import get_olympiads, get_subjects, get_common_file
 from utils.files.reader import read_file
 from utils.menu.admin_menu import get_subjects_file_call, get_olympiads_file_call, delete_subjects_call, \
-    delete_olympiads_call
+    delete_olympiads_call, delete_all_call
+from utils.files.tables import delete_all_files
+
+
+confirm_delete_all = CallbackData('confirm_delete')
+delete_all_olympiads_call = CallbackData('delete_all_olympiads')
+confirm_delete_all_olympiads_call = CallbackData('confirm_delete_all_olympiads')
 
 
 class DeleteData(StatesGroup):
     delete_subjects = State()
     delete_olympiads = State()
+    delete_all = State()
 
 
 def delete_data_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(start, delete_subjects_call.filter(), TimeAccess())
     dp.register_callback_query_handler(start, delete_olympiads_call.filter(), TimeAccess())
+    dp.register_callback_query_handler(ask_confirm_delete_all_olympiads, delete_all_olympiads_call.filter(),
+                                       TimeAccess(), state=DeleteData.delete_olympiads)
+    dp.register_callback_query_handler(delete_all_olympiads, confirm_delete_all_olympiads_call.filter(),
+                                       TimeAccess(), state=DeleteData.delete_olympiads)
+    dp.register_callback_query_handler(start, delete_all_call.filter(), TimeAccess())
     dp.register_message_handler(delete_subjects, IsAdmin(), TimeAccess(),
                                 state=[DeleteData.delete_subjects],
                                 content_types=types.ContentTypes.DOCUMENT)
     dp.register_message_handler(delete_olympiads, IsAdmin(), TimeAccess(),
                                 state=[DeleteData.delete_olympiads],
                                 content_types=types.ContentTypes.DOCUMENT)
+    dp.register_callback_query_handler(delete_all, confirm_delete_all.filter(), IsAdmin(), TimeAccess(),
+                                state=DeleteData.delete_all)
 
 
 async def start(callback: types.CallbackQuery):
@@ -34,16 +49,23 @@ async def start(callback: types.CallbackQuery):
         reply_markup = callbacks_keyboard(texts=['Пример файла на удаление предметов', 'Список текущих предметов'],
                                           callbacks=[get_common_file('subjects_to_delete_example')['file_data'],
                                                      get_subjects_file_call.new()], cansel_button=True)
-        await callback.message.answer('Загрузите файл с предметами которые надо удалить',
+        await callback.message.answer('Загрузите файл с предметами которые надо удалить. При удалении предметов так же удаляться олимпиады по этим предметам.',
                                       reply_markup=reply_markup)
         await DeleteData.delete_subjects.set()
     elif callback.data == 'delete_olympiads':
-        reply_markup = callbacks_keyboard(texts=['Пример файла на удаление олимпиад', 'Список текущих олимпиад'],
+        reply_markup = callbacks_keyboard(texts=['Пример файла на удаление олимпиад', 'Список текущих олимпиад',
+                                                 'Удалить все олимпиады и ключи'],
                                           callbacks=[get_common_file('olympiads_to_delete_example')['file_data'],
-                                                     get_olympiads_file_call.new()], cansel_button=True)
+                                                     get_olympiads_file_call.new(), delete_all_olympiads_call.new()],
+                                          cansel_button=True)
         await callback.message.answer('Загрузите файл с олимпиадами которые надо удалить',
                                       reply_markup=reply_markup)
         await DeleteData.delete_olympiads.set()
+    elif callback.data == 'delete_all':
+        reply_markup = yes_no_keyboard(callback=confirm_delete_all.new())
+        await callback.message.answer('Это удалит всех пользователей, все предметы, олимпиады и ключи из системы.',
+                                      reply_markup=reply_markup)
+        await DeleteData.delete_all.set()
 
 
 async def delete_subjects(message: types.Message, state: FSMContext):
@@ -91,6 +113,30 @@ async def delete_olympiads(message: types.Message, state: FSMContext):
             change_users_files(message.from_user.id, ['olympiads_file', 'dates_template'])
         else:
             await message.answer('Ничего не удалено.')
+    await state.finish()
+
+
+async def ask_confirm_delete_all_olympiads(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    markup = callbacks_keyboard(texts=['Точно'], callbacks=[confirm_delete_all_olympiads_call.new()], cansel_button=True)
+    await callback.message.answer('Вы точно хотите удалить все олимпиады и ключи к ним? Это действие необратимо.',
+                                  reply_markup=markup)
+
+
+async def delete_all_olympiads(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    status = remove_all_olympiads()
+    if status:
+        await callback.message.answer('Все олимпиады и ключи удалены из системы.')
+    else:
+        await callback.message.answer('Что-то пошло не так')
+    await state.finish()
+
+
+async def delete_all(callback: types.CallbackQuery, state: FSMContext):
+    delete_all_files()
+    delete_all_db_data()
+    await callback.message.answer('Все данные удалены.')
     await state.finish()
 
 

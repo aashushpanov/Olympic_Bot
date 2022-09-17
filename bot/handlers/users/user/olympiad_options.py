@@ -102,13 +102,13 @@ async def confirm_registration(callback: types.CallbackQuery, callback_data: dic
 async def confirm_execution_question(callback: types.CallbackQuery, callback_data: dict):
     olympiad_id = callback_data.get('data')
     stage = get_olympiad(olympiad_id)['stage']
-    status = get_olympiad_status(callback.from_user.id, olympiad_id, stage)['status']
-    if status == 'reg':
+    status = get_olympiad_status(callback.from_user.id, olympiad_id, stage)['status_code']
+    if status == 1:
         await callback.answer()
         await callback.message.answer('Удалось пройти олимпиаду?',
                                       reply_markup=yes_no_keyboard(confirm_execution_call.new(data=olympiad_id,
                                                                                               stage=stage)))
-    elif status == 'done':
+    elif status == 2:
         try:
             await callback.message.delete()
         except MessageCantBeDeleted:
