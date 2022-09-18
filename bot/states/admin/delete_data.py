@@ -5,6 +5,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.utils.callback_data import CallbackData
 
 from filters import TimeAccess, IsAdmin
+from filters.filters import delete_message
 from keyboards.keyboards import callbacks_keyboard, yes_no_keyboard
 from utils.db.add import remove_subjects, remove_olympiads, change_users_files, delete_all_db_data, remove_all_olympiads
 from utils.db.get import get_olympiads, get_subjects, get_common_file
@@ -118,6 +119,7 @@ async def delete_olympiads(message: types.Message, state: FSMContext):
 
 async def ask_confirm_delete_all_olympiads(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
+    await delete_message(callback.message)
     markup = callbacks_keyboard(texts=['Точно'], callbacks=[confirm_delete_all_olympiads_call.new()], cansel_button=True)
     await callback.message.answer('Вы точно хотите удалить все олимпиады и ключи к ним? Это действие необратимо.',
                                   reply_markup=markup)
@@ -125,6 +127,7 @@ async def ask_confirm_delete_all_olympiads(callback: types.CallbackQuery, state:
 
 async def delete_all_olympiads(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
+    await delete_message(callback.message)
     status = remove_all_olympiads()
     if status:
         await callback.message.answer('Все олимпиады и ключи удалены из системы.')

@@ -62,7 +62,7 @@ def set_user_active(user_id):
 
 def delete_user(user_id):
     with database() as (cur, conn, status):
-        sql = "DELETE FROM users WHERE user_id = %s"
+        sql = "DELETE FROM users WHERE id = %s"
         cur.execute(sql, [user_id])
         conn.commit()
     return status.status
@@ -430,8 +430,6 @@ def remove_olympiads(olympiads_ids):
 def remove_all_olympiads():
     with database() as (cur, conn, status):
         sql = "DELETE FROM olympiads"
-        cur.execute(sql, [])
-        sql = "DELETE FROM keys"
         cur.execute(sql, [])
         conn.commit()
     return status.status

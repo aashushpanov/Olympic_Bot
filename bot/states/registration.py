@@ -1,4 +1,5 @@
 import pandas as pd
+import asyncio
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -204,7 +205,8 @@ async def start(message: types.Message | types.CallbackQuery, state: FSMContext,
             await message.answer("Введите имя и отчество (через пробел)")
         await Registration.get_f_name.set()
     else:
-        await message.answer('Неверный пароль.')
+        await message.answer('Неверный пароль. Попробуйте ещё раз.')
+        await asyncio.sleep(2)
 
 
 async def get_f_name(message: types.Message, state: FSMContext):
