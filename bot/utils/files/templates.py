@@ -46,9 +46,9 @@ def make_olympiads_template(olympiads=None):
     subjects = get_subjects()
     subjects_list = list(subjects['name'].values)
     ol_subj_list = merge_lists(olympiads, subjects_list)
-    columns = ['Префикс', 'Название', 'Предмет', 'мл. класс', 'ст. класс', 'ссылка на регистрацию',
-               'ссылка на сайт олимпиады', 'Доступные предметы']
-    olympiads_template = pd.DataFrame([['', ol, '', '', '', '', '', subj] for ol, subj in ol_subj_list],
+    columns = ['Название', 'Тип', 'Предмет', 'мл. класс', 'ст. класс', 'ссылка на регистрацию',
+               'ссылка на сайт олимпиады', "ссылка на прохождение олимпиады", 'Доступные предметы']
+    olympiads_template = pd.DataFrame([[ol, '', '', '', '', '', '', '', subj] for ol, subj in ol_subj_list],
                                       columns=columns)
     olympiads_template.to_excel(file_path, index=False)
     return file_path, olympiads_template
