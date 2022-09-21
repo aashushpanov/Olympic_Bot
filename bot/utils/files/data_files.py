@@ -55,8 +55,8 @@ def make_olympiads_with_dates_file():
         pre_registration = 'Да' if group['pre_registration'].iloc[0] else 'Нет'
         stage = group['stage'].iloc[0]
         start_date = name[1].strftime('%d.%m.%y')
-        finish_date = name[2].strftime('%d.%m.%y')
-        olympiad = pd.DataFrame([[name[0], subject_name, stage, start_date, finish_date, min_grade, max_grade, active,
+        end_date = name[2].strftime('%d.%m.%y')
+        olympiad = pd.DataFrame([[name[0], subject_name, stage, start_date, end_date, min_grade, max_grade, active,
                                   key_needed, pre_registration, site_url, reg_url]], columns=columns)
         olympiads_file = pd.concat([olympiads_file, olympiad], axis=0)
         # olympiads_file.to_csv(file_path, index=False, sep=';')
@@ -129,7 +129,7 @@ def make_all_cm_key_file():
     file_path = os.path.join(os.getcwd(), file_dir, 'all_cm_key_file.xlsx')
     columns = ['ФИО', 'Олимпиада', 'Класс', 'Ключ', 'Метка']
     cm_key_file = get_all_cm_keys()
-    cm_key_file['fio'] = cm_key_file.apply(lambda row: '{} {}'.format(row['l_name'], row['f_name']))
+    cm_key_file['fio'] = cm_key_file.apply(lambda row: '{} {}'.format(row['l_name'], row['f_name']), axis=1)
     cm_key_file = cm_key_file.fillna('')
     cm_key_file = cm_key_file.drop(['l_name', 'f_name'])
     cm_key_file = cm_key_file.reindex(columns=['fio', 'olympiad_name', 'grade', 'key', 'label'])

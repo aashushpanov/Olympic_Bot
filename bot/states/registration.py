@@ -249,7 +249,7 @@ async def get_l_name(message: types.Message, state: FSMContext):
 
 
 async def get_grade(message: types.Message, state: FSMContext):
-    if int(message.text) in [x for x in range(3, 12)]:
+    if message.text in [str(x) for x in range(3, 12)]:
         data = await state.get_data()
         access = data.get('access')
         await Registration.get_literal.set()

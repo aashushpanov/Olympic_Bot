@@ -87,7 +87,10 @@ async def load_keys_file(callback: types.CallbackQuery, state: FSMContext):
 def parce_keys(keys_file, grade):
     keys_file = keys_file.loc[:, (~keys_file.columns.str.contains('^Unnamed')) &
                                  (~keys_file.columns.str.contains('Ключи'))]
-    keys_file = keys_file.drop([0])
+    try:
+        keys_file = keys_file.drop([0])
+    except KeyError:
+        pass
     keys_file.dropna(axis=0, how='all', inplace=True)
     keys_file.dropna(axis=1, how='all', inplace=True)
     keys_subjects = list(keys_file.columns.values)

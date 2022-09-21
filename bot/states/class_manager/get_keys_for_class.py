@@ -47,7 +47,7 @@ async def start(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(olympiads=olympiads_groups, page=1)
     message = callback.message
     await delete_message(message)
-    markup = pages_keyboard(olympiads_groups, 'name', 'text', 1)
+    markup = pages_keyboard(olympiads_groups, 'name', 'text', 0)
     await message.answer('Выберите олимпиаду', reply_markup=markup)
 
 
@@ -132,7 +132,7 @@ async def send_key(callback: types.CallbackQuery | types.Message, state: FSMCont
                 await message.answer('Не удалось добавить метку.')
     if key_needed == 0:
         change_users_files(callback.from_user.id, ['cm_key_file'])
-        await message.answer("Вы можете посмотреть все взятые ключи в меню 'Взятые ключи'.")
+        await message.answer("Вы можете посмотреть все взятые ключи в файле 'Список ключей'.")
         await state.finish()
         return
     keys, key_ids, status = get_keys_to_cm(callback.from_user.id, olympiad_id, 1)

@@ -423,11 +423,11 @@ def parsing_dates(dates_load: pd.DataFrame):
             else:
                 olympiad_id = olympiad_id.item()
             start_date = str_to_date(row['дата начала'])
-            finish_date = str_to_date(row['дата окончания'])
-            active = 1 if dt.date.today() <= finish_date else 0
+            end_date = str_to_date(row['дата окончания'])
+            active = 1 if dt.date.today() <= end_date else 0
             key = 1 if row['ключ'].lower() == 'да' else 0
             pre_registration = 1 if row['предварительная регистрация'].lower() == 'да' else 0
-            date = pd.DataFrame([[olympiad_id, row['Название'], grade, start_date, finish_date, row['этап'],
+            date = pd.DataFrame([[olympiad_id, row['Название'], grade, start_date, end_date, row['этап'],
                                   active, key, pre_registration]], columns=columns)
             dates = pd.concat([dates, date], axis=0)
     for olympiad_id, group in dates.groupby('id'):

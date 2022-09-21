@@ -42,7 +42,7 @@ async def start(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(olympiads=olympiads_groups, page=1)
     message = callback.message
     await delete_message(message)
-    markup = pages_keyboard(olympiads_groups, 'name', 'text', 1)
+    markup = pages_keyboard(olympiads_groups, 'name', 'text', 0)
     await message.answer('Выберите олимпиаду', reply_markup=markup)
 
 

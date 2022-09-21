@@ -58,7 +58,7 @@ async def get_interests(_, **kwargs):
     user_interests = list(get_user(user_id)['interest'])
     interests_df = subjects[subjects['id'].isin(user_interests)]
     for _, interest in interests_df.iterrows():
-        yield MenuNode(text=interest['subject_name'], callback=del_interest_call.new(data=interest['id']))
+        yield MenuNode(text=interest['name'], callback=del_interest_call.new(data=interest['id']))
 
 
 # async def get_my_olympiads(node, **kwargs):

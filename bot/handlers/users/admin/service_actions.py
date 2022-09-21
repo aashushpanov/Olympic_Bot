@@ -9,6 +9,10 @@ def register_service_handlers(dp: Dispatcher):
 
 
 async def make_reserved_files(callback: types.CallbackQuery):
+    await callback.message.answer('Начинаю генерацию.')
+    await callback.answer()
     status = generate_reserved_files()
     if status:
         await callback.message.answer('успешно сгенерировано 60 файлов')
+    else:
+        await callback.message.answer('Что-то пошло не так.')

@@ -47,7 +47,7 @@ async def parsing_interests(callback: types.CallbackQuery, state: FSMContext):
     user = get_user(user_id)
     current_interests = user['interest']
     subjects = get_subjects()
-    interests_name = list(subjects[subjects['id'].isin(current_interests)]['subject_name'].values)
+    interests_name = list(subjects[subjects['id'].isin(current_interests)]['name'].values)
     await callback.message.delete()
     await callback.message.answer('Текущие отслеживаемые предметы:\n{}'.format('\n'.join(interests_name)))
     new_olympiads, status = update_olympiads_to_track(user_id)

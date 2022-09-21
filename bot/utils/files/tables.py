@@ -3,20 +3,23 @@ import pygsheets
 import os
 import asyncio
 
+from googleapiclient.errors import HttpError
+
 from data.aliases import file_alias
 from data.config import GOOGLE_SERVICE_FILENAME
+from loader import bot
 from utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc, add_excel_doc_row, \
     add_google_doc_rows_from_reserve, add_reserved_files_to_db
 from utils.db.get import get_admin, get_changed_google_files, get_user_google_files, get_access
 from utils.files.data_files import make_users_file, make_olympiads_status_file, make_olympiads_with_dates_file, \
-    make_class_managers_file, make_answers_file, make_cm_key_file
+    make_class_managers_file, make_answers_file, make_cm_key_file, make_all_cm_key_file
 from utils.files.templates import make_subjects_file
 
 GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'service_files', GOOGLE_SERVICE_FILENAME)
 
 
 async def create_files(user_id, file_types: list, message):
-    await create_google_file(user_id, file_types)
+    await create_google_file(user_id, file_types, message)
     await create_excel_file(user_id, file_types)
 
 
@@ -24,14 +27,7 @@ async def create_files(user_id, file_types: list, message):
 #     change_google_docs(user_id, file_types)
 
 
-async def create_google_file(user_id, file_types: list):
-    """
-    Он создает электронную таблицу Google Docs, добавляет строку в базу данных, а затем форматирует электронную таблицу.
-
-    :param user_id: идентификатор пользователя
-    :param file_types: list - список типов файлов, которые вы хотите создать
-    :type file_types: list
-    """
+async def create_google_file(user_id, file_types: list, message):
     status_1, file_type = add_google_doc_rows_from_reserve(user_id, file_types)
     if status_1:
         if file_type != 0:
@@ -48,7 +44,7 @@ async def create_google_file(user_id, file_types: list):
                     # file_format(work_sheet, file_type)
         user = get_admin(user_id)
         if user['email']:
-            bind_email(user_id)
+            await bind_email(user_id, message)
 
 
 async def create_excel_file(user_id, file_types: list):
@@ -91,6 +87,8 @@ def update_file(client, user_file, user_id):
             _, data = make_subjects_file()
         case 'cm_key_file':
             _, data = make_cm_key_file(user_id)
+        case 'all_cm_key_file':
+            _, data = make_all_cm_key_file()
         case _:
             data = pd.DataFrame()
     title = '{} #{}'.format(name, user_id)
@@ -144,9 +142,11 @@ def file_format(work_sheet, file_type):
             pygsheets.datarange.DataRange('A1', 'D1', worksheet=work_sheet).apply_format(cell)
             work_sheet.adjust_column_width(start=2, pixel_size=50)
             work_sheet.adjust_column_width(start=4, pixel_size=50)
+        case 'all_cm_key_file':
+            pygsheets.datarange.DataRange('A1', 'C1', worksheet=work_sheet).apply_format(cell)
 
 
-def bind_email(user_id):
+async def bind_email(user_id, message=None):
     admin = get_admin(user_id)
     email = admin['email']
     files = get_user_google_files(user_id)
@@ -164,8 +164,16 @@ def bind_email(user_id):
                 to_remove_permissions.append(user['emailAddress'])
         if to_remove_permissions:
             spread_sheet.remove_permission(to_remove_permissions)
-        spread_sheet.share(email)
-
+        try:
+            spread_sheet.share(email)
+        except HttpError:
+            text = "Не получается привязать файлы. Возможно закончилась квота на автоматическую привязку почты." \
+                   " Попробуйте привязать почту завтра, через меню 'Личные данные'."
+            if message is not None:
+                await message.answer(text)
+            else:
+                await bot.send_message(chat_id=user_id, text=text)
+            
 
 def delete_all_files():
     gc = pygsheets.authorize(service_file=GOOGLE_SERVICE_FILE)

@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime as dt
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -34,8 +35,9 @@ async def receive_question(message: types.Message, state: FSMContext):
     literal = user['literal']
     question_from = '{} {} из {} спрашивает:\n\n'.format(user['l_name'], user['f_name'],
                                                          str(grade) + literal)
-    index = ['user_id', 'message']
-    question = pd.Series([message.from_user.id, question_from + question_text], index=index)
+    index = ['user_id', 'question', 'user_message_id', 'date']
+    date = dt.date.today()
+    question = pd.Series([message.from_user.id, question_from + question_text, None, date], index=index)
     question_no, status = add_question(question)
     if status:
         await message.answer('Вопрос зарегистрирован по номером {}, подождите пока администратор на него ответит.'.
