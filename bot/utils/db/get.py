@@ -283,6 +283,16 @@ def get_cm_keys_limit(cm_id, olympiad_name, grade_num):
     return res, olympiad_id
 
 
+def get_admin_keys_limit(olympiad_name, grade_num):
+    with database() as (cur, conn, status):
+        sql = "SELECT id, keys_count FROM olympiads WHERE name = %s AND grade = %s"
+        cur.execute(sql, [olympiad_name, grade_num])
+        res = cur.fetchone()
+        olympiad_id = res[0]
+        key_limit = res[1]
+    return key_limit, olympiad_id
+
+
 def get_cm_keys(cm_id):
     with database() as (cur, conn, status):
         sql = "SELECT name, grade, key, label FROM cm_keys LEFT JOIN keys ON keys.id = cm_keys.key_id" \

@@ -10,7 +10,8 @@ from keyboards.keyboards import pages_keyboard, available_grades_keyboard, page_
     grade_call, callbacks_keyboard
 from loader import bot
 from utils.db.add import get_keys_to_cm, add_key_label, change_users_files
-from utils.db.get import get_olympiads, get_class_managers_grades, get_cm_keys_limit
+from utils.db.get import get_olympiads, get_class_managers_grades, get_cm_keys_limit, get_access, get_admin_keys_limit
+from utils.menu.admin_menu import get_keys_to_admin_call
 from utils.menu.class_manager_menu import get_key_for_class_call
 
 
@@ -27,6 +28,7 @@ class GetKeysForClass (StatesGroup):
 
 def register_get_keys_for_class_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(start, get_key_for_class_call.filter())
+    dp.register_callback_query_handler(start, get_keys_to_admin_call.filter())
     dp.register_callback_query_handler(turn_page, page_move_call.filter(), state=GetKeysForClass.choose_olympiad)
     dp.register_callback_query_handler(get_olympiad, pages_keyboard_call.filter(), state=GetKeysForClass.choose_olympiad)
     dp.register_callback_query_handler(get_grade, grade_call.filter(), state=GetKeysForClass.choose_grade)
@@ -44,7 +46,7 @@ async def start(callback: types.CallbackQuery, state: FSMContext):
     olympiads_groups = olympiads.sort_values(by=['start_date']).groupby('name', sort=False).first()
     olympiads_groups['name'] = olympiads_groups.index
     olympiads_groups['text'] = olympiads_groups.apply(lambda row: "{} с {}".format(row['name'], row['start_date'].strftime('%d.%m')), axis=1)
-    await state.update_data(olympiads=olympiads_groups, page=1)
+    await state.update_data(olympiads=olympiads_groups, page=0)
     message = callback.message
     await delete_message(message)
     markup = pages_keyboard(olympiads_groups, 'name', 'text', 0)
@@ -69,9 +71,15 @@ async def turn_page(callback: types.CallbackQuery, state: FSMContext, callback_d
 async def get_olympiad(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
     olympiad_name = callback_data.get('data')
     olympiads = get_olympiads()
-    cm_grades = get_class_managers_grades(callback.from_user.id)['grade_num'].to_list()
-    available_grades = set(olympiads[(olympiads['name'] == olympiad_name) & (olympiads['grade'].isin(cm_grades))]['grade']
-                           .values)
+    access = get_access(callback.from_user.id)
+    if access == 2:
+        cm_grades = get_class_managers_grades(callback.from_user.id)['grade_num'].to_list()
+        available_grades = set(olympiads[(olympiads['name'] == olympiad_name) & (olympiads['grade'].isin(cm_grades))]['grade']
+                               .values)
+    elif access == 3:
+        available_grades = set(olympiads[olympiads['name'] == olympiad_name]['grade'].values)
+    else:
+        available_grades = []
     if available_grades:
         await state.update_data(olympiad=olympiad_name)
         await GetKeysForClass.choose_grade.set()
@@ -84,7 +92,14 @@ async def get_olympiad(callback: types.CallbackQuery, state: FSMContext, callbac
 
 async def get_grade(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
     data = await state.get_data()
-    key_limit, olympiad_id = get_cm_keys_limit(callback.from_user.id, data['olympiad'], callback_data.get('data'))
+    access = get_access(callback.from_user.id)
+    if access == 2:
+        key_limit, olympiad_id = get_cm_keys_limit(callback.from_user.id, data['olympiad'], callback_data.get('data'))
+    elif access == 3:
+        key_limit, olympiad_id = get_admin_keys_limit(data['olympiad'], callback_data.get('data'))
+    else:
+        key_limit = 0
+        olympiad_id = 1
     if key_limit == 0:
         await callback.answer('Нет возможности взять ключ для данного класса. Возможно закончились ключи, либо Вы исчерпали лимит.', show_alert=True)
         await state.finish()
@@ -132,6 +147,7 @@ async def send_key(callback: types.CallbackQuery | types.Message, state: FSMCont
                 await message.answer('Не удалось добавить метку.')
     if key_needed == 0:
         change_users_files(callback.from_user.id, ['cm_key_file'])
+        change_users_files(None, ['all_cm_key_file'])
         await message.answer("Вы можете посмотреть все взятые ключи в файле 'Список ключей'.")
         await state.finish()
         return
@@ -159,6 +175,7 @@ async def send_keys(callback: types.CallbackQuery, state: FSMContext):
     else:
         await callback.message.answer('Что-то пошло не так.')
     change_users_files(callback.from_user.id, ['cm_key_file'])
+    change_users_files(None, ['all_cm_key_file'])
     await state.finish()
 
 

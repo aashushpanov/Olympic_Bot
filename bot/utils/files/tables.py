@@ -18,7 +18,7 @@ from utils.files.templates import make_subjects_file
 GOOGLE_SERVICE_FILE = os.path.join(os.getcwd(), 'service_files', GOOGLE_SERVICE_FILENAME)
 
 
-async def create_files(user_id, file_types: list, message):
+async def create_files(user_id, file_types: list, message=None):
     await create_google_file(user_id, file_types, message)
     await create_excel_file(user_id, file_types)
 
@@ -27,7 +27,7 @@ async def create_files(user_id, file_types: list, message):
 #     change_google_docs(user_id, file_types)
 
 
-async def create_google_file(user_id, file_types: list, message):
+async def create_google_file(user_id, file_types: list, message=None):
     status_1, file_type = add_google_doc_rows_from_reserve(user_id, file_types)
     if status_1:
         if file_type != 0:

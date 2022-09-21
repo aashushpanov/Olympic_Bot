@@ -9,7 +9,8 @@ from filters import TimeAccess
 from filters.filters import delete_message
 from keyboards.keyboards import yes_no_keyboard
 from utils.db.add import set_registration, set_execution, change_users_files, set_olympiad_status_inactive
-from utils.db.get import get_olympiad, get_key_from_db, get_olympiad_status, get_user, get_olympiads, get_key_by_id
+from utils.db.get import get_olympiad, get_key_from_db, get_olympiad_status, get_user, get_olympiads, get_key_by_id, \
+    get_access, get_class_managers_grades
 from utils.menu.generator_functions import get_dates_call, get_key_call, confirm_execution_question_call, \
     confirm_registration_question_call, set_olympiad_inactive_call
 from utils.menu.user_menu import get_nearest_olympiads_call
@@ -133,7 +134,14 @@ async def confirm_execution(callback: types.CallbackQuery, callback_data: dict):
 async def get_nearest_olympiads(callback: types.CallbackQuery):
     user = get_user(callback.from_user.id)
     olympiads = get_olympiads()
-    olympiads = olympiads[(olympiads['grade'] == user['grade']) & (olympiads['is_active'] == 1)]
+    access = get_access(callback.from_user.id)
+    if access == 1:
+        olympiads = olympiads[(olympiads['grade'] == user['grade']) & (olympiads['is_active'] == 1)]
+    elif access == 2:
+        grades = get_class_managers_grades(callback.from_user.id)
+        olympiads = olympiads[(olympiads['is_active'] == 1) & (olympiads['grade'].isin(grades['grade_num']))].groupby('name')['start_date'].min().reset_index()
+    elif access == 3:
+        olympiads = olympiads[olympiads['is_active'] == 1].groupby('name')['start_date'].min().reset_index()
     olympiads = olympiads.sort_values(by=['start_date'])
     olympiads_list = [olympiad['name'] + ' ' + olympiad['start_date'].strftime('%d.%m')
                       for _, olympiad in olympiads.iterrows()]

@@ -164,7 +164,7 @@ def pages_keyboard(list_of_instance: pd.DataFrame, callback_column: str, text_co
                                            callback_data=pages_keyboard_call.new(data=row[callback_column])))
     left_btn = None
     right_btn = None
-    if page != 1:
+    if page != 0:
         left_btn = InlineKeyboardButton(text='\U000025C0', callback_data=page_move_call.new(data='decr'))
     if not last_page:
         right_btn = InlineKeyboardButton(text='\U000025B6', callback_data=page_move_call.new(data='incr'))

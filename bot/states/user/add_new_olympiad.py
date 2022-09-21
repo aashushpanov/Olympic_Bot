@@ -39,7 +39,7 @@ async def start(callback: types.CallbackQuery, state: FSMContext):
     olympiads_groups = olympiads.sort_values(by=['start_date']).groupby('name', sort=False).first()
     olympiads_groups['name'] = olympiads_groups.index
     olympiads_groups['text'] = olympiads_groups.apply(lambda row: "{} с {}".format(row['name'], row['start_date'].strftime('%d.%m')), axis=1)
-    await state.update_data(olympiads=olympiads_groups, page=1)
+    await state.update_data(olympiads=olympiads_groups, page=0)
     message = callback.message
     await delete_message(message)
     markup = pages_keyboard(olympiads_groups, 'name', 'text', 0)

@@ -6,7 +6,7 @@ from filters import IsExist
 from loader import bot
 from utils.db.add import admin_migrate, remove_admin_access, change_users_files
 from utils.db.get import get_admins
-from utils.files.tables import file_alias, create_google_file
+from utils.files.tables import file_alias, create_google_file, create_files
 from utils.menu.admin_menu import set_admins_call
 
 
@@ -36,7 +36,6 @@ async def update_admins():
         admin_migrate(list(admins_to_add))
         change_users_files(user_id=None, file_types=['users_file'])
         for admin_id in admins_to_add:
-            create_google_file(admin_id, file_alias.keys())
+            await create_files(admin_id, file_alias.keys())
     if admins_to_delete:
         remove_admin_access(list(admins_to_delete))
-

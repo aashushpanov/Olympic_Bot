@@ -491,7 +491,8 @@ async def get_email(message: types.Message | types.CallbackQuery, state: FSMCont
                              " Подождите буквально одну минуту пока создаются файлы. Вам придет оповещение."
                              .format(', '.join([str(grades[i]) + literals[i] for i in range(len(literals))])))
         await create_class_managers_files(user_id, message)
-        change_users_files(user_id, ['cm_file', 'users_file'])
+        change_users_files(user_id, ['users_file'])
+        change_users_files(None, ['class_managers_file'])
     if email is not None:
         status = set_user_file_format(user_id, 1)
         if status == 0:

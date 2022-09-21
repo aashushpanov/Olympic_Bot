@@ -281,8 +281,8 @@ def get_keys_to_cm(user_id, olympiad_id, key_quantity):
             cur.execute(sql, [olympiad_id])
             sql = "INSERT INTO cm_keys (user_id, key_id) VALUES (%s, %s)"
             cur.execute(sql, [user_id, key_id])
-        sql = "UPDATE cm_key_limits SET key_remains = key_remains - %s WHERE olympiad_id = %s"
-        cur.execute(sql, [key_quantity, olympiad_id])
+        sql = "UPDATE cm_key_limits SET key_remains = key_remains - %s WHERE olympiad_id = %s AND user_id = %s"
+        cur.execute(sql, [key_quantity, olympiad_id, user_id])
         conn.commit()
     return keys, key_ids, status.status
 

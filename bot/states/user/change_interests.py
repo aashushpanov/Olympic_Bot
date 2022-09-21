@@ -66,7 +66,7 @@ async def parsing_interests(callback: types.CallbackQuery, state: FSMContext):
 async def delete_interest(callback: types.CallbackQuery, callback_data: dict):
     user_id = callback.from_user.id
     interest_id = callback_data.get('data')
-    interest = get_user(user_id)['interest']
+    interest = list(get_user(user_id)['interest'])
     try:
         interest.remove(interest_id)
         status = add_interests(user_id, interest)

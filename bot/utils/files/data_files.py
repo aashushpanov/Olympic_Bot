@@ -127,12 +127,11 @@ def make_cm_key_file(cm_id):
 
 def make_all_cm_key_file():
     file_path = os.path.join(os.getcwd(), file_dir, 'all_cm_key_file.xlsx')
-    columns = ['ФИО', 'Олимпиада', 'Класс', 'Ключ', 'Метка']
+    columns = ['Олимпиада', 'Класс', 'Ключ', 'Метка', 'ФИО']
     cm_key_file = get_all_cm_keys()
     cm_key_file['fio'] = cm_key_file.apply(lambda row: '{} {}'.format(row['l_name'], row['f_name']), axis=1)
     cm_key_file = cm_key_file.fillna('')
-    cm_key_file = cm_key_file.drop(['l_name', 'f_name'])
-    cm_key_file = cm_key_file.reindex(columns=['fio', 'olympiad_name', 'grade', 'key', 'label'])
+    cm_key_file = cm_key_file.drop(['l_name', 'f_name'], axis=1)
     cm_key_file.columns = columns
     cm_key_file.to_excel(file_path, index=False)
     return file_path, cm_key_file

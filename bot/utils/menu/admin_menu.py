@@ -3,7 +3,7 @@ from aiogram.utils.callback_data import CallbackData
 from fone_tasks.updates import show_admin_question_call
 from utils.menu.MenuNode import MenuNode, NodeGenerator
 from utils.menu.generator_functions import get_download_options, get_file_call
-from utils.menu.user_menu import change_notify_time_call, delete_yourself_call
+from utils.menu.user_menu import change_notify_time_call, delete_yourself_call, get_nearest_olympiads_call
 
 set_olympiads_call = CallbackData('set_olympiads')
 set_subjects_call = CallbackData('set_subjects')
@@ -28,17 +28,20 @@ cm_announcement_call = CallbackData('cm_announcement')
 set_excel_format_call = CallbackData('set_excel_format')
 set_google_doc_format_call = CallbackData('set_google_doc_format')
 change_email_call = CallbackData('change_email')
+get_keys_to_admin_call = CallbackData('get_keys_to_admin')
 
 
-def set_admin_menu(main_node):
-    admin_menu = MenuNode("Меню администратора")
+def set_admin_menu(main_node=None):
+    admin_menu = MenuNode("Меню администратора", id='admin')
     if main_node:
         main_node.set_child(admin_menu)
 
     admin_menu.set_childs([
         MenuNode('Личные данные'),
+        MenuNode('Ближайшие олимпиады', callback=get_nearest_olympiads_call.new()),
         MenuNode('Данные олимпиад'),
         NodeGenerator('Выгрузки', func=get_download_options),
+        MenuNode('Взять ключи ВСОШ', callback=get_keys_to_admin_call.new()),
         MenuNode('Объявление'),
         MenuNode('Служебные функции')
     ])

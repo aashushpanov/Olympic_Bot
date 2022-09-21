@@ -9,10 +9,10 @@ from utils.menu.class_manager_menu import set_class_manager_menu
 from utils.menu.user_menu import set_user_menu, set_interest_menu
 
 
-main_menu = MenuNode(text='Меню')
+# main_menu = MenuNode(text='Меню')
 
-set_user_menu(main_menu)
-set_admin_menu(main_menu)
+# set_user_menu(main_menu)
+main_menu = set_admin_menu()
 admin_group_menu = set_group_admin_menu()
 
 user_menu = set_user_menu(root_id='user')
