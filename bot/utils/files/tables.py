@@ -143,7 +143,7 @@ def file_format(work_sheet, file_type):
             work_sheet.adjust_column_width(start=2, pixel_size=50)
             work_sheet.adjust_column_width(start=4, pixel_size=50)
         case 'all_cm_key_file':
-            pygsheets.datarange.DataRange('A1', 'C1', worksheet=work_sheet).apply_format(cell)
+            pygsheets.datarange.DataRange('A1', 'E1', worksheet=work_sheet).apply_format(cell)
 
 
 async def bind_email(user_id, message=None):

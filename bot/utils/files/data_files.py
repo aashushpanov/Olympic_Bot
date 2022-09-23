@@ -79,7 +79,7 @@ def make_olympiads_status_file(user_id=None, teaching=None):
         f_name = olympiad_status['f_name']
         l_name = olympiad_status['l_name']
         literal = olympiad_status['literal'] if olympiad_status['literal'] else ''
-        grade = str(olympiad_status['grade']) + literal
+        grade = str(olympiad_status['grade']) + str(literal)
         olympiad_name = olympiad_status['name']
         subject = olympiad_status['name_subject']
         if teaching:

@@ -48,13 +48,13 @@ def update_olympiads_to_track():
 def update_missed_olympiads():
     olympiads = get_olympiads()
     olympiads_status = get_all_olympiads_status()
-    olympiads_status = olympiads_status.join(olympiads.set_index('code'), on='olympiad_code', rsuffix='_real')
+    olympiads_status = olympiads_status.join(olympiads.set_index('id'), on='olympiad_id', rsuffix='_real')
     missed_olympiads = olympiads_status[((olympiads_status['status_code'] == 1) | (olympiads_status['status_code'] == 0))
                                         & ((olympiads_status['is_active'] == 0) | (olympiads_status['stage'] !=
                                                                                    olympiads_status['stage_real']))]
     columns = ['code', 'stage']
     missed_olympiads_to_update = pd.DataFrame(columns=columns)
-    for name, _ in missed_olympiads.groupby(['olympiad_code', 'stage']):
+    for name, _ in missed_olympiads.groupby(['olympiad_id', 'stage']):
         olympiad = pd.DataFrame([name], columns=columns)
         missed_olympiads_to_update = pd.concat([missed_olympiads_to_update, olympiad])
     if not missed_olympiads_to_update.empty:
@@ -65,7 +65,7 @@ def create_notifications():
     olympiads_status = get_all_olympiads_status()
     olympiads = get_olympiads()
     olympiads_status = olympiads_status.join(olympiads.set_index('id'), on='olympiad_id', rsuffix='_real')
-    columns = ['user_id', 'olympiad_id', 'message', 'type']
+    columns = ['user_id', 'olympiad_id', 'notification_message', 'notification_type']
     notifications = pd.DataFrame(columns=columns)
     for _, status in olympiads_status[olympiads_status['status_code'] == 0].iterrows():
         if (status['start_date'] - dt.date.today()).days < 2 or (
@@ -109,7 +109,7 @@ def create_question_notifications():
     questions_counts = get_questions_counts()
     if questions_counts:
         admins = get_admins()
-        columns = ['user_id', 'olympiad_id', 'message', 'type']
+        columns = ['user_id', 'olympiad_id', 'notification_message', 'notification_type']
         message = 'У вас есть неотвеченные вопросы ({})'.format(questions_counts)
         notify_type = 'admin_question'
         notifications = pd.DataFrame(columns=columns)
@@ -123,10 +123,10 @@ def create_question_notifications():
 async def send_notifications(notifications):
     olympiads = get_olympiads()
     for _, notification in notifications.iterrows():
-        text = notification['message']
+        text = notification['notification_message']
         olympiad_id = notification['olympiad_id']
         stage = int(olympiads[olympiads['id'] == olympiad_id]['stage'].item())
-        if notification['type'] == 'reg_notify':
+        if notification['notification_type'] == 'reg_notify':
             reg_url = olympiads[olympiads['id'] == olympiad_id]['urls'].iloc[0].get('reg_url')
             reg_url = reg_url if reg_url else 'https://olimpiada.ru/'
             reply_markup = callbacks_keyboard(texts=['Ссылка на регистрацию', 'Зарегистрировался', 'Скрыть'],
@@ -137,7 +137,7 @@ async def send_notifications(notifications):
                 await bot.send_message(chat_id=notification['user_id'], text=text, reply_markup=reply_markup)
             except Exception as error:
                 print(error)
-        elif notification['type'] == 'done_notify':
+        elif notification['notification_type'] == 'done_notify':
             reply_markup = callbacks_keyboard(texts=['Пройдена', 'Скрыть'],
                                               callbacks=[confirm_execution_call.new(data=olympiad_id, stage=stage),
                                                          delete_keyboard_call.new()])
@@ -145,12 +145,12 @@ async def send_notifications(notifications):
                 await bot.send_message(chat_id=notification['user_id'], text=text, reply_markup=reply_markup)
             except Exception as error:
                 print(error)
-        elif notification['type'] == 'done_notify':
+        elif notification['notification_type'] == 'done_notify':
             try:
                 await bot.send_message(notification['user_id'], text=text)
             except Exception as error:
                 print(error)
-        elif notification['type'] == 'admin_question':
+        elif notification['notification_type'] == 'admin_question':
             reply_markup = callbacks_keyboard(texts=['Показать', 'Скрыть'],
                                               callbacks=[show_admin_question_call.new(), delete_keyboard_call.new()])
             try:

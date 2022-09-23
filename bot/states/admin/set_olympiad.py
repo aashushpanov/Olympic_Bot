@@ -21,9 +21,6 @@ from utils.menu.menu_structure import reset_interest_menu
 from utils.db.add import add_olympiads, add_subjects, add_dates, update_olympiads, update_subjects, change_users_files, \
     change_common_files
 
-# stages = {'школьный': 1, 'муниципальный': 2, 'региональный': 3, 'заключительный': 4, 'пригласительный': 0,
-#           'отборочный': 1, ''}
-
 
 add_not_existing_subjects_call = CallbackData('add_not_existing_subjects', 'data')
 add_not_existing_olympiads_call = CallbackData('add_not_existing_olympiads', 'data')

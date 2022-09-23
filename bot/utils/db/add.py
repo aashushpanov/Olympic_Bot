@@ -237,7 +237,18 @@ def update_cm_key_limits():
               " WHERE is_admin = 2 GROUP BY users.id, grade_num"
         cur.execute(sql)
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['user_id', "grade_num", 'grade_quantity'])
+        columns = ['user_id', "grade_num", 'grade_quantity']
+        data = pd.DataFrame(res, columns=columns)
+        max_grades = data.groupby('user_id')['grade_num'].max().reset_index()
+        for _, row in max_grades.iterrows():
+            user_id = row['user_id']
+            min_grade = row['grade_num'] + 1
+            max_grade = row['grade_num'] + 4 if row['grade_num'] <= 8 else 11
+            extra_user_data = {'user_id': [user_id for _ in range(max_grade - min_grade)],
+                               'grade_num': [grade for grade in range(min_grade, max_grade)],
+                               'grade_quantity': [15 for _ in range(max_grade - min_grade)]}
+            extra_data = pd.DataFrame(extra_user_data, columns=columns)
+            data = pd.concat([data, extra_data])
         for _, row in data.iterrows():
             sql = "SELECT id FROM olympiads WHERE grade = %s"
             cur.execute(sql, [int(row['grade_num'])])
@@ -523,7 +534,8 @@ def add_olympiads_to_track(olympiads: DataFrame, user_id):
             else:
                 sql = "INSERT INTO olympiads_status (user_id, olympiad_id, status_code, stage, action_timestamp)" \
                       "VALUES (%s, %s, %s, %s, %s)"
-                status_code = 0 if current_olympiads[current_olympiads['id'] == olympiad['id']]['pre_registration'].item()\
+                status_code = 0 if current_olympiads[current_olympiads['id'] == olympiad['id']][
+                    'pre_registration'].item() \
                     else 1
                 cur.execute(sql, [user_id, olympiad['id'], status_code, olympiad['stage'], timestamp])
         conn.commit()
@@ -643,7 +655,7 @@ def add_notifications(notifications: DataFrame):
         for _, row in notifications.iterrows():
             sql = "INSERT INTO notifications (user_id, olympiad_id, notification_message, notification_type)" \
                   " VALUES (%s, %s, %s, %s)"
-            cur.execute(sql, [row['user_id'], row['olympiad_id'], row['message'], row['type']])
+            cur.execute(sql, [row['user_id'], row['olympiad_id'], row['notification_message'], row['notification_type']])
         conn.commit()
     return status.status
 
@@ -727,6 +739,8 @@ def add_google_doc_row(user_id, file_type, url):
 
 def add_google_doc_rows_from_reserve(user_id, file_types):
     with database() as (cur, conn, status):
+        sql = "DELETE FROM google_docs WHERE user_id = %s"
+        cur.execute(sql, [user_id])
         for file_type in file_types:
             sql = "DELETE FROM reserved_google_files" \
                   " WHERE id = (SELECT id FROM reserved_google_files LIMIT 1) RETURNING url"

@@ -50,7 +50,7 @@ async def turn_page(callback: types.CallbackQuery, state: FSMContext, callback_d
     await callback.answer()
     direction = callback_data.get('data')
     data = await state.get_data()
-    page = data['page']
+    page = data.get('page', 0)
     if direction == 'incr':
         page += 1
     else:

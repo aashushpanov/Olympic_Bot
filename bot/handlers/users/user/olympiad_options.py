@@ -135,7 +135,7 @@ async def get_nearest_olympiads(callback: types.CallbackQuery):
     user = get_user(callback.from_user.id)
     olympiads = get_olympiads()
     access = get_access(callback.from_user.id)
-    if access == 1:
+    if access == 0:
         olympiads = olympiads[(olympiads['grade'] == user['grade']) & (olympiads['is_active'] == 1)]
     elif access == 2:
         grades = get_class_managers_grades(callback.from_user.id)

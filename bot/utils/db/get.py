@@ -598,8 +598,8 @@ def get_changed_google_files():
     :return: Фрейм данных с user_id и file_type всех измененных листов Google.
     """
     with database() as (cur, conn, status):
-        sql = "SELECT user_id, file_type FROM google_docs WHERE is_changed = 1"
+        sql = "SELECT user_id, file_type, url FROM google_docs WHERE is_changed = 1"
         cur.execute(sql)
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['user_id', 'file_type'])
+        data = pd.DataFrame(res, columns=['user_id', 'file_type', 'url'])
     return data

@@ -1,3 +1,5 @@
+import datetime as dt
+
 from aiogram.utils.callback_data import CallbackData
 
 from data.aliases import file_alias
@@ -193,7 +195,7 @@ async def register_olympiads_options(node, **kwargs):
     if olympiad['pre_registration'] and olympiad_status['status_code'] == 0 and olympiad['is_active']:
         nodes.append(MenuNode(text='Подтвердить регистрацию',
                               callback=confirm_registration_question_call.new(data=olympiad_id)))
-    if olympiad_status['status_code'] == 1 and olympiad['is_active']:
+    if olympiad_status['status_code'] == 1 and olympiad['is_active'] and olympiad['start_date'] <= dt.date.today():
         nodes.append(MenuNode(text='Подтвердить участие',
                               callback=confirm_execution_question_call.new(data=olympiad_id)))
     nodes.append(MenuNode(text='Узнать даты проведения', callback=get_dates_call.new(data=olympiad_id)))

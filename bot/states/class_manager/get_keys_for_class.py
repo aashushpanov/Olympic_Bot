@@ -74,6 +74,7 @@ async def get_olympiad(callback: types.CallbackQuery, state: FSMContext, callbac
     access = get_access(callback.from_user.id)
     if access == 2:
         cm_grades = get_class_managers_grades(callback.from_user.id)['grade_num'].to_list()
+        cm_grades = cm_grades + [grade for grade in range(max(cm_grades) + 1, max(cm_grades) + 4)]
         available_grades = set(olympiads[(olympiads['name'] == olympiad_name) & (olympiads['grade'].isin(cm_grades))]['grade']
                                .values)
     elif access == 3:
@@ -101,7 +102,8 @@ async def get_grade(callback: types.CallbackQuery, state: FSMContext, callback_d
         key_limit = 0
         olympiad_id = 1
     if key_limit == 0:
-        await callback.answer('Нет возможности взять ключ для данного класса. Возможно закончились ключи, либо Вы исчерпали лимит.', show_alert=True)
+        await callback.answer('Нет возможности взять ключ для данного класса. Возможно закончились ключи, либо Вы '
+                              'исчерпали лимит.', show_alert=True)
         await state.finish()
         await delete_message(callback.message)
         return
