@@ -115,10 +115,10 @@ def file_format(work_sheet, file_type):
     work_sheet.adjust_column_width(start=1, end=12)
     match file_type:
         case 'users_file':
-            pygsheets.datarange.DataRange('A1', 'C1', worksheet=work_sheet).apply_format(cell)
+            pygsheets.datarange.DataRange('A1', 'D1', worksheet=work_sheet).apply_format(cell)
             work_sheet.adjust_column_width(start=3, pixel_size=60)
         case 'status_file':
-            pygsheets.datarange.DataRange('A1', 'G1', worksheet=work_sheet).apply_format(cell)
+            pygsheets.datarange.DataRange('A1', 'H1', worksheet=work_sheet).apply_format(cell)
             work_sheet.adjust_column_width(start=2, pixel_size=120)
             work_sheet.adjust_column_width(start=3, pixel_size=100)
             work_sheet.adjust_column_width(start=4, pixel_size=230)
@@ -129,10 +129,9 @@ def file_format(work_sheet, file_type):
             work_sheet.adjust_column_width(start=1, pixel_size=230)
             work_sheet.adjust_column_width(start=4, end=5, pixel_size=150)
         case 'class_managers_file':
-            pygsheets.datarange.DataRange('A1', 'C1', worksheet=work_sheet).apply_format(cell)
+            pygsheets.datarange.DataRange('A1', 'D1', worksheet=work_sheet).apply_format(cell)
             work_sheet.adjust_column_width(start=1, pixel_size=130)
             work_sheet.adjust_column_width(start=2, end=3, pixel_size=230)
-
         case 'answers_file':
             pygsheets.datarange.DataRange('A1', 'F1', worksheet=work_sheet).apply_format(cell)
             work_sheet.adjust_column_width(start=1, pixel_size=120)

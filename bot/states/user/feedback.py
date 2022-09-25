@@ -43,7 +43,7 @@ async def receive_question(message: types.Message, state: FSMContext):
     if status:
         await message.answer('Вопрос зарегистрирован по номером {}, подождите пока администратор на него ответит.'.
                              format(question_no))
-        text = 'Задан вопрос: {}\n\n{}'.format(question_no, question['message'])
+        text = 'Задан вопрос: {}\n\n{}'.format(question_no, question['question'])
         await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text)
         change_users_files(None, ['answers_file'])
     else:

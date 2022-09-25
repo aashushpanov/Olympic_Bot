@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import datetime as dt
 
 from data.aliases import status_codes
 from utils.db.get import get_olympiads, get_subjects, get_users, get_all_olympiads_status, get_answers, \
@@ -13,9 +14,10 @@ file_dir = os.path.join(os.getcwd(), 'data', 'files', 'to_send')
 def make_users_file(user_id=None):
     file_path = os.path.join(os.getcwd(), file_dir, 'users.xlsx')
     users = get_users(user_id)
-    columns = ['Фамилия', 'Имя', 'Класс']
+    columns = ['Фамилия', 'Имя', 'Класс', 'Дата регистрации']
     users['grade_label'] = users['grade'].astype(str) + users['literal']
-    users_file = users[['l_name', 'f_name', 'grade_label']]
+    users_file = users[['l_name', 'f_name', 'grade_label', 'reg_date']]
+    # users_file['reg_date'] = users_file['reg_date'].apply(lambda x: dt.datetime.fromordinal(x).date())
     users_file.columns = columns
     users_file.to_excel(file_path, index=False)
     return file_path, users_file
@@ -24,7 +26,7 @@ def make_users_file(user_id=None):
 def make_class_managers_file():
     file_path = os.path.join(os.getcwd(), file_dir, 'class_managers.xlsx')
     class_managers = get_class_managers()
-    columns = ['Фамилия', 'Имя', 'Классы']
+    columns = ['Фамилия', 'Имя', 'Классы', 'Дата регистрации']
     class_managers_file = pd.DataFrame(columns=columns)
     for _, row in class_managers.iterrows():
         grade_list = row['grades'].replace(' ', '')
@@ -73,7 +75,7 @@ def make_olympiads_status_file(user_id=None, teaching=None):
     olympiads_status = olympiads_status.join(olympiads.set_index('id'), on='olympiad_id', rsuffix='real')
     olympiads_status = olympiads_status.join(subjects.set_index('id'), on='subject_id', rsuffix='_subject')
     olympiads_status = olympiads_status.join(users.set_index('user_id'), on='user_id', rsuffix='user')
-    columns = ['Имя', 'Фамилия', 'Класс', 'Олимпиада', 'Предмет', 'Ключ', 'Статус']
+    columns = ['Имя', 'Фамилия', 'Класс', 'Олимпиада', 'Предмет', 'Ключ', 'Статус', 'Дата']
     status_file = pd.DataFrame(columns=columns)
     for _, olympiad_status in olympiads_status.iterrows():
         f_name = olympiad_status['f_name']
@@ -82,12 +84,13 @@ def make_olympiads_status_file(user_id=None, teaching=None):
         grade = str(olympiad_status['grade']) + str(literal)
         olympiad_name = olympiad_status['name']
         subject = olympiad_status['name_subject']
+        date = dt.datetime.fromtimestamp(olympiad_status['action_timestamp']).date()
         if teaching:
             key = "Взят" if olympiad_status['key'] else ""
         else:
             key = olympiad_status['key']
         status = status_codes.get(olympiad_status['status_code'], 'Не определен')
-        new_olympiad_status = pd.DataFrame([[f_name, l_name, grade, olympiad_name, subject, key, status]],
+        new_olympiad_status = pd.DataFrame([[f_name, l_name, grade, olympiad_name, subject, key, status, date]],
                                            columns=columns)
         status_file = pd.concat([status_file, new_olympiad_status], axis=0)
     status_file.to_excel(file_path, index=False)

@@ -219,12 +219,12 @@ def get_class_managers():
     :return: Фрейм данных с admin_id, именем, фамилией и классами всех руководителей классов.
     """
     with database() as (cur, conn, status):
-        sql = "SELECT users.id, f_name, l_name, string_agg(grades.grade_num || ' ' || grades.grade_literal, ',')" \
+        sql = "SELECT users.id, f_name, l_name, reg_date, string_agg(grades.grade_num || ' ' || grades.grade_literal, ',')" \
               " FROM users RIGHT JOIN user_refer_grade on users.id = user_refer_grade.user_id" \
               " LEFT JOIN grades on user_refer_grade.grade_id = grades.id WHERE is_admin = 2 group by users.id"
         cur.execute(sql)
         res = cur.fetchall()
-        data = pd.DataFrame(res, columns=['admin_id', 'f_name', 'l_name', 'grades'])
+        data = pd.DataFrame(res, columns=['admin_id', 'f_name', 'l_name', 'reg_date', 'grades'])
     return data
 
 
