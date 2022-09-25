@@ -16,7 +16,7 @@ async def manager():
     """
     hour = dt.datetime.now(pytz.timezone('Europe/Moscow')).time().hour
     # await greeting()
-    if 0 <= hour < 1:
+    if 1 <= hour < 2:
         await update_admins()
         update_olympiads_activity()
         update_olympiads_to_track()

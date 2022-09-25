@@ -37,14 +37,15 @@ async def receive_question(message: types.Message, state: FSMContext):
                                                          str(grade) + literal)
     index = ['user_id', 'question', 'user_message_id', 'date']
     date = dt.date.today()
-    question = pd.Series([message.from_user.id, question_from + question_text, None, date], index=index)
+    user_message_id = message.message_id
+    question = pd.Series([message.from_user.id, question_from + question_text, user_message_id, date], index=index)
     question_no, status = add_question(question)
     if status:
         await message.answer('Вопрос зарегистрирован по номером {}, подождите пока администратор на него ответит.'.
                              format(question_no))
         text = 'Задан вопрос: {}\n\n{}'.format(question_no, question['message'])
         await bot.send_message(chat_id=config.ADMIN_GROUP_ID, text=text)
-        change_users_files(message.from_user.id, ['answers_file'])
+        change_users_files(None, ['answers_file'])
     else:
         await message.answer('Что-то пошло не так.')
     await state.finish()

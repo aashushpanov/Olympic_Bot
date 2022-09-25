@@ -2,6 +2,7 @@ import asyncio
 
 import pandas as pd
 import datetime as dt
+import pytz
 
 from aiogram.utils.callback_data import CallbackData
 
@@ -16,6 +17,10 @@ from utils.db.get import get_olympiads, get_users, get_tracked_olympiads, get_al
 show_admin_question_call = CallbackData('show_admin_question')
 
 
+def now():
+    return dt.datetime.now(pytz.timezone('Europe/Moscow')).date()
+
+
 async def greeting():
     users = get_users()
     for _, user in users.iterrows():
@@ -27,7 +32,7 @@ def update_olympiads_activity():
     olympiads = get_olympiads()
     inactive_olympiads = pd.DataFrame(columns=olympiads.columns)
     for _, olympiad in olympiads[olympiads['is_active'] == 1].iterrows():
-        if dt.date.today() > olympiad['end_date']:
+        if now() > olympiad['end_date']:
             olympiad = pd.DataFrame([olympiad])
             inactive_olympiads = pd.concat([inactive_olympiads, olympiad], ignore_index=True)
     if not inactive_olympiads.empty:
@@ -68,13 +73,13 @@ def create_notifications():
     columns = ['user_id', 'olympiad_id', 'notification_message', 'notification_type']
     notifications = pd.DataFrame(columns=columns)
     for _, status in olympiads_status[olympiads_status['status_code'] == 0].iterrows():
-        if (status['start_date'] - dt.date.today()).days < 2 or (
-                status['end_date'] >= dt.date.today() >= status['start_date']):
+        if (status['start_date'] - now()).days < 2 or (
+                status['end_date'] >= now() >= status['start_date']):
             user_id = status['user_id']
             olympiad_code = status['olympiad_id']
-            if 2 >= (status['start_date'] - dt.date.today()).days > 0:
+            if 2 >= (status['start_date'] - now()).days > 0:
                 message_prefix = 'Скоро начнется '
-            elif status['end_date'] >= dt.date.today() >= status['start_date']:
+            elif status['end_date'] >= now() >= status['start_date']:
                 message_prefix = 'Скоро закончится '
             else:
                 message_prefix = ''
@@ -84,18 +89,19 @@ def create_notifications():
             notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)
             notifications = pd.concat([notifications, notification], axis=0)
     for _, status in olympiads_status[olympiads_status['status_code'] == 1].iterrows():
+        notification = pd.DataFrame()
         user_id = status['user_id']
         olympiad_code = status['olympiad_id']
-        if status['end_date'] >= dt.date.today() >= status['start_date']:
+        if status['end_date'] >= now() >= status['start_date']:
             message = "Скоро закончится {}, а вы еще не прошли ее. Если уже сделали это, нажмите 'Пройдена'".\
                 format(status['name'])
             notify_type = 'done_notify'
             notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)
-            notifications = pd.concat([notifications, notification], axis=0)
-        elif (status['start_date'] - dt.date.today()).days < 2:
+        elif 0 < (status['start_date'] - now()).days < 2:
             message = "Скоро будет {}, постарайтесь не забыть".format(status['name'])
             notify_type = 'soon_notify'
             notification = pd.DataFrame([[user_id, olympiad_code, message, notify_type]], columns=columns)
+        if not notification.empty:
             notifications = pd.concat([notifications, notification], axis=0)
     if not notifications.empty:
         _ = add_notifications(notifications)

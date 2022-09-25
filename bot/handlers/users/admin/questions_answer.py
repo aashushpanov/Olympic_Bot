@@ -52,8 +52,10 @@ async def question_answer(message: types.Message):
                 admin = get_admin(admin_id)
                 text = 'Ответ на ваш вопрос номер {} от {} {}:\n\n{}'.format(question_id, admin['last_name'],
                                                                              admin['first_name'], answer)
-                await bot.send_message(chat_id=user_id, text=text)
-                change_users_files(user_id, ['answers_file'])
+                user_message = types.Message(message_id=question['user_message_id'], chat=user_id)
+                await user_message.reply_message(text=text)
+                # await bot.forward_message(chat_id=user_id, text=text)
+                change_users_files(None, ['answers_file'])
             else:
                 await message.answer('Что-то пошло не так.')
         else:

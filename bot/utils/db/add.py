@@ -678,6 +678,7 @@ def add_question(question: Series):
     :type question: Series
     :return: The id of the question that was just added to the database.
     """
+    res = []
     with database() as (cur, conn, status):
         date = dt.date.today()
         sql = "INSERT INTO questions (from_user, question, user_message_id, question_date)" \

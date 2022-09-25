@@ -402,6 +402,7 @@ def get_olympiad(olympiad_id):
     :param olympiad_id: Идентификатор олимпиады
     :return: Ряд данных из таблицы олимпиад.
     """
+    res = []
     with database() as (cur, conn, status):
         sql = "SELECT name, subject_id, stage, start_date, end_date, is_active, grade, key_needed," \
               " pre_registration, urls, keys_count FROM olympiads WHERE id = %s"

@@ -127,7 +127,7 @@ def register_registration_handlers(dp: Dispatcher):
 
 async def choose_role(callback: types.CallbackQuery):
     await callback.answer()
-    await callback.message.delete()
+    await delete_message(callback.message)
     # texts = ['Ученик', 'Учитель', 'Классный руководитель', 'Администратор']
     # callbacks = [user_reg_call.new(), teacher_reg_call.new(), class_manager_reg_call.new()]
     texts = ['Ученик', 'Классный руководитель', 'Администратор']
