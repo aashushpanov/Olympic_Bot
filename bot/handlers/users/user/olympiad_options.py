@@ -46,6 +46,8 @@ async def get_key(callback: types.CallbackQuery, callback_data: dict):
     user_id = callback.from_user.id
     olympiad_id = callback_data.get('data')
     olympiad = get_olympiad(olympiad_id)
+    if olympiad.empty:
+        return
     if olympiad['keys_count'] == 0:
         await callback.answer('К сожалению, ключи на эту олимпиаду закончились. Обратитесь к классному руководителю.',
                               show_alert=True)

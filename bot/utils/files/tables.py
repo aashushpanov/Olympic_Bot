@@ -7,7 +7,6 @@ from googleapiclient.errors import HttpError
 
 from data.aliases import file_alias
 from data.config import GOOGLE_SERVICE_FILENAME
-from loader import bot
 from utils.db.add import add_google_doc_row, add_google_doc_url, set_updated_google_doc, add_excel_doc_row, \
     add_google_doc_rows_from_reserve, add_reserved_files_to_db
 from utils.db.get import get_admin, get_changed_google_files, get_user_google_files, get_access
@@ -171,6 +170,7 @@ async def bind_email(user_id, message=None):
             if message is not None:
                 await message.answer(text)
             else:
+                from loader import bot
                 await bot.send_message(chat_id=user_id, text=text)
             
 

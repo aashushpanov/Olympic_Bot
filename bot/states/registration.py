@@ -157,7 +157,7 @@ async def password_check(message: types.Message):
 
 async def clear_registration(callback: types.CallbackQuery, state: FSMContext, callback_data: dict):
     await callback.answer()
-    await callback.message.delete()
+    await delete_message(callback.message)
     await callback.message.answer('Введите пароль', reply_markup=cansel_keyboard())
     prefix = callback_data.get('@')
     if prefix == 'teacher_reg':

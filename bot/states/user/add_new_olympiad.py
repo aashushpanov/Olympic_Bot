@@ -1,3 +1,5 @@
+import pandas as pd
+
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -56,7 +58,7 @@ async def turn_page(callback: types.CallbackQuery, state: FSMContext, callback_d
     else:
         page -= 1
     await state.update_data(page=page)
-    olympiads = data['olympiads']
+    olympiads = data.get('olympiads', pd.DataFrame())
     markup = pages_keyboard(olympiads, 'name', 'text', page)
     await callback.message.edit_reply_markup(markup)
 

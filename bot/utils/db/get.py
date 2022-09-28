@@ -114,22 +114,22 @@ def get_key_by_id(key_id):
 
 
 def get_all_olympiads_status(user_id=None, teaching=False):
-    columns = ['olympiad_id', 'user_id', 'stage', 'key', 'result_code', 'status_code', 'action_timestamp']
+    columns = ['olympiad_id', 'user_id', 'stage', 'key', 'is_active',  'result_code', 'status_code', 'action_timestamp']
     with database() as (cur, conn, status):
         if user_id is None:
-            sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
+            sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, is_active, result_code, status_code, action_timestamp" \
                   " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id"
             cur.execute(sql)
         else:
             if teaching:
-                sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
+                sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, is_active, result_code, status_code, action_timestamp" \
                       " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id" \
                       " WHERE user_id = ANY(SELECT user_id FROM user_refer_grade" \
                       " WHERE grade_id = ANY(SELECT grade_id FROM teaching WHERE user_id = %s)) AND" \
                       " olympiad_id = ANY(SELECT olympiad_id FROM olympiads WHERE" \
                       " subject_id = ANY(SELECT subject_id FROM teaching WHERE user_id = %s))"
             else:
-                sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, result_code, status_code, action_timestamp" \
+                sql = "SELECT olympiads_status.olympiad_id, user_id, stage, k.key, is_active, result_code, status_code, action_timestamp" \
                       " FROM olympiads_status LEFT JOIN keys k on k.id = olympiads_status.key_id" \
                       " WHERE user_id = ANY(SELECT user_id FROM user_refer_grade" \
                       " WHERE grade_id = ANY(SELECT grade_id FROM user_refer_grade WHERE user_id = %s))" \
@@ -236,6 +236,7 @@ def get_class_manager_by_grade(grade, literal):
     :param literal: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z
     :return: Серия admin_id, f_name и l_name классного руководителя данного класса.
     """
+    res = None
     with database() as (cur, conn, status):
         sql = "SELECT users.id, f_name, l_name FROM users" \
               " WHERE id = ANY(SELECT user_id FROM user_refer_grade" \
@@ -402,7 +403,7 @@ def get_olympiad(olympiad_id):
     :param olympiad_id: Идентификатор олимпиады
     :return: Ряд данных из таблицы олимпиад.
     """
-    res = []
+    data = pd.DataFrame()
     with database() as (cur, conn, status):
         sql = "SELECT name, subject_id, stage, start_date, end_date, is_active, grade, key_needed," \
               " pre_registration, urls, keys_count FROM olympiads WHERE id = %s"

@@ -23,7 +23,7 @@ async def show_questions(callback: types.CallbackQuery):
     if not questions.empty:
         for index, question in questions.iterrows():
             question_id = question['id']
-            text = 'Номер вопроса: {}\n\n{}'.format(question_id, question['message'])
+            text = 'Номер вопроса: {}\n\n{}'.format(question_id, question['question'])
             message = await callback.message.answer(text=text)
             message_id = message.message_id
             questions.loc[index, 'admin_message_id'] = message_id
@@ -53,7 +53,7 @@ async def question_answer(message: types.Message):
                 text = 'Ответ на ваш вопрос номер {} от {} {}:\n\n{}'.format(question_id, admin['last_name'],
                                                                              admin['first_name'], answer)
                 user_message = types.Message(message_id=question['user_message_id'], chat=user_id)
-                await user_message.reply_message(text=text)
+                await user_message.reply(text=text)
                 # await bot.forward_message(chat_id=user_id, text=text)
                 change_users_files(None, ['answers_file'])
             else:

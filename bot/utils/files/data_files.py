@@ -30,7 +30,7 @@ def make_class_managers_file():
     class_managers_file = pd.DataFrame(columns=columns)
     for _, row in class_managers.iterrows():
         grade_list = row['grades'].replace(' ', '')
-        class_manager = pd.DataFrame([[row['l_name'], row['f_name'], ', '.join(grade_list)]], columns=columns)
+        class_manager = pd.DataFrame([[row['l_name'], row['f_name'], ', '.join(grade_list), row['reg_date']]], columns=columns)
         class_managers_file = pd.concat([class_managers_file, class_manager], axis=0)
     class_managers_file.to_excel(file_path, index=False)
     return file_path, class_managers_file

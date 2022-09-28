@@ -54,10 +54,12 @@ def update_missed_olympiads():
     olympiads = get_olympiads()
     olympiads_status = get_all_olympiads_status()
     olympiads_status = olympiads_status.join(olympiads.set_index('id'), on='olympiad_id', rsuffix='_real')
-    missed_olympiads = olympiads_status[((olympiads_status['status_code'] == 1) | (olympiads_status['status_code'] == 0))
-                                        & ((olympiads_status['is_active_real'] == 0) | (olympiads_status['stage'] !=
-                                                                                   olympiads_status['stage_real']))
-                                        & ((now() - olympiads_status['end_date']).days > 1)]
+    missed_olympiads = olympiads_status[
+        ((olympiads_status['status_code'] == 1) | (olympiads_status['status_code'] == 0))
+        & ((olympiads_status['is_active_real'] == 0) | (olympiads_status['stage'] !=
+                                                        olympiads_status['stage_real']))]
+    criterion = missed_olympiads['end_date'].map(lambda x: (now() - x).days > 2)
+    missed_olympiads = missed_olympiads[criterion]
     columns = ['code', 'stage']
     missed_olympiads_to_update = pd.DataFrame(columns=columns)
     for name, _ in missed_olympiads.groupby(['olympiad_id', 'stage']):
@@ -93,15 +95,14 @@ def create_notifications():
     message = ''
     notify_type = ''
     for _, status in olympiads_status[olympiads_status['status_code'] == 1].iterrows():
-        notification = pd.DataFrame()
         user_id = status['user_id']
         olympiad_code = status['olympiad_id']
-        if (status['end_date'] - now()).days == 1:
-            message = "Закончилась {}, а вы не отметили ее прохождение. Если сделали это, нажмите 'Пройдена'.".\
+        if (status['end_date'] - now()).days >= 1:
+            message = "Закончилась {}, а вы не отметили ее прохождение. Если сделали это, нажмите 'Пройдена'.". \
                 format(status['name'])
             notify_type = 'end_notify'
         elif status['end_date'] >= now() >= status['start_date']:
-            message = "Скоро закончится {}, а вы еще не прошли ее. Если уже сделали это, нажмите 'Пройдена'".\
+            message = "Скоро закончится {}, а вы еще не прошли ее. Если уже сделали это, нажмите 'Пройдена'". \
                 format(status['name'])
             notify_type = 'done_notify'
         elif 0 < (status['start_date'] - now()).days < 2:
@@ -150,7 +151,7 @@ async def send_notifications(notifications):
                 await bot.send_message(chat_id=notification['user_id'], text=text, reply_markup=reply_markup)
             except Exception as error:
                 print(error)
-        elif notification['notification_type'] == 'done_notify':
+        elif notification['notification_type'] in ['done_notify', 'end_notify']:
             reply_markup = callbacks_keyboard(texts=['Пройдена', 'Скрыть'],
                                               callbacks=[confirm_execution_call.new(data=olympiad_id, stage=stage),
                                                          delete_keyboard_call.new()])
@@ -158,7 +159,7 @@ async def send_notifications(notifications):
                 await bot.send_message(chat_id=notification['user_id'], text=text, reply_markup=reply_markup)
             except Exception as error:
                 print(error)
-        elif notification['notification_type'] == 'done_notify':
+        elif notification['notification_type'] == 'soon_notify':
             try:
                 await bot.send_message(notification['user_id'], text=text)
             except Exception as error:
@@ -171,4 +172,3 @@ async def send_notifications(notifications):
             except Exception as error:
                 print(error)
         await asyncio.sleep(0.04)
-

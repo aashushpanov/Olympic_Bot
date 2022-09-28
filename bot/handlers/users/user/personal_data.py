@@ -14,7 +14,7 @@ async def show_personal_data(callback: types.CallbackQuery):
     user = get_user(callback.from_user.id)
     grade_num = user['grade'] if user['grade'] else ''
     grade_literal = user['literal'] if user['literal'] else ''
-    grade = 'Класс: {}'.format(str(grade_num) + grade_literal)
+    grade = 'Класс: {}'.format(str(grade_num) + str(grade_literal))
     first_name = 'Имя: {}'.format(user['f_name'])
     last_name = 'Фамилия: {}'.format(user['l_name'])
     await callback.message.answer("Ваши данные:\n{}\n{}\n{}".format(last_name, first_name, grade))
