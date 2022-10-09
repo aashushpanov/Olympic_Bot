@@ -2,6 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
+from filters.filters import delete_message
 from keyboards.keyboards import cansel_keyboard
 from utils.db.add import add_email, set_user_file_format
 from utils.files.tables import bind_email
@@ -20,7 +21,7 @@ def register_change_email_handlers(dp: Dispatcher):
 
 async def start(callback: types.CallbackQuery):
     await callback.answer()
-    await callback.message.delete()
+    await delete_message(callback.message)
     markup = cansel_keyboard()
     await callback.message.answer('Введите почту для привязки Google таблиц', reply_markup=markup)
     await ChangeEmail.get_email.set()

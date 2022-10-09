@@ -110,7 +110,7 @@ def make_answers_file():
         answer = row['answer']
         question_date = row['question_date']
         answer_date = row['answer_date']
-        from_admin = '{} {}'.format(row['last_name'], row['first_name'])
+        from_admin = '{} {}'.format(row['l_name'], row['f_name'])
         answer_row = pd.DataFrame([[question_id, question, question_date, answer, answer_date, from_admin]],
                                   columns=columns)
         answers_file = pd.concat([answers_file, answer_row], axis=0)

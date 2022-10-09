@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.utils.callback_data import CallbackData
 
+from filters.filters import delete_message
 from keyboards.keyboards import time_keyboard, time_call, callbacks_keyboard, yes_no_keyboard
 from loader import bot
 from utils.db.add import add_notify_time
@@ -36,7 +37,7 @@ def register_personal_data_handlers(dp: Dispatcher):
 
 async def change_notify_time_start(callback: types.CallbackQuery):
     await callback.answer()
-    await callback.message.delete()
+    await delete_message(callback.message)
     await callback.message.answer(text='Выберите время для уведомлений', reply_markup=time_keyboard())
     await ChangePersonalData.change_notify_time.set()
 

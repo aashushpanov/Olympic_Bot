@@ -16,17 +16,18 @@ async def manager():
     """
     hour = dt.datetime.now(pytz.timezone('Europe/Moscow')).time().hour
     # await greeting()
-    if 0 <= hour < 1:
+
+    if 1 <= hour < 2:
         await update_admins()
         update_olympiads_activity()
-        update_olympiads_to_track()
         update_missed_olympiads()
+        update_olympiads_to_track()
         clean_notifications()
         create_notifications()
         create_question_notifications()
         update_all_files()
-    update_cm_key_limits()
+        update_cm_key_limits()
 
-    users = get_users_by_notification_time(hour)
-    notifications = get_notifications(users)
-    await send_notifications(notifications)
+        users = get_users_by_notification_time(hour)
+        notifications = get_notifications(users)
+        await send_notifications(notifications)

@@ -34,7 +34,7 @@ async def confirm_delete_user(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_id = callback.from_user.id
     access = get_access(user_id)
-    if access == 1:
+    if access == 0:
         status = set_user_inactive(user_id)
     else:
         status = delete_user(user_id)

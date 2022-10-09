@@ -96,10 +96,17 @@ def update_file(client, user_file, user_id):
         spread_sheet.title = title
     except pygsheets.exceptions.SpreadsheetNotFound:
         spread_sheet = client.create(title)
-    work_sheet = spread_sheet.sheet1
-    work_sheet.clear()
-    work_sheet.set_dataframe(data, (1, 1))
-    file_format(work_sheet, user_file['file_type'])
+    page_cap = 6000
+    work_sheets_need = data.shape[0] % page_cap + 1
+    work_sheets_current = spread_sheet.worksheets()
+    for i in range(len(work_sheets_current) - work_sheets_need):
+        spread_sheet.add_work_sheet("Sheet " + str(i + 1))
+    work_sheets_current = spread_sheet.worksheets()
+    for page, work_sheet in enumerate(work_sheets_current):
+        work_sheet.clear()
+        sheet_data = data.iloc[page_cap*page: page_cap*(page + 1)]
+        work_sheet.set_dataframe(sheet_data, (1, 1))
+        file_format(work_sheet, user_file['file_type'])
     _ = set_updated_google_doc(user_id, user_file['file_type'])
 
 

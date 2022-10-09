@@ -124,7 +124,7 @@ def add_notify_time(time, user_id):
     :return: The status of the database connection.
     """
     with database() as (cur, conn, status):
-        sql = "UPDATE users SET notify_time = %s WHERE id = %s"
+        sql = "UPDATE users SET notification_time = %s WHERE id = %s"
         cur.execute(sql, [time, user_id])
         conn.commit()
     return status.status

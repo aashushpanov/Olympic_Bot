@@ -209,6 +209,7 @@ def get_admins():
         cur.execute(sql)
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['admin_id', 'f_name', 'l_name'])
+        data['admin_id'] = data['admin_id'].astype('int')
     return data
 
 
@@ -267,6 +268,7 @@ def get_class_managers_grades(cm_id):
 
 
 def get_cm_keys_limit(cm_id, olympiad_name, grade_num):
+    res  = 0
     with database() as (cur, conn, status):
         sql = "SELECT id FROM olympiads WHERE name = %s AND grade = %s"
         cur.execute(sql, [olympiad_name, grade_num])
@@ -279,8 +281,6 @@ def get_cm_keys_limit(cm_id, olympiad_name, grade_num):
         res_2 = cur.fetchone()
         if res_1 and res_2:
             res = min(res_1[0], res_2[0])
-        else:
-            res = 0
     return res, olympiad_id
 
 
@@ -528,6 +528,7 @@ def get_answers():
         res = cur.fetchall()
         data = pd.DataFrame(res, columns=['question_id', 'from_user', 'question', 'user_message_id', 'admin_message_id',
                                           'answer', 'to_admin', 'question_date', 'answer_date'])
+        data['to_admin'] = data['to_admin'].astype('int')
     return data
 
 

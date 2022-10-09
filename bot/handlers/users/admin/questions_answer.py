@@ -50,9 +50,10 @@ async def question_answer(message: types.Message):
                 await bot.delete_message(message_id=message.message_id, chat_id=config.ADMIN_GROUP_ID)
                 user_id = question['from_user']
                 admin = get_admin(admin_id)
-                text = 'Ответ на ваш вопрос номер {} от {} {}:\n\n{}'.format(question_id, admin['last_name'],
-                                                                             admin['first_name'], answer)
-                user_message = types.Message(message_id=question['user_message_id'], chat=user_id)
+                text = 'Ответ на ваш вопрос номер {} от {} {}:\n\n{}'.format(question_id, admin.get('last_name', 'Администратор'),
+                                                                             admin.get('first_name', ''), answer)
+                chat = types.Chat(id=user_id)
+                user_message = types.Message(message_id=question['user_message_id'], chat=chat)
                 await user_message.reply(text=text)
                 # await bot.forward_message(chat_id=user_id, text=text)
                 change_users_files(None, ['answers_file'])

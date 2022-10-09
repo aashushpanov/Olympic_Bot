@@ -5,7 +5,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.utils.callback_data import CallbackData
 
-from filters.filters import delete_message
+from filters.filters import delete_message, TimeAccess
 from keyboards.keyboards import pages_keyboard, available_grades_keyboard, page_move_call, pages_keyboard_call, \
     grade_call, callbacks_keyboard
 from loader import bot
@@ -27,8 +27,8 @@ class GetKeysForClass (StatesGroup):
 
 
 def register_get_keys_for_class_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(start, get_key_for_class_call.filter())
-    dp.register_callback_query_handler(start, get_keys_to_admin_call.filter())
+    dp.register_callback_query_handler(start, get_key_for_class_call.filter(), TimeAccess())
+    dp.register_callback_query_handler(start, get_keys_to_admin_call.filter(), TimeAccess())
     dp.register_callback_query_handler(turn_page, page_move_call.filter(), state=GetKeysForClass.choose_olympiad)
     dp.register_callback_query_handler(get_olympiad, pages_keyboard_call.filter(), state=GetKeysForClass.choose_olympiad)
     dp.register_callback_query_handler(get_grade, grade_call.filter(), state=GetKeysForClass.choose_grade)
