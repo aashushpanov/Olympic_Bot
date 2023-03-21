@@ -168,7 +168,9 @@ def pages_keyboard(list_of_instance: pd.DataFrame, callback_column: str, text_co
         left_btn = InlineKeyboardButton(text='\U000025C0', callback_data=page_move_call.new(data='decr'))
     if not last_page:
         right_btn = InlineKeyboardButton(text='\U000025B6', callback_data=page_move_call.new(data='incr'))
-    if right_btn and left_btn:
+    if right_btn is None and left_btn is None:
+        return markup
+    elif right_btn and left_btn:
         markup.row(left_btn, right_btn)
     else:
         if left_btn:

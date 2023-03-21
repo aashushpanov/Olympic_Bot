@@ -46,7 +46,7 @@ def add_user(user_id, f_name, l_name, grade=None, literal=None, interests: set =
 
 def set_user_inactive(user_id):
     with database() as (cur, conn, status):
-        sql = "UPDATE users SET is_active = 0 WHERE user_id = %s"
+        sql = "UPDATE users SET is_active = 0 WHERE id = %s"
         cur.execute(sql, [user_id])
         conn.commit()
     return status.status
